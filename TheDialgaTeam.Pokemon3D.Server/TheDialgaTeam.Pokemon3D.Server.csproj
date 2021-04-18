@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <StartupObject>TheDialgaTeam.Pokemon3D.Server.Program</StartupObject>
+    <ApplicationIcon>Icon\server-icon.ico</ApplicationIcon>
+    <PackageId>TheDialgaTeam.Pokemon3D.Server</PackageId>
+    <Version>0.1.0.0</Version>
+    <Authors>Yong Jian Ming</Authors>
+    <Company>The Dialga Team</Company>
+    <Product>TheDialgaTeam.Pokemon3D.Server</Product>
+    <Description>Unofficial Pokemon 3D Server</Description>
+    <PackageProjectUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</RepositoryUrl>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>DEBUG</DefineConstants>
+    <Optimize>false</Optimize>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="4.1.2" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
+    <PackageReference Include="Avalonia" Version="0.10.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.0" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.0" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Open.NAT\Open.Nat\Open.Nat.csproj" />
+    <ProjectReference Include="..\TheDialgaTeam.Core.Logger\src\TheDialgaTeam.Core.Logger.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\App.axaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="Views\MainWindow.axaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.Development.json" Condition="'$(Configuration)'=='Debug'">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,71 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheDialgaTeam.Core.Logger", "TheDialgaTeam.Core.Logger\src\TheDialgaTeam.Core.Logger.csproj", "{8490957D-3B0A-4B44-AEF4-2912A91F1754}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{9218C443-080C-4FD2-8286-C84C5F40C31D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Open.Nat", "Open.NAT\Open.Nat\Open.Nat.csproj", "{E960F85F-77D2-44BA-BD39-91602827CA2D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheDialgaTeam.Pokemon3D.Server", "TheDialgaTeam.Pokemon3D.Server\TheDialgaTeam.Pokemon3D.Server.csproj", "{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Debug|x64.ActiveCfg = Debug|x64
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Debug|x64.Build.0 = Debug|x64
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Debug|x86.ActiveCfg = Debug|x86
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Debug|x86.Build.0 = Debug|x86
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Release|x64.ActiveCfg = Release|x64
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Release|x64.Build.0 = Release|x64
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Release|x86.ActiveCfg = Release|x86
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754}.Release|x86.Build.0 = Release|x86
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Debug|x64.ActiveCfg = Debug|x64
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Debug|x64.Build.0 = Debug|x64
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Debug|x86.ActiveCfg = Debug|x86
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Debug|x86.Build.0 = Debug|x86
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Release|x64.ActiveCfg = Release|x64
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Release|x64.Build.0 = Release|x64
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Release|x86.ActiveCfg = Release|x86
+		{E960F85F-77D2-44BA-BD39-91602827CA2D}.Release|x86.Build.0 = Release|x86
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Debug|x64.ActiveCfg = Debug|x64
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Debug|x64.Build.0 = Debug|x64
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Debug|x86.ActiveCfg = Debug|x86
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Debug|x86.Build.0 = Debug|x86
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Release|x64.ActiveCfg = Release|x64
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Release|x64.Build.0 = Release|x64
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Release|x86.ActiveCfg = Release|x86
+		{2EF99453-0ADF-4E11-A572-63EE69D0D6BE}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8490957D-3B0A-4B44-AEF4-2912A91F1754} = {9218C443-080C-4FD2-8286-C84C5F40C31D}
+		{E960F85F-77D2-44BA-BD39-91602827CA2D} = {9218C443-080C-4FD2-8286-C84C5F40C31D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EA43DE71-FD4E-4B56-A8C2-E3787887DC6D}
+	EndGlobalSection
+EndGlobal

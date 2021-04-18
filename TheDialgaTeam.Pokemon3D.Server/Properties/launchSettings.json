@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TheDialgaTeam.Pokemon3D.Server": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
