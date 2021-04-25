@@ -70,10 +70,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
 
             if (portsToOpen.Count == 0) return;
 
-            using var cancellationTokenSource = new CancellationTokenSource(5000);
+            using var cancellationTokenSource = new CancellationTokenSource(1000);
             using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
-            _logger.LogInformation("Discovering NAT devices, please wait...", true);
+            _logger.LogInformation("[NAT] Discovering NAT devices, please wait...", true);
 
             var devices = await _natDiscoverer.DiscoverDevicesAsync(portMapper, linkedCancellationTokenSource);
 
@@ -83,18 +83,18 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                 {
                     if (await IsPortCreatedAsync(natDevice, portToOpen))
                     {
-                        _logger.LogInformation("\u001b[32;1m[{Host:l}] Port {Port} has already been opened for public communication\u001b[0m", true, natDevice.LocalAddress, portToOpen);
+                        _logger.LogWarning("[NAT] {Host:l}:{Port} has already been opened for public communication", true, natDevice.LocalAddress, portToOpen);
                         continue;
                     }
 
                     try
                     {
                         await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, portToOpen, portToOpen, "Pokemon 3D Server"));
-                        _logger.LogInformation("\u001b[32;1m[{Host:l}] Port {Port} has successfully opened for public communication\u001b[0m", true, natDevice.LocalAddress, portToOpen);
+                        _logger.LogInformation("\u001b[32;1m[NAT] {Host:l}:{Port} has successfully opened for public communication\u001b[0m", true, natDevice.LocalAddress, portToOpen);
                     }
                     catch (MappingException mappingException)
                     {
-                        _logger.LogError(mappingException, "[{Host:l}] Unable to create port mapping for port {portToOpen}", true, natDevice.LocalAddress, portToOpen);
+                        _logger.LogError(mappingException, "[NAT] Unable to create port mapping for {Host:l}:{Port}", true, natDevice.LocalAddress, portToOpen);
                     }
                 }
             }
@@ -102,7 +102,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
 
         public void Dispose()
         {
+            _logger.LogInformation("[NAT] Releasing all the open ports from this session", true);
             NatDiscoverer.ReleaseAll();
+            _logger.LogInformation("\u001b[32;1m[NAT] Released all the open ports from this session\u001b[0m", true);
         }
     }
 }

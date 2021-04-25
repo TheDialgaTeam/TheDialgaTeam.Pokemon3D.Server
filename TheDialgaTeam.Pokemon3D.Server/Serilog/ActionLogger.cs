@@ -2,11 +2,11 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Serilog
 {
-    internal class UiLogger
+    internal class ActionLogger
     {
         public event Action<string>? Log;
 
-        public void WriteToLogOutput(string output)
+        public void WriteToLogEvent(string output)
         {
             Log?.Invoke(output);
         }

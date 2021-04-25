@@ -2,9 +2,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Views
+namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.Views
 {
-    internal class MainWindow : Window
+    public class MainWindow : Window
     {
         public MainWindow()
         {

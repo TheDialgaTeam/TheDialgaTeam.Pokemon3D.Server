@@ -7,7 +7,7 @@ using Serilog.Formatting;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Serilog.Sink
 {
-    internal class UiConsoleSink : ILogEventSink, IDisposable
+    internal class ActionSink : ILogEventSink, IDisposable
     {
         private readonly Action<string> _outputAction;
         private readonly ITextFormatter _formatter;
@@ -16,7 +16,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Serilog.Sink
         private readonly MemoryStream _memoryStream = new();
         private readonly StreamWriter _streamWriter;
 
-        public UiConsoleSink(Action<string> outputAction, ITextFormatter formatter, object syncRoot)
+        public ActionSink(Action<string> outputAction, ITextFormatter formatter, object syncRoot)
         {
             _outputAction = outputAction;
             _formatter = formatter;

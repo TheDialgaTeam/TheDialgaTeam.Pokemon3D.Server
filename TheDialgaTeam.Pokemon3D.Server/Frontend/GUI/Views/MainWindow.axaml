@@ -1,17 +1,18 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:viewModels="clr-namespace:TheDialgaTeam.Pokemon3D.Server.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="TheDialgaTeam.Pokemon3D.Server.Views.MainWindow"
-        Title="Pokemon 3D Server">
+        xmlns:vm="clr-namespace:TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels"
+        x:Class="TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.Views.MainWindow"
+        Title="Pokemon 3D Server" Width="800" Height="450">
 
     <Design.DataContext>
-        <viewModels:MainWindowViewModel />
+        <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RowDefinitions="Auto,*" Margin="10, 0, 10, 10">
+    <Window.Styles>
+        <StyleInclude Source="/Frontend/GUI/Assets/WindowStyles.xaml" />
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*">
         <Menu Grid.Row="0">
             <MenuItem Header="Server">
                 <MenuItem Header="Start Server" Command="{Binding StartServer}" />

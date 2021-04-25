@@ -2,11 +2,12 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.Pokemon3D.Server.ViewModels;
+using TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels;
+using TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.Views;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Views
+namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI
 {
-    internal class App : Application
+    public class App : Application
     {
         public override void Initialize()
         {

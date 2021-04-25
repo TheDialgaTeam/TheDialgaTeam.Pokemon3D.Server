@@ -1,34 +1,94 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Options;
+using TheDialgaTeam.Pokemon3D.Server.Players;
+using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Network.Game
 {
     internal class TcpClientListener
     {
-        private readonly ILogger<TcpClientListener> _logger;
-        private readonly TcpListener _tcpListener;
+        private readonly Logger _logger;
+        private readonly IOptionsMonitor<GameNetworkOptions> _optionsMonitor;
+        private readonly PlayerCollection _playerCollection;
 
-        public TcpClientListener(ILogger<TcpClientListener> logger, IOptionsMonitor<GameNetworkOptions> optionsMonitor)
+        private TcpListener? _tcpListener;
+        private bool _isRunning;
+
+        private Task? _tcpListenerTask;
+
+        public TcpClientListener(Logger logger, IOptionsMonitor<GameNetworkOptions> optionsMonitor, PlayerCollection playerCollection)
         {
             _logger = logger;
-
-            var gameNetworkOptions = optionsMonitor.CurrentValue;
-
-            _tcpListener = new TcpListener(IPAddress.Parse(gameNetworkOptions.BindIpAddress), gameNetworkOptions.Port);
-            _tcpListener.AllowNatTraversal(true);
+            _optionsMonitor = optionsMonitor;
+            _playerCollection = playerCollection;
         }
 
         public void StartListening()
         {
-            _tcpListener.Start();
+            if (_isRunning) return;
+            _isRunning = true;
+
+            _logger.LogInformation("[Server] Starting listener", true);
+
+            var gameNetworkOptions = _optionsMonitor.CurrentValue;
+
+            try
+            {
+                _tcpListener = new TcpListener(IPAddress.Parse(gameNetworkOptions.BindIpAddress), gameNetworkOptions.Port);
+                _tcpListener.Start();
+
+                _logger.LogInformation("\u001b[32;1m[Server] Started listening on port {Port} for new players\u001b[0m", true, gameNetworkOptions.Port);
+
+                _tcpListenerTask = Task.Factory.StartNew(() =>
+                {
+                    var tcpListener = _tcpListener;
+
+                    while (_isRunning)
+                    {
+                        try
+                        {
+                            _playerCollection.Add(tcpListener.AcceptTcpClient());
+                        }
+                        catch (SocketException)
+                        {
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            _logger.LogError(ex, "[Server]", true);
+                            break;
+                        }
+                    }
+                }, TaskCreationOptions.LongRunning);
+            }
+            catch (FormatException e)
+            {
+                _logger.LogError(e, "[Server] Invalid IP Address to bind against", true);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                _logger.LogError(e, "[Server] Invalid Port value to bind against", true);
+            }
+            catch (SocketException e)
+            {
+                _logger.LogError(e, "[Server] Unable to bind the target network as the port might be in use", true);
+            }
         }
 
         public void StopListening()
         {
-            _tcpListener.Stop();
+            if (!_isRunning) return;
+            _isRunning = false;
+
+            _logger.LogInformation("[Server] Stopping listener", true);
+
+            _tcpListener?.Stop();
+            _tcpListenerTask?.GetAwaiter().GetResult();
+
+            _logger.LogInformation("\u001b[32;1m[Server] Listener stopped\u001b[0m", true);
         }
     }
 }

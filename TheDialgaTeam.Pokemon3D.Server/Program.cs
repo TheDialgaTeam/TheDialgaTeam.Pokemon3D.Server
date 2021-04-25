@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -11,13 +12,18 @@ using Serilog.Core;
 using Serilog.Filters;
 using TheDialgaTeam.Core.Logger;
 using TheDialgaTeam.Core.Logger.Formatter;
+using TheDialgaTeam.Pokemon3D.Server.Frontend.Console.ViewModels;
+using TheDialgaTeam.Pokemon3D.Server.Frontend.Console.Views;
+using TheDialgaTeam.Pokemon3D.Server.Frontend.GUI;
+using TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels;
 using TheDialgaTeam.Pokemon3D.Server.Network;
 using TheDialgaTeam.Pokemon3D.Server.Network.Game;
 using TheDialgaTeam.Pokemon3D.Server.Options;
+using TheDialgaTeam.Pokemon3D.Server.Players;
+using TheDialgaTeam.Pokemon3D.Server.Resources;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 using TheDialgaTeam.Pokemon3D.Server.Services;
-using TheDialgaTeam.Pokemon3D.Server.ViewModels;
-using TheDialgaTeam.Pokemon3D.Server.Views;
+using TheDialgaTeam.Pokemon3D.Server.Worlds;
 using Logger = TheDialgaTeam.Pokemon3D.Server.Serilog.Logger;
 
 namespace TheDialgaTeam.Pokemon3D.Server
@@ -52,51 +58,66 @@ namespace TheDialgaTeam.Pokemon3D.Server
                     serviceCollection.Configure<NetworkOptions>(configuration.GetSection("Server:Network"));
                     serviceCollection.Configure<GameNetworkOptions>(configuration.GetSection("Server:Network:Game"));
                     serviceCollection.Configure<RpcNetworkOptions>(configuration.GetSection("Server:Network:Rpc"));
+                    serviceCollection.Configure<ServerOptions>(configuration.GetSection("Server"));
+                    serviceCollection.Configure<WorldOptions>(configuration.GetSection("Server:World"));
 
                     serviceCollection.AddSingleton<LoggingLevelSwitch>();
                     serviceCollection.AddSingleton<Logger>();
 
                     serviceCollection.AddSingleton<NatDevices>();
                     serviceCollection.AddSingleton<TcpClientListener>();
-                    serviceCollection.AddSingleton<Server>();
 
-                    if (configuration.GetValue("Application:HeadlessMode", true)) return;
+                    serviceCollection.AddSingleton<PlayerCollection>();
 
-                    serviceCollection.AddSingleton(_ => new ClassicDesktopStyleApplicationLifetime
+                    serviceCollection.AddSingleton<World>();
+
+                    serviceCollection.AddSingleton<GameServer>();
+
+                    var headlessMode = configuration.GetValue("Application:HeadlessMode", true);
+
+                    if (headlessMode)
                     {
-                        Args = args,
-                        ShutdownMode = ShutdownMode.OnMainWindowClose
-                    });
+                        serviceCollection.AddSingleton<ConsoleWindow>();
+                        serviceCollection.AddSingleton<ConsoleWindowViewModel>();
 
-                    serviceCollection.AddSingleton<UiLogger>();
+                        serviceCollection.AddHostedService<ConsoleHostedService>();
+                    }
+                    else
+                    {
+                        serviceCollection.AddSingleton(_ => new ClassicDesktopStyleApplicationLifetime
+                        {
+                            Args = args,
+                            ShutdownMode = ShutdownMode.OnMainWindowClose
+                        });
+                        serviceCollection.AddSingleton<ActionLogger>();
+                        serviceCollection.AddSingleton<MainWindowViewModel>();
 
-                    serviceCollection.AddHostedService<AvaloniaHostedService>();
-                    serviceCollection.AddSingleton<MainWindowViewModel>();
+                        serviceCollection.AddHostedService<AvaloniaHostedService>();
+                    }
                 })
                 .UseSerilog((hostBuilderContext, serviceProvider, loggerConfiguration) =>
                 {
-                    const string outputTemplate = "{Message}{NewLine}{Exception}";
+                    var configuration = loggerConfiguration
+                        .ReadFrom.Configuration(hostBuilderContext.Configuration)
+                        .MinimumLevel.ControlledBy(serviceProvider.GetRequiredService<LoggingLevelSwitch>());
 
                     var headlessMode = hostBuilderContext.Configuration.GetValue("Application:HeadlessMode", true);
-                    var outputTemplateTextFormatter = new OutputTemplateTextFormatter(outputTemplate);
+                    var outputTemplateTextFormatter = new OutputTemplateTextFormatter("{Message}{NewLine}{Exception}");
 
-                    loggerConfiguration
-                        .ReadFrom.Configuration(hostBuilderContext.Configuration)
-                        .MinimumLevel.ControlledBy(serviceProvider.GetRequiredService<LoggingLevelSwitch>())
-                        .WriteTo.Conditional(_ => headlessMode, loggerSinkConfiguration =>
-                        {
-                            loggerSinkConfiguration.AnsiConsole(outputTemplateTextFormatter);
-                        })
-                        .WriteTo.Conditional(_ => !headlessMode, loggerSinkConfiguration =>
-                        {
-                            loggerSinkConfiguration.Logger(configuration => configuration
-                                .Filter.ByExcluding(Matching.FromSource<Logger>())
-                                .WriteTo.AnsiConsole(outputTemplateTextFormatter));
+                    if (headlessMode)
+                    {
+                        configuration.WriteTo.AnsiConsole(outputTemplateTextFormatter);
+                    }
+                    else
+                    {
+                        configuration.WriteTo.Logger(subLogger => subLogger
+                            .Filter.ByExcluding(Matching.FromSource<Logger>())
+                            .WriteTo.AnsiConsole(outputTemplateTextFormatter));
 
-                            loggerSinkConfiguration.Logger(configuration => configuration
-                                .Filter.ByIncludingOnly(Matching.FromSource<Logger>())
-                                .WriteTo.UiConsole(serviceProvider.GetRequiredService<UiLogger>().WriteToLogOutput, outputTemplateTextFormatter));
-                        });
+                        configuration.WriteTo.Logger(subLogger => subLogger
+                            .Filter.ByIncludingOnly(Matching.FromSource<Logger>())
+                            .WriteTo.Action(serviceProvider.GetRequiredService<ActionLogger>().WriteToLogEvent, outputTemplateTextFormatter));
+                    }
                 });
         }
     }

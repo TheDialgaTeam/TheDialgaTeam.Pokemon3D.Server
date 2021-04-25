@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
-namespace TheDialgaTeam.Pokemon3D.Server.ViewModels
+namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels
 {
     internal class MainWindowViewModel : ReactiveObject, IDisposable
     {
         private readonly ClassicDesktopStyleApplicationLifetime _classicDesktopStyleApplicationLifetime = null!;
-        private readonly UiLogger _uiLogger = null!;
-        private readonly Server _server = null!;
+        private readonly ActionLogger _actionLogger = null!;
+        private readonly GameServer _gameServer = null!;
 
         private readonly List<string> _logOutputBuffer = new(1000);
         private string _logOutput = string.Empty;
@@ -26,26 +25,28 @@ namespace TheDialgaTeam.Pokemon3D.Server.ViewModels
         {
         }
 
-        public MainWindowViewModel(ClassicDesktopStyleApplicationLifetime classicDesktopStyleApplicationLifetime, UiLogger uiLogger, Server server)
+        public MainWindowViewModel(ClassicDesktopStyleApplicationLifetime classicDesktopStyleApplicationLifetime, ActionLogger actionLogger, GameServer gameServer)
         {
             _classicDesktopStyleApplicationLifetime = classicDesktopStyleApplicationLifetime;
-            _uiLogger = uiLogger;
-            _server = server;
+            _actionLogger = actionLogger;
+            _gameServer = gameServer;
 
-            uiLogger.Log += WriteToLogOutput;
+            actionLogger.Log += WriteToLogOutput;
         }
 
-        public void StartServer()
+        public async void StartServer()
         {
-            Task.Run(async () => await _server.StartServerAsync());
+            await _gameServer.StartServerAsync();
         }
 
         public void StopServer()
         {
+            _gameServer.StopServer();
         }
 
         public void Exit()
         {
+            _gameServer.StopServer();
             _classicDesktopStyleApplicationLifetime.Shutdown();
         }
 
@@ -63,7 +64,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.ViewModels
 
         public void Dispose()
         {
-            _uiLogger.Log -= WriteToLogOutput;
+            _actionLogger.Log -= WriteToLogOutput;
         }
     }
 }
