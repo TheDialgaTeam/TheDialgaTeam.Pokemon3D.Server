@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -20,7 +19,6 @@ using TheDialgaTeam.Pokemon3D.Server.Network;
 using TheDialgaTeam.Pokemon3D.Server.Network.Game;
 using TheDialgaTeam.Pokemon3D.Server.Options;
 using TheDialgaTeam.Pokemon3D.Server.Players;
-using TheDialgaTeam.Pokemon3D.Server.Resources;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 using TheDialgaTeam.Pokemon3D.Server.Services;
 using TheDialgaTeam.Pokemon3D.Server.Worlds;
@@ -48,13 +46,14 @@ namespace TheDialgaTeam.Pokemon3D.Server
 
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
-            return Host.CreateDefaultBuilder(args)
+            return Host
+                .CreateDefaultBuilder(args)
                 .ConfigureServices((hostBuilderContext, serviceCollection) =>
                 {
                     var configuration = hostBuilderContext.Configuration;
 
+                    serviceCollection.Configure<SerilogOptions>(configuration.GetSection("Serilog:MinimumLevel"));
                     serviceCollection.Configure<ApplicationOptions>(configuration.GetSection("Application"));
-
                     serviceCollection.Configure<NetworkOptions>(configuration.GetSection("Server:Network"));
                     serviceCollection.Configure<GameNetworkOptions>(configuration.GetSection("Server:Network:Game"));
                     serviceCollection.Configure<RpcNetworkOptions>(configuration.GetSection("Server:Network:Rpc"));
@@ -68,6 +67,7 @@ namespace TheDialgaTeam.Pokemon3D.Server
                     serviceCollection.AddSingleton<TcpClientListener>();
 
                     serviceCollection.AddSingleton<PlayerCollection>();
+                    serviceCollection.AddSingleton<PlayerNetworkFactory>();
 
                     serviceCollection.AddSingleton<World>();
 

@@ -13,18 +13,18 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network.Game
     {
         private readonly Logger _logger;
         private readonly IOptionsMonitor<GameNetworkOptions> _optionsMonitor;
-        private readonly PlayerCollection _playerCollection;
+        private readonly PlayerNetworkFactory _playerNetworkFactory;
 
         private TcpListener? _tcpListener;
         private bool _isRunning;
 
         private Task? _tcpListenerTask;
 
-        public TcpClientListener(Logger logger, IOptionsMonitor<GameNetworkOptions> optionsMonitor, PlayerCollection playerCollection)
+        public TcpClientListener(Logger logger, IOptionsMonitor<GameNetworkOptions> optionsMonitor, PlayerNetworkFactory playerNetworkFactory)
         {
             _logger = logger;
             _optionsMonitor = optionsMonitor;
-            _playerCollection = playerCollection;
+            _playerNetworkFactory = playerNetworkFactory;
         }
 
         public void StartListening()
@@ -51,15 +51,16 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network.Game
                     {
                         try
                         {
-                            _playerCollection.Add(tcpListener.AcceptTcpClient());
+                            _playerNetworkFactory.CreatePlayerNetwork().StartNetwork(tcpListener.AcceptTcpClient());
                         }
-                        catch (SocketException)
+                        catch (SocketException ex)
                         {
+                            _logger.LogError(ex, "[Server] New client could not be accepted due to an error", true);
                         }
                         catch (InvalidOperationException ex)
                         {
-                            _logger.LogError(ex, "[Server]", true);
-                            break;
+                            _logger.LogError(ex, "[Server] Listener is not running", true);
+                            StopListening();
                         }
                     }
                 }, TaskCreationOptions.LongRunning);
@@ -67,14 +68,17 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network.Game
             catch (FormatException e)
             {
                 _logger.LogError(e, "[Server] Invalid IP Address to bind against", true);
+                StopListening();
             }
             catch (ArgumentOutOfRangeException e)
             {
                 _logger.LogError(e, "[Server] Invalid Port value to bind against", true);
+                StopListening();
             }
             catch (SocketException e)
             {
                 _logger.LogError(e, "[Server] Unable to bind the target network as the port might be in use", true);
+                StopListening();
             }
         }
 

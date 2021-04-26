@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Avalonia.Controls.ApplicationLifetimes;
+using Microsoft.Extensions.Hosting;
 using ReactiveUI;
+using TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.Views;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels
@@ -10,6 +13,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels
     {
         private readonly ClassicDesktopStyleApplicationLifetime _classicDesktopStyleApplicationLifetime = null!;
         private readonly ActionLogger _actionLogger = null!;
+        private readonly IHostEnvironment _hostEnvironment = null!;
         private readonly GameServer _gameServer = null!;
 
         private readonly List<string> _logOutputBuffer = new(1000);
@@ -25,10 +29,11 @@ namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels
         {
         }
 
-        public MainWindowViewModel(ClassicDesktopStyleApplicationLifetime classicDesktopStyleApplicationLifetime, ActionLogger actionLogger, GameServer gameServer)
+        public MainWindowViewModel(ClassicDesktopStyleApplicationLifetime classicDesktopStyleApplicationLifetime, ActionLogger actionLogger, IHostEnvironment hostEnvironment, GameServer gameServer)
         {
             _classicDesktopStyleApplicationLifetime = classicDesktopStyleApplicationLifetime;
             _actionLogger = actionLogger;
+            _hostEnvironment = hostEnvironment;
             _gameServer = gameServer;
 
             actionLogger.Log += WriteToLogOutput;
@@ -42,6 +47,15 @@ namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels
         public void StopServer()
         {
             _gameServer.StopServer();
+        }
+
+        public void OpenSettings()
+        {
+            var window = new SettingsWindow
+            {
+                DataContext = new SettingsWindowViewModel(_hostEnvironment)
+            };
+            window.Show();
         }
 
         public void Exit()

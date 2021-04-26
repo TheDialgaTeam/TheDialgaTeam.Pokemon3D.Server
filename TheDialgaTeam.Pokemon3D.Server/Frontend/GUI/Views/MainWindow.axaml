@@ -1,7 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels"
         x:Class="TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.Views.MainWindow"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Title="Pokemon 3D Server" Width="800" Height="450">
 
     <Design.DataContext>
@@ -18,7 +21,7 @@
                 <MenuItem Header="Start Server" Command="{Binding StartServer}" />
                 <MenuItem Header="Stop Server" Command="{Binding StopServer}" />
                 <Separator />
-                <MenuItem Header="Setting" />
+                <MenuItem Header="Setting" Command="{Binding OpenSettings}" />
 				<Separator />
 				<MenuItem Header="Exit" Command="{Binding Exit}">
 					<MenuItem.HotKey>

@@ -2,8 +2,38 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="clr-namespace:TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels"
         x:Class="TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.Views.SettingsWindow"
-        Title="SettingsWindow">
-  Welcome to Avalonia!
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Title="Settings" Width="800" Height="450">
+
+    <Design.DataContext>
+		<vm:SettingsWindowViewModel />
+    </Design.DataContext>
+
+    <Window.Styles>
+        <StyleInclude Source="/Frontend/GUI/Assets/WindowStyles.xaml" />
+    </Window.Styles>
+
+	<TabControl>
+        <TabItem Header="Application">
+            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, Auto">
+                <Label Grid.Row="0" Grid.Column="0" VerticalContentAlignment="Center" Content="Check For Update:" />
+                <CheckBox Grid.Row="0" Grid.Column="1" ToolTip.Tip="This is a ToolTip" ToolTip.Placement="Right" />
+            </Grid>
+        </TabItem>
+        <TabItem Header="Server">
+            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *">
+                <Label Grid.Row="0" Grid.Column="0" VerticalContentAlignment="Center" Content="Check For Update" />
+                <CheckBox Grid.Row="0" Grid.Column="1" />
+            </Grid>
+        </TabItem>
+        <TabItem Header="Logger">
+            <Grid RowDefinitions="Auto, *" ColumnDefinitions="Auto, *">
+                <Label Grid.Row="0" Grid.Column="0" VerticalContentAlignment="Center" Content="Default:" />
+                <ComboBox Grid.Row="0" Grid.Column="1" SelectedItem="{Binding SerilogMinimumLevelDefault}" Items="{Binding LogEventLevels}" />
+            </Grid>
+        </TabItem>
+    </TabControl>
+
 </Window>
