@@ -70,7 +70,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have been banned from server. Reason: {Reason} | Ban duration: {Duration}.
+        ///   Looks up a localized string similar to You have been banned from server. Reason: {0} | Ban duration: {1}.
         /// </summary>
         internal static string SERVER_BLACKLISTED {
             get {
@@ -79,7 +79,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;{Name} ({Id})&gt;: {Message}.
+        ///   Looks up a localized string similar to &lt;{0} ({1})&gt;: {2}.
         /// </summary>
         internal static string SERVER_CHAT_GAMEJOLT {
             get {
@@ -88,7 +88,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;{Name}&gt;: {Message}.
+        ///   Looks up a localized string similar to &lt;{0}&gt;: {1}.
         /// </summary>
         internal static string SERVER_CHAT_NO_GAMEJOLT {
             get {
@@ -97,7 +97,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You are still in the server. Contact the administrator for help..
+        ///   Looks up a localized string similar to You are still in the server. Contact the server administrator for help..
         /// </summary>
         internal static string SERVER_CLONE {
             get {
@@ -115,7 +115,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Command] {Name} ({Id}) {Message}.
+        ///   Looks up a localized string similar to [Command] {0} ({1}) {2}.
         /// </summary>
         internal static string SERVER_COMMAND_GAMEJOLT {
             get {
@@ -124,7 +124,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Command] {Name} {Message}.
+        ///   Looks up a localized string similar to [Command] {0} {1}.
         /// </summary>
         internal static string SERVER_COMMAND_NO_GAMEJOLT {
             get {
@@ -160,7 +160,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {Name} ({Id}) {Message}.
+        ///   Looks up a localized string similar to {0} ({1}) {2}.
         /// </summary>
         internal static string SERVER_GAMEJOLT {
             get {
@@ -169,7 +169,16 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have been ip banned from server. Reason: {Reason} | Ban duration: {Duration}.
+        ///   Looks up a localized string similar to Invalid package data sent. Please ensure that you are using the latest version of the game..
+        /// </summary>
+        internal static string SERVER_INVALID_DATA {
+            get {
+                return ResourceManager.GetString("SERVER_INVALID_DATA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have been ip banned from server. Reason: {0} | Ban duration: {1}.
         /// </summary>
         internal static string SERVER_IP_BLACKLISTED {
             get {
@@ -187,7 +196,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have been kicked from the server with the following reason: {Reason}.
+        ///   Looks up a localized string similar to You have been kicked from the server with the following reason: {0}.
         /// </summary>
         internal static string SERVER_KICKED {
             get {
@@ -196,7 +205,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have played in the server for {Hours} hour(s). We encourage your stay but also encourage you to take a small break :).
+        ///   Looks up a localized string similar to You have played in the server for {0} hour(s). We encourage your stay but also encourage you to take a small break :).
         /// </summary>
         internal static string SERVER_LOGIN_TIME {
             get {
@@ -205,7 +214,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have been muted in the server. Reason: {Reason} | Ban duration: {Duration}.
+        ///   Looks up a localized string similar to You have been muted in the server. Reason: {0} | Ban duration: {1}.
         /// </summary>
         internal static string SERVER_MUTED {
             get {
@@ -223,7 +232,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {Name} {Message}.
+        ///   Looks up a localized string similar to {0} {1}.
         /// </summary>
         internal static string SERVER_NO_GAMEJOLT {
             get {
@@ -286,7 +295,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You are unable to use this party due to the following reason: {Reason}.
+        ///   Looks up a localized string similar to You are unable to use this party due to the following reason: {0}.
         /// </summary>
         internal static string SERVER_PVP_VALIDATION {
             get {
@@ -304,7 +313,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The server is scheduled to restart in {Time}. Please save your game to avoid losing progress..
+        ///   Looks up a localized string similar to The server is scheduled to restart in {0}. Please save your game to avoid losing progress..
         /// </summary>
         internal static string SERVER_RESTART_WARNING {
             get {
@@ -331,7 +340,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The server is scheduled to restart in {Time}. For your personal safety, starting a new trade or PvP is disabled..
+        ///   Looks up a localized string similar to The server is scheduled to restart in {0}. For your personal safety, starting a new trade or PvP is disabled..
         /// </summary>
         internal static string SERVER_TRADE_PVP_FAIL {
             get {
@@ -340,7 +349,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This server require you to play the following gamemodes: {GameModes}.
+        ///   Looks up a localized string similar to This server require you to play the following gamemodes: {0}.
         /// </summary>
         internal static string SERVER_WRONG_GAMEMODE {
             get {

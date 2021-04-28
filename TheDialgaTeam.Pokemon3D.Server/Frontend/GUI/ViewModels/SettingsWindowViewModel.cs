@@ -9,7 +9,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels
 {
     internal class SettingsWindowViewModel : ReactiveObject
     {
-        private string _serilogMinimumLevelDefault;
+        private string _serilogMinimumLevelDefault = string.Empty;
 
         public static string[] LogEventLevels => Enum.GetNames<LogEventLevel>();
 

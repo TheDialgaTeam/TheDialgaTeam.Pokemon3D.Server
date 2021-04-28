@@ -1,91 +1,91 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
-    <StartupObject>TheDialgaTeam.Pokemon3D.Server.Program</StartupObject>
-    <ApplicationIcon>Icon\server-icon.ico</ApplicationIcon>
-    <PackageId>TheDialgaTeam.Pokemon3D.Server</PackageId>
-    <Version>0.1.0.0</Version>
-    <Authors>Yong Jian Ming</Authors>
-    <Company>The Dialga Team</Company>
-    <Product>TheDialgaTeam.Pokemon3D.Server</Product>
-    <Description>Unofficial Pokemon 3D Server</Description>
-    <PackageProjectUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</RepositoryUrl>
-    <Platforms>AnyCPU;x64;x86</Platforms>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net5.0</TargetFramework>
+		<StartupObject>TheDialgaTeam.Pokemon3D.Server.Program</StartupObject>
+		<ApplicationIcon>Icon\server-icon.ico</ApplicationIcon>
+		<PackageId>TheDialgaTeam.Pokemon3D.Server</PackageId>
+		<Version>0.1.0.0</Version>
+		<Authors>Yong Jian Ming</Authors>
+		<Company>The Dialga Team</Company>
+		<Product>TheDialgaTeam.Pokemon3D.Server</Product>
+		<Description>Unofficial Pokemon 3D Server</Description>
+		<PackageProjectUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</RepositoryUrl>
+		<Platforms>AnyCPU;x64;x86</Platforms>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DefineConstants>DEBUG</DefineConstants>
-    <Optimize>false</Optimize>
-    <DebugType>embedded</DebugType>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DefineConstants>DEBUG</DefineConstants>
+		<Optimize>false</Optimize>
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <Optimize>true</Optimize>
-    <DebugType>none</DebugType>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<Optimize>true</Optimize>
+		<DebugType>none</DebugType>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.2" />
-    <PackageReference Include="Avalonia.Svg.Skia" Version="0.10.0" />
-    <PackageReference Include="Grpc" Version="2.37.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.37.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.5">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="Serilog.Extensions.Hosting" Version="4.1.2" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
-    <PackageReference Include="Avalonia" Version="0.10.2" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.2" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Diagnostics" Version="0.10.2" />
+		<PackageReference Include="Avalonia.Svg.Skia" Version="0.10.0" />
+		<PackageReference Include="Grpc" Version="2.37.0" />
+		<PackageReference Include="Grpc.Tools" Version="2.37.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.5" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.5">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+		<PackageReference Include="Serilog.Extensions.Hosting" Version="4.1.2" />
+		<PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
+		<PackageReference Include="Avalonia" Version="0.10.2" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.10.2" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.10.2" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Open.NAT\Open.Nat\Open.Nat.csproj" />
-    <ProjectReference Include="..\TheDialgaTeam.Core.Logger\src\TheDialgaTeam.Core.Logger.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Open.NAT\Open.Nat\Open.Nat.csproj" />
+		<ProjectReference Include="..\TheDialgaTeam.Core.Logger\src\TheDialgaTeam.Core.Logger.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <AvaloniaResource Include="Frontend\GUI\Assets\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<AvaloniaResource Include="Frontend\GUI\Assets\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Frontend\GUI\App.axaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-    <Compile Update="Frontend\GUI\Views\MainWindow.axaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Localization.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Localization.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="Frontend\GUI\App.axaml.cs">
+			<DependentUpon>%(Filename)</DependentUpon>
+		</Compile>
+		<Compile Update="Frontend\GUI\Views\MainWindow.axaml.cs">
+			<DependentUpon>%(Filename)</DependentUpon>
+		</Compile>
+		<Compile Update="Resources\Localization.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Localization.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="appsettings.Development.json" Condition="'$(Configuration)'=='Debug'">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="appsettings.Development.json" Condition="'$(Configuration)'=='Debug'">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="appsettings.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\Localization.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Localization.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="Resources\Localization.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Localization.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
 
 </Project>

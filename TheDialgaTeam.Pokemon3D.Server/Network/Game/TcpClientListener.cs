@@ -51,7 +51,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network.Game
                     {
                         try
                         {
-                            _playerNetworkFactory.CreatePlayerNetwork().StartNetwork(tcpListener.AcceptTcpClient());
+                            _playerNetworkFactory.CreatePlayerNetwork(tcpListener.AcceptTcpClient());
                         }
                         catch (SocketException ex)
                         {

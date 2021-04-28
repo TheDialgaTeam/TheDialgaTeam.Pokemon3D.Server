@@ -1,8 +1,10 @@
 ﻿using System;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.ReactiveUI;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,6 +13,7 @@ using Serilog.Core;
 using Serilog.Filters;
 using TheDialgaTeam.Core.Logger;
 using TheDialgaTeam.Core.Logger.Formatter;
+using TheDialgaTeam.Pokemon3D.Server.Database;
 using TheDialgaTeam.Pokemon3D.Server.Frontend.Console.ViewModels;
 using TheDialgaTeam.Pokemon3D.Server.Frontend.Console.Views;
 using TheDialgaTeam.Pokemon3D.Server.Frontend.GUI;
@@ -59,6 +62,11 @@ namespace TheDialgaTeam.Pokemon3D.Server
                     serviceCollection.Configure<RpcNetworkOptions>(configuration.GetSection("Server:Network:Rpc"));
                     serviceCollection.Configure<ServerOptions>(configuration.GetSection("Server"));
                     serviceCollection.Configure<WorldOptions>(configuration.GetSection("Server:World"));
+
+                    serviceCollection.AddDbContextFactory<SqliteDatabaseContext>(builder =>
+                    {
+                        builder.UseSqlite($"Data Source={Path.Combine(hostBuilderContext.HostingEnvironment.ContentRootPath, "data.db")}");
+                    });
 
                     serviceCollection.AddSingleton<LoggingLevelSwitch>();
                     serviceCollection.AddSingleton<Logger>();

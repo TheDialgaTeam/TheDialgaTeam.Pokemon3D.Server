@@ -63,8 +63,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Packages
 
                 for (var i = 0; i < dataItemIndexes.Count; i++)
                 {
-                    currentStringIndex += dataItemIndexes[i];
-                    dataItems.Add(i + 1 < dataItemIndexes.Count ? package.Substring(currentStringIndex, dataItemIndexes[i + 1] - dataItemIndexes[i]) : package[currentStringIndex..]);
+                    dataItems.Add(i + 1 < dataItemIndexes.Count ? package.Substring(currentStringIndex + dataItemIndexes[i], dataItemIndexes[i + 1] - dataItemIndexes[i]) : package[(currentStringIndex + dataItemIndexes[i])..]);
                 }
 
                 DataItems = dataItems;

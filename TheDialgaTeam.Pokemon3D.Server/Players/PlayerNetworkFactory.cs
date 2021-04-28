@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Net.Sockets;
+using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Options;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
@@ -17,9 +18,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
             _playerCollection = playerCollection;
         }
 
-        public PlayerNetwork CreatePlayerNetwork()
+        public PlayerNetwork CreatePlayerNetwork(TcpClient tcpClient)
         {
-            return new(_logger, _optionsMonitor, _playerCollection);
+            return new(_logger, _optionsMonitor, _playerCollection, tcpClient);
         }
     }
 }

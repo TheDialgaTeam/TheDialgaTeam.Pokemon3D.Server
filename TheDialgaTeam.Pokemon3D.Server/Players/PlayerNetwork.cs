@@ -10,6 +10,7 @@ using System.Timers;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Options;
 using TheDialgaTeam.Pokemon3D.Server.Packages;
+using TheDialgaTeam.Pokemon3D.Server.Resources;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 using Timer = System.Timers.Timer;
 
@@ -21,43 +22,35 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
         private readonly IOptionsMonitor<ServerOptions> _optionsMonitor;
         private readonly PlayerCollection _playerCollection;
 
+        private readonly TcpClient _tcpClient;
+        private readonly string _remoteIpAddress;
+
+        private readonly Task _writingTask;
+
         private readonly ConcurrentQueue<Package> _packageQueue = new();
         private readonly Timer _checkingTimer;
 
-        private TcpClient? _tcpClient;
-
-        private Task? _readingTask;
-        private Task? _writingTask;
-        
         private bool _isActive;
 
         private Player? _player;
 
         private DateTime _lastValidPackage = DateTime.Now;
 
-        private string RemoteIpAddress => (_tcpClient?.Client.RemoteEndPoint as IPEndPoint)?.ToString() ?? string.Empty;
-
-        public PlayerNetwork(Logger logger, IOptionsMonitor<ServerOptions> optionsMonitor, PlayerCollection playerCollection)
+        public PlayerNetwork(Logger logger, IOptionsMonitor<ServerOptions> optionsMonitor, PlayerCollection playerCollection, TcpClient tcpClient)
         {
             _logger = logger;
             _optionsMonitor = optionsMonitor;
             _playerCollection = playerCollection;
 
-            _checkingTimer = new Timer { AutoReset = true, Interval = TimeSpan.FromSeconds(1).TotalMilliseconds };
-            _checkingTimer.Elapsed += CheckingTimerOnElapsed;
-        }
-
-        public void StartNetwork(TcpClient tcpClient)
-        {
-            if (_isActive) return;
-            _isActive = true;
-
             _tcpClient = tcpClient;
             var stream = tcpClient.GetStream();
 
-            _logger.LogDebug("[{IpAddress:l}] Starting network", true, RemoteIpAddress);
+            _remoteIpAddress = (tcpClient.Client.RemoteEndPoint as IPEndPoint)!.ToString();
 
-            _readingTask = Task.Factory.StartNew(() =>
+            _logger.LogDebug("[{IpAddress:l}] Starting network", true, _remoteIpAddress);
+            _isActive = true;
+
+            _ = Task.Factory.StartNew(() =>
             {
                 using var streamReader = new StreamReader(stream, leaveOpen: true);
 
@@ -68,18 +61,18 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
                         var rawData = streamReader.ReadLine();
                         if (rawData == null) break;
 
-                        _logger.LogTrace("[{IpAddress:l}] Received raw package data: {RawData:l}", true, RemoteIpAddress, rawData);
+                        _logger.LogTrace("[{IpAddress:l}] Received raw package data: {RawData:l}", true, _remoteIpAddress, rawData);
 
                         HandlePackage(new Package(rawData));
                     }
                 }
                 catch (OutOfMemoryException ex)
                 {
-                    _logger.LogError(ex, "[{IpAddress:l}] Unable to allocate buffer for the package data due to insufficient memory", true, RemoteIpAddress);
+                    _logger.LogError(ex, "[{IpAddress:l}] Unable to allocate buffer for the package data due to insufficient memory", true, _remoteIpAddress);
                 }
                 catch (IOException ex)
                 {
-                    _logger.LogError(ex, "[{IpAddress:l}] Unable to read data from this network", true, RemoteIpAddress);
+                    _logger.LogError(ex, "[{IpAddress:l}] Unable to read data from this network", true, _remoteIpAddress);
                 }
             }, TaskCreationOptions.LongRunning);
 
@@ -99,7 +92,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
                         }
                         catch (IOException ex)
                         {
-                            _logger.LogError(ex, "[{IpAddress:l}] Unable to send data from this network", true, RemoteIpAddress);
+                            _logger.LogError(ex, "[{IpAddress:l}] Unable to send data from this network", true, _remoteIpAddress);
                         }
                     }
 
@@ -115,12 +108,16 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
                     }
                     catch (IOException ex)
                     {
-                        _logger.LogError(ex, "[{IpAddress:l}] Unable to send data from this network", true, RemoteIpAddress);
+                        _logger.LogError(ex, "[{IpAddress:l}] Unable to send data from this network", true, _remoteIpAddress);
                     }
                 }
             }, TaskCreationOptions.LongRunning);
 
-            _logger.LogTrace("[{IpAddress:l}] Network started", true, RemoteIpAddress);
+            _checkingTimer = new Timer { AutoReset = true, Interval = TimeSpan.FromSeconds(1).TotalMilliseconds };
+            _checkingTimer.Elapsed += CheckingTimerOnElapsed;
+            _checkingTimer.Start();
+
+            _logger.LogDebug("[{IpAddress:l}] Network started", true, _remoteIpAddress);
         }
 
         public void StopNetwork()
@@ -128,17 +125,14 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
             if (!_isActive) return;
             _isActive = false;
 
-            _logger.LogDebug("[{IpAddress:l}] Stopping network", true, RemoteIpAddress);
+            _logger.LogDebug("[{IpAddress:l}] Stopping network", true, _remoteIpAddress);
 
-            _readingTask?.GetAwaiter().GetResult();
-            _writingTask?.GetAwaiter().GetResult();
+            _writingTask.GetAwaiter().GetResult();
+            _tcpClient.Close();
 
-            _packageQueue.Clear();
+            _logger.LogDebug("[{IpAddress:l}] Network Stopped", true, _remoteIpAddress);
 
-            _tcpClient?.Close();
-            _tcpClient?.Dispose();
-
-            _logger.LogDebug("[{IpAddress:l}] Network Stopped", true, RemoteIpAddress);
+            Dispose();
         }
 
         public void EnqueuePackage(Package package)
@@ -150,7 +144,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
         {
             if (!package.IsValid)
             {
-                _logger.LogDebug("[{IpAddress:l}] Invalid package received", true, RemoteIpAddress);
+                _logger.LogDebug("[{IpAddress:l}] Invalid package received", true, _remoteIpAddress);
                 if (_player == null) StopNetwork();
                 return;
             }
@@ -162,33 +156,28 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
             switch (package.PackageType)
             {
                 case PackageType.GameData:
+                {
+                    if (_player == null)
+                    {
+                        // Expect full package data here.
+                        if (!package.IsFullPackageData())
+                        {
+                            EnqueuePackage(new Package(PackageType.Kicked, string.Format(Localization.SERVER_KICKED, Localization.SERVER_INVALID_DATA)));
+                            StopNetwork();
+                        }
+                        else
+                        {
+                            
+                        }
+                    }
+
                     break;
+                }
 
                 case PackageType.PrivateMessage:
                     break;
 
                 case PackageType.ChatMessage:
-                    break;
-
-                case PackageType.Kicked:
-                    break;
-
-                case PackageType.Id:
-                    break;
-
-                case PackageType.CreatePlayer:
-                    break;
-
-                case PackageType.DestroyPlayer:
-                    break;
-
-                case PackageType.ServerClose:
-                    break;
-
-                case PackageType.ServerMessage:
-                    break;
-
-                case PackageType.WorldData:
                     break;
 
                 case PackageType.Ping:
@@ -244,16 +233,21 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
                 }
 
                 default:
-                    _logger.LogDebug("[{IpAddress:l}] Unable to handle package due to unknown type", true, RemoteIpAddress);
+                {
+                    _logger.LogDebug("[{IpAddress:l}] Unable to handle package due to unknown type", true, _remoteIpAddress);
                     break;
+                }
             }
         }
 
         private void CheckingTimerOnElapsed(object sender, ElapsedEventArgs e)
         {
-            if (DateTime.Now - _lastValidPackage > TimeSpan.FromSeconds(10))
-            {
+            var serverOptions = _optionsMonitor.CurrentValue;
 
+            if (DateTime.Now - _lastValidPackage > TimeSpan.FromMilliseconds(serverOptions.Network.Game.NoPingKickTime + serverOptions.Network.Game.MaxPingAllowed))
+            {
+                EnqueuePackage(new Package(PackageType.Kicked, string.Format(Localization.SERVER_KICKED, Localization.SERVER_NO_PING)));
+                StopNetwork();
             }
         }
 
@@ -261,6 +255,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
         {
             _checkingTimer.Elapsed -= CheckingTimerOnElapsed;
             _checkingTimer.Dispose();
+
+            _tcpClient.Dispose();
         }
     }
 }

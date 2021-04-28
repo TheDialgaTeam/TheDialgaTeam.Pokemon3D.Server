@@ -121,25 +121,25 @@
     <value>You have been away for too long.</value>
   </data>
   <data name="SERVER_BLACKLISTED" xml:space="preserve">
-    <value>You have been banned from server. Reason: {Reason} | Ban duration: {Duration}</value>
+    <value>You have been banned from server. Reason: {0} | Ban duration: {1}</value>
   </data>
   <data name="SERVER_CHAT_GAMEJOLT" xml:space="preserve">
-    <value>&lt;{Name} ({Id})&gt;: {Message}</value>
+    <value>&lt;{0} ({1})&gt;: {2}</value>
   </data>
   <data name="SERVER_CHAT_NO_GAMEJOLT" xml:space="preserve">
-    <value>&lt;{Name}&gt;: {Message}</value>
+    <value>&lt;{0}&gt;: {1}</value>
   </data>
   <data name="SERVER_CLONE" xml:space="preserve">
-    <value>You are still in the server. Contact the administrator for help.</value>
+    <value>You are still in the server. Contact the server administrator for help.</value>
   </data>
   <data name="SERVER_CLOSE" xml:space="preserve">
     <value>This server has been shut down or lost its connection. Sorry for the inconveniences caused.</value>
   </data>
   <data name="SERVER_COMMAND_GAMEJOLT" xml:space="preserve">
-    <value>[Command] {Name} ({Id}) {Message}</value>
+    <value>[Command] {0} ({1}) {2}</value>
   </data>
   <data name="SERVER_COMMAND_NO_GAMEJOLT" xml:space="preserve">
-    <value>[Command] {Name} {Message}</value>
+    <value>[Command] {0} {1}</value>
   </data>
   <data name="SERVER_COMMAND_PERMISSION" xml:space="preserve">
     <value>You do not have the required permission to use this command.</value>
@@ -151,22 +151,25 @@
     <value>This server is currently full of players.</value>
   </data>
   <data name="SERVER_GAMEJOLT" xml:space="preserve">
-    <value>{Name} ({Id}) {Message}</value>
+    <value>{0} ({1}) {2}</value>
+  </data>
+  <data name="SERVER_INVALID_DATA" xml:space="preserve">
+    <value>Invalid package data sent. Please ensure that you are using the latest version of the game.</value>
   </data>
   <data name="SERVER_IP_BLACKLISTED" xml:space="preserve">
-    <value>You have been ip banned from server. Reason: {Reason} | Ban duration: {Duration}</value>
+    <value>You have been ip banned from server. Reason: {0} | Ban duration: {1}</value>
   </data>
   <data name="SERVER_KICKED" xml:space="preserve">
-    <value>You have been kicked from the server with the following reason: {Reason}</value>
+    <value>You have been kicked from the server with the following reason: {0}</value>
   </data>
   <data name="SERVER_KICK_SELF" xml:space="preserve">
     <value>You are trying to kick yourself. For your personal safety, we will not kick you :)</value>
   </data>
   <data name="SERVER_LOGIN_TIME" xml:space="preserve">
-    <value>You have played in the server for {Hours} hour(s). We encourage your stay but also encourage you to take a small break :)</value>
+    <value>You have played in the server for {0} hour(s). We encourage your stay but also encourage you to take a small break :)</value>
   </data>
   <data name="SERVER_MUTED" xml:space="preserve">
-    <value>You have been muted in the server. Reason: {Reason} | Ban duration: {Duration}</value>
+    <value>You have been muted in the server. Reason: {0} | Ban duration: {1}</value>
   </data>
   <data name="SERVER_NOT_OPERATOR" xml:space="preserve">
     <value>The requested player is not an operator.</value>
@@ -175,7 +178,7 @@
     <value>This server do not allow players to chat.</value>
   </data>
   <data name="SERVER_NO_GAMEJOLT" xml:space="preserve">
-    <value>{Name} {Message}</value>
+    <value>{0} {1}</value>
   </data>
   <data name="SERVER_NO_PING" xml:space="preserve">
     <value>You have a slow connection or you have been disconnected from the internet for too long</value>
@@ -193,13 +196,13 @@
     <value>This server do not allow players to PvP.</value>
   </data>
   <data name="SERVER_PVP_VALIDATION" xml:space="preserve">
-    <value>You are unable to use this party due to the following reason: {Reason}</value>
+    <value>You are unable to use this party due to the following reason: {0}</value>
   </data>
   <data name="SERVER_RESTART" xml:space="preserve">
     <value>This server is restarting. Sorry for the inconveniences caused.</value>
   </data>
   <data name="SERVER_RESTART_WARNING" xml:space="preserve">
-    <value>The server is scheduled to restart in {Time}. Please save your game to avoid losing progress.</value>
+    <value>The server is scheduled to restart in {0}. Please save your game to avoid losing progress.</value>
   </data>
   <data name="SERVER_SPAM" xml:space="preserve">
     <value>Please be unique :) Do not send the same message again in quick succession.</value>
@@ -208,9 +211,9 @@
     <value>This server do not allow players to trade.</value>
   </data>
   <data name="SERVER_TRADE_PVP_FAIL" xml:space="preserve">
-    <value>The server is scheduled to restart in {Time}. For your personal safety, starting a new trade or PvP is disabled.</value>
+    <value>The server is scheduled to restart in {0}. For your personal safety, starting a new trade or PvP is disabled.</value>
   </data>
   <data name="SERVER_WRONG_GAMEMODE" xml:space="preserve">
-    <value>This server require you to play the following gamemodes: {GameModes}</value>
+    <value>This server require you to play the following gamemodes: {0}</value>
   </data>
 </root>
