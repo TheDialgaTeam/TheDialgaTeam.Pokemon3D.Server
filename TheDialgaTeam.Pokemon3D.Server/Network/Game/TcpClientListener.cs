@@ -92,7 +92,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network.Game
             _tcpListener?.Stop();
             _tcpListenerTask?.GetAwaiter().GetResult();
 
-            _logger.LogInformation("\u001b[32;1m[Server] Listener stopped\u001b[0m", true);
+            _logger.LogInformation("[Server] Listener stopped", true);
         }
     }
 }

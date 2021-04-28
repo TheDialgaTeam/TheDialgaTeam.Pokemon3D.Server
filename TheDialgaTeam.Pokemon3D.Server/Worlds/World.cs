@@ -14,6 +14,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
         private readonly IOptionsMonitor<WorldOptions> _optionsMonitor;
         private readonly Timer _worldUpdateTimer;
 
+        private DateTime _lastWorldUpdate = DateTime.Now;
+
         public Season Season { get; set; } = Season.Summer;
 
         public Weather Weather { get; set; } = Weather.Clear;
@@ -23,7 +25,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
             _logger = logger;
             _optionsMonitor = optionsMonitor;
 
-            _worldUpdateTimer = new Timer { AutoReset = true, Interval = TimeSpan.FromHours(1).TotalMilliseconds };
+            _worldUpdateTimer = new Timer { AutoReset = true, Interval = TimeSpan.FromSeconds(1).TotalMilliseconds };
             _worldUpdateTimer.Elapsed += WorldUpdateTimerOnElapsed;
         }
 
@@ -134,7 +136,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
             _logger.LogInformation("[World] World Started", true);
 
             GenerateNewSeasonAndWeather(DateTime.Now);
-            
         }
 
         public void StopWorld()
@@ -144,19 +145,22 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
             _logger.LogInformation("[World] World Stopped", true);
         }
 
-        public void GenerateNewSeasonAndWeather(DateTime targetDateTime)
-        {
-            if (!_optionsMonitor.CurrentValue.DoDayCycle) return;
-
-            Season = GenerateNewSeason(targetDateTime);
-            Weather = GenerateNewWeather(Season);
-
-            _logger.LogInformation("[World] {World:l}", true, ToString());
-        }
-
         public override string ToString()
         {
             return $"Current Season: {Season} | Current Weather: {Weather} | Current Time: {DateTime.Now}";
+        }
+
+        private void GenerateNewSeasonAndWeather(DateTime targetDateTime)
+        {
+            _lastWorldUpdate = targetDateTime;
+
+            if (_optionsMonitor.CurrentValue.DoDayCycle)
+            {
+                Season = GenerateNewSeason(targetDateTime);
+                Weather = GenerateNewWeather(Season);
+            }
+
+            _logger.LogInformation("[World] {World:l}", true, ToString());
         }
 
         private Season GenerateNewSeason(DateTime targetDateTime)
@@ -191,7 +195,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
 
         private void WorldUpdateTimerOnElapsed(object sender, ElapsedEventArgs e)
         {
-            GenerateNewSeasonAndWeather(e.SignalTime);
+            if (_lastWorldUpdate.Hour == DateTime.Now.Hour) return;
+
+            GenerateNewSeasonAndWeather(DateTime.Now);
         }
 
         public void Dispose()

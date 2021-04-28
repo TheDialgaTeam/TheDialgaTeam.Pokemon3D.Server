@@ -63,15 +63,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Packages
 
                 for (var i = 0; i < dataItemIndexes.Count; i++)
                 {
-                    if (i + 1 < dataItemIndexes.Count)
-                    {
-                        dataItems.Add(package.Substring(currentStringIndex, dataItemIndexes[i + 1]));
-                        currentStringIndex += dataItemIndexes[i + 1];
-                    }
-                    else
-                    {
-                        dataItems.Add(package[currentStringIndex..]);
-                    }
+                    currentStringIndex += dataItemIndexes[i];
+                    dataItems.Add(i + 1 < dataItemIndexes.Count ? package.Substring(currentStringIndex, dataItemIndexes[i + 1] - dataItemIndexes[i]) : package[currentStringIndex..]);
                 }
 
                 DataItems = dataItems;
@@ -98,6 +91,11 @@ namespace TheDialgaTeam.Pokemon3D.Server.Packages
             Origin = origin;
             DataItems = new List<string> { dataItem };
             IsValid = true;
+        }
+
+        public bool IsFullPackageData()
+        {
+            return PackageType == PackageType.GameData && DataItems.Count == 15 && !string.IsNullOrWhiteSpace(DataItems[4]);
         }
 
         public string ToString(string protocolVersion)
