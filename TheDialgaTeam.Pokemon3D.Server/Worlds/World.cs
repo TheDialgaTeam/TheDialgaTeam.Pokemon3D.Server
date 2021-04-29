@@ -196,7 +196,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
         private void WorldUpdateTimerOnElapsed(object sender, ElapsedEventArgs e)
         {
             if (_lastWorldUpdate.Hour == DateTime.Now.Hour) return;
-
             GenerateNewSeasonAndWeather(DateTime.Now);
         }
 

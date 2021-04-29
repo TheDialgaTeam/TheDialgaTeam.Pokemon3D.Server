@@ -46,7 +46,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
         {
             var serverOptions = _optionsMonitor.CurrentValue;
 
-            if (Players.Count + 1 >= serverOptions.MaxPlayers) return -1;
+            if (Players.Count + 1 > serverOptions.MaxPlayers) return -1;
 
             for (var i = 0; i < serverOptions.MaxPlayers; i++)
             {

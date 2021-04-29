@@ -167,7 +167,15 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
                         }
                         else
                         {
-                            
+                            var player = _playerCollection.Add(this);
+
+                            // Server Space Limit
+                            if (player == null)
+                            {
+                                EnqueuePackage(new Package(PackageType.Kicked, string.Format(Localization.SERVER_KICKED, Localization.SERVER_FULL)));
+                                StopNetwork();
+                                return;
+                            }
                         }
                     }
 

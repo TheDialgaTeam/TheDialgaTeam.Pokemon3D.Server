@@ -40,11 +40,12 @@ namespace TheDialgaTeam.Pokemon3D.Server.Database.Tables
 
                     switch (remainingTime.Hours)
                     {
-                        case 1:
-                            stringBuilder.Append("1 Hour ");
+                        case > 1:
+                            stringBuilder.Append(remainingTime.Hours);
+                            stringBuilder.Append(" Hours ");
                             break;
 
-                        case > 1:
+                        case 1:
                             stringBuilder.Append(remainingTime.Hours);
                             stringBuilder.Append(" Hour ");
                             break;
@@ -57,7 +58,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Database.Tables
                             stringBuilder.Append(" Minutes ");
                             break;
 
-                        default:
+                        case 1 when remainingTime.TotalSeconds >= 60:
                             stringBuilder.Append(remainingTime.Minutes);
                             stringBuilder.Append(" Minute ");
                             break;
