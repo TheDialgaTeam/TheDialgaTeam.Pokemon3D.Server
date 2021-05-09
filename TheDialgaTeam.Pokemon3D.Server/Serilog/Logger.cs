@@ -2,8 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog.Core;
-using Serilog.Events;
-using TheDialgaTeam.Pokemon3D.Server.Options;
+using TheDialgaTeam.Pokemon3D.Server.Options.Serilog;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Serilog
 {
@@ -17,13 +16,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Serilog
         public Logger(ILogger<Logger> logger, LoggingLevelSwitch loggingLevelSwitch, IOptionsMonitor<SerilogOptions> optionsMonitor)
         {
             _logger = logger;
+            _optionsDisposable = optionsMonitor.OnChange(options => { loggingLevelSwitch.MinimumLevel = options.Default; });
 
-            loggingLevelSwitch.MinimumLevel = Enum.Parse<LogEventLevel>(optionsMonitor.CurrentValue.Default);
-
-            _optionsDisposable = optionsMonitor.OnChange(options =>
-            {
-                loggingLevelSwitch.MinimumLevel = Enum.Parse<LogEventLevel>(options.Default);
-            });
+            loggingLevelSwitch.MinimumLevel = optionsMonitor.CurrentValue.Default;
         }
 
         public void LogTrace(string message, bool includeDateTime, params object[] args)

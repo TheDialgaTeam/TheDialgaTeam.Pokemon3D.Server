@@ -19,8 +19,9 @@ using TheDialgaTeam.Pokemon3D.Server.Frontend.Console.Views;
 using TheDialgaTeam.Pokemon3D.Server.Frontend.GUI;
 using TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels;
 using TheDialgaTeam.Pokemon3D.Server.Network;
-using TheDialgaTeam.Pokemon3D.Server.Network.Game;
-using TheDialgaTeam.Pokemon3D.Server.Options;
+using TheDialgaTeam.Pokemon3D.Server.Options.Application;
+using TheDialgaTeam.Pokemon3D.Server.Options.Serilog;
+using TheDialgaTeam.Pokemon3D.Server.Options.Server;
 using TheDialgaTeam.Pokemon3D.Server.Players;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 using TheDialgaTeam.Pokemon3D.Server.Services;
@@ -55,28 +56,31 @@ namespace TheDialgaTeam.Pokemon3D.Server
                 {
                     var configuration = hostBuilderContext.Configuration;
 
+                    // Options
                     serviceCollection.Configure<SerilogOptions>(configuration.GetSection("Serilog:MinimumLevel"));
                     serviceCollection.Configure<ApplicationOptions>(configuration.GetSection("Application"));
+                    serviceCollection.Configure<ServerOptions>(configuration.GetSection("Server"));
                     serviceCollection.Configure<NetworkOptions>(configuration.GetSection("Server:Network"));
                     serviceCollection.Configure<GameNetworkOptions>(configuration.GetSection("Server:Network:Game"));
                     serviceCollection.Configure<RpcNetworkOptions>(configuration.GetSection("Server:Network:Rpc"));
-                    serviceCollection.Configure<ServerOptions>(configuration.GetSection("Server"));
                     serviceCollection.Configure<WorldOptions>(configuration.GetSection("Server:World"));
 
-                    serviceCollection.AddDbContextFactory<SqliteDatabaseContext>(builder =>
-                    {
-                        builder.UseSqlite($"Data Source={Path.Combine(hostBuilderContext.HostingEnvironment.ContentRootPath, "data.db")}");
-                    });
+                    // Database
+                    serviceCollection.AddDbContextFactory<SqliteDatabaseContext>(builder => { builder.UseSqlite($"Data Source={Path.Combine(hostBuilderContext.HostingEnvironment.ContentRootPath, "data.db")}"); });
 
+                    // Logger
                     serviceCollection.AddSingleton<LoggingLevelSwitch>();
                     serviceCollection.AddSingleton<Logger>();
 
+                    // Network
                     serviceCollection.AddSingleton<NatDevices>();
                     serviceCollection.AddSingleton<TcpClientListener>();
+                    serviceCollection.AddSingleton<TcpClientCollection>();
 
+                    // Player
                     serviceCollection.AddSingleton<PlayerCollection>();
-                    serviceCollection.AddSingleton<PlayerNetworkFactory>();
 
+                    // World
                     serviceCollection.AddSingleton<World>();
 
                     serviceCollection.AddSingleton<GameServer>();

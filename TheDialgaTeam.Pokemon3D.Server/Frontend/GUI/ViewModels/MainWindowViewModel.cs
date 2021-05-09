@@ -1,6 +1,7 @@
+#pragma warning disable 8618
+
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.Hosting;
 using ReactiveUI;
@@ -11,10 +12,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.ViewModels
 {
     internal class MainWindowViewModel : ReactiveObject, IDisposable
     {
-        private readonly ClassicDesktopStyleApplicationLifetime _classicDesktopStyleApplicationLifetime = null!;
-        private readonly ActionLogger _actionLogger = null!;
-        private readonly IHostEnvironment _hostEnvironment = null!;
-        private readonly GameServer _gameServer = null!;
+        private readonly ClassicDesktopStyleApplicationLifetime _classicDesktopStyleApplicationLifetime;
+        private readonly ActionLogger _actionLogger;
+        private readonly IHostEnvironment _hostEnvironment;
+        private readonly GameServer _gameServer;
 
         private readonly List<string> _logOutputBuffer = new(1000);
         private string _logOutput = string.Empty;

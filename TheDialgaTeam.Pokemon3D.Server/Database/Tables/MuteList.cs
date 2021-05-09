@@ -1,21 +1,17 @@
-﻿#pragma warning disable 8618
-
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
 using System.Text;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Database.Tables
 {
-    internal class MuteList
+    internal class Mutelist
     {
-        [Key]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-        public int GameJoltId { get; set; }
+        public string GameJoltId { get; set; } = string.Empty;
 
-        public string Reason { get; set; }
+        public string Reason { get; set; } = string.Empty;
 
-        public DateTime StartTime { get; set; }
+        public DateTime StartTime { get; set; } = DateTime.Now;
 
         public int Duration { get; set; }
 

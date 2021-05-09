@@ -9,8 +9,8 @@ using TheDialgaTeam.Pokemon3D.Server.Database;
 namespace TheDialgaTeam.Pokemon3D.Server.Migrations
 {
     [DbContext(typeof(SqliteDatabaseContext))]
-    [Migration("20210428094111_0.1.0.0")]
-    partial class _0100
+    [Migration("20210509152319_1.0.0.0")]
+    partial class _1000
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,10 +23,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Duration")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("GameJoltId")
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("GameJoltId")
+                    b.Property<int>("Duration")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Reason")
@@ -36,14 +36,17 @@ namespace TheDialgaTeam.Pokemon3D.Server.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Name");
+                    b.HasKey("Name", "GameJoltId");
 
                     b.ToTable("Blacklists");
                 });
 
-            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Database.Tables.IPBlacklist", b =>
+            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Database.Tables.Mutelist", b =>
                 {
-                    b.Property<string>("IPAddress")
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GameJoltId")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Duration")
@@ -56,48 +59,25 @@ namespace TheDialgaTeam.Pokemon3D.Server.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("IPAddress");
+                    b.HasKey("Name", "GameJoltId");
 
-                    b.ToTable("IpBlacklists");
+                    b.ToTable("Mutelists");
                 });
 
-            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Database.Tables.MuteList", b =>
+            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Database.Tables.Operator", b =>
                 {
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Duration")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("GameJoltId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
+                    b.Property<string>("GameJoltId")
                         .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Name");
-
-                    b.ToTable("MuteLists");
-                });
-
-            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Database.Tables.OperatorList", b =>
-                {
-                    b.Property<string>("Name")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("GameJoltId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Level")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Name");
+                    b.HasKey("Name", "GameJoltId");
 
-                    b.ToTable("OperatorLists");
+                    b.ToTable("Operators");
                 });
 
             modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Database.Tables.Whitelist", b =>
@@ -105,10 +85,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("GameJoltId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("GameJoltId")
+                        .HasColumnType("TEXT");
 
-                    b.HasKey("Name");
+                    b.HasKey("Name", "GameJoltId");
 
                     b.ToTable("Whitelists");
                 });

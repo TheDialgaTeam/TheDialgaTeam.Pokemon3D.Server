@@ -61,6 +61,24 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {Name:l} ({GameJoltId:l}) {Reason:l}.
+        /// </summary>
+        internal static string LOGGER_GAMEJOLT {
+            get {
+                return ResourceManager.GetString("LOGGER_GAMEJOLT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {Name:l} {Reason:l}.
+        /// </summary>
+        internal static string LOGGER_NO_GAMEJOLT {
+            get {
+                return ResourceManager.GetString("LOGGER_NO_GAMEJOLT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You have been away for too long..
         /// </summary>
         internal static string SERVER_AFK {
@@ -174,15 +192,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.Resources {
         internal static string SERVER_INVALID_DATA {
             get {
                 return ResourceManager.GetString("SERVER_INVALID_DATA", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You have been ip banned from server. Reason: {0} | Ban duration: {1}.
-        /// </summary>
-        internal static string SERVER_IP_BLACKLISTED {
-            get {
-                return ResourceManager.GetString("SERVER_IP_BLACKLISTED", resourceCulture);
             }
         }
         

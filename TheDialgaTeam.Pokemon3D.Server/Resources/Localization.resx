@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="LOGGER_GAMEJOLT" xml:space="preserve">
+    <value>{Name:l} ({GameJoltId:l}) {Reason:l}</value>
+  </data>
+  <data name="LOGGER_NO_GAMEJOLT" xml:space="preserve">
+    <value>{Name:l} {Reason:l}</value>
+  </data>
   <data name="SERVER_AFK" xml:space="preserve">
     <value>You have been away for too long.</value>
   </data>
@@ -155,9 +161,6 @@
   </data>
   <data name="SERVER_INVALID_DATA" xml:space="preserve">
     <value>Invalid package data sent. Please ensure that you are using the latest version of the game.</value>
-  </data>
-  <data name="SERVER_IP_BLACKLISTED" xml:space="preserve">
-    <value>You have been ip banned from server. Reason: {0} | Ban duration: {1}</value>
   </data>
   <data name="SERVER_KICKED" xml:space="preserve">
     <value>You have been kicked from the server with the following reason: {0}</value>

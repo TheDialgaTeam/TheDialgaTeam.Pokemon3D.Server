@@ -22,13 +22,13 @@
                 <MenuItem Header="Stop Server" Command="{Binding StopServer}" />
                 <Separator />
                 <MenuItem Header="Setting" Command="{Binding OpenSettings}" />
-				<Separator />
-				<MenuItem Header="Exit" Command="{Binding Exit}">
-					<MenuItem.HotKey>
-						<KeyGesture>Alt+F4</KeyGesture>
-					</MenuItem.HotKey>
-				</MenuItem>
-			</MenuItem>
+                <Separator />
+                <MenuItem Header="Exit" Command="{Binding Exit}">
+                    <MenuItem.HotKey>
+                        <KeyGesture>Alt+F4</KeyGesture>
+                    </MenuItem.HotKey>
+                </MenuItem>
+            </MenuItem>
         </Menu>
         <Grid Row="1" ColumnDefinitions="*,3*">
             <Grid Column="0" RowDefinitions="Auto,*" Margin="0, 0, 10, 0">

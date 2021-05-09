@@ -1,7 +1,10 @@
 ﻿using System;
-using System.Timers;
+using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Options;
+using TheDialgaTeam.Pokemon3D.Server.Options.Server;
+using TheDialgaTeam.Pokemon3D.Server.Packages;
+using TheDialgaTeam.Pokemon3D.Server.Players;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Worlds
@@ -12,6 +15,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
 
         private readonly Logger _logger;
         private readonly IOptionsMonitor<WorldOptions> _optionsMonitor;
+        private readonly PlayerCollection _playerCollection;
         private readonly Timer _worldUpdateTimer;
 
         private DateTime _lastWorldUpdate = DateTime.Now;
@@ -20,13 +24,12 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
 
         public Weather Weather { get; set; } = Weather.Clear;
 
-        public World(Logger logger, IOptionsMonitor<WorldOptions> optionsMonitor)
+        public World(Logger logger, IOptionsMonitor<WorldOptions> optionsMonitor, PlayerCollection playerCollection)
         {
             _logger = logger;
             _optionsMonitor = optionsMonitor;
-
-            _worldUpdateTimer = new Timer { AutoReset = true, Interval = TimeSpan.FromSeconds(1).TotalMilliseconds };
-            _worldUpdateTimer.Elapsed += WorldUpdateTimerOnElapsed;
+            _playerCollection = playerCollection;
+            _worldUpdateTimer = new Timer(WorldUpdateTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
         }
 
         private static Season GenerateNewSeason(DateTime targetDateTime, int seasonOption)
@@ -132,7 +135,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
         public void StartWorld()
         {
             _logger.LogInformation("[World] Starting World", true);
-            _worldUpdateTimer.Start();
+            _worldUpdateTimer.Change(0, 1000);
             _logger.LogInformation("[World] World Started", true);
 
             GenerateNewSeasonAndWeather(DateTime.Now);
@@ -141,7 +144,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
         public void StopWorld()
         {
             _logger.LogInformation("[World] Stopping World", true);
-            _worldUpdateTimer.Stop();
+            _worldUpdateTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _logger.LogInformation("[World] World Stopped", true);
         }
 
@@ -193,15 +196,22 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
             }
         }
 
-        private void WorldUpdateTimerOnElapsed(object sender, ElapsedEventArgs e)
+        private void WorldUpdateTimerCallback(object? state)
         {
-            if (_lastWorldUpdate.Hour == DateTime.Now.Hour) return;
-            GenerateNewSeasonAndWeather(DateTime.Now);
+            var currentTime = DateTime.Now;
+
+            if (_lastWorldUpdate.Hour != currentTime.Hour) GenerateNewSeasonAndWeather(currentTime);
+
+            _playerCollection.SendToAllPlayers(new Package(PackageType.WorldData, new List<string>
+            {
+                ((int) Season).ToString(),
+                ((int) Weather).ToString(),
+                $"{currentTime.Hour},{currentTime.Minute},{currentTime.Second}"
+            }));
         }
 
         public void Dispose()
         {
-            _worldUpdateTimer.Elapsed -= WorldUpdateTimerOnElapsed;
             _worldUpdateTimer.Dispose();
         }
     }

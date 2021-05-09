@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Open.Nat;
-using TheDialgaTeam.Pokemon3D.Server.Options;
+using TheDialgaTeam.Pokemon3D.Server.Options.Server;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Network

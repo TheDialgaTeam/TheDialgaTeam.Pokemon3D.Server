@@ -2,13 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Avalonia.Svg.Skia"
              x:Class="TheDialgaTeam.Pokemon3D.Server.Frontend.GUI.App">
-    
+
     <Application.Styles>
         <FluentTheme Mode="Light" />
     </Application.Styles>
 
     <Application.Resources>
-		<svg:SvgImage x:Key="Far-Fa-Question-Circle" Source="/Frontend/GUI/Assets/svgs/regular/question-circle.svg" />
+        <svg:SvgImage x:Key="Far-Fa-Question-Circle" Source="/Frontend/GUI/Assets/svgs/regular/question-circle.svg" />
     </Application.Resources>
 
 </Application>

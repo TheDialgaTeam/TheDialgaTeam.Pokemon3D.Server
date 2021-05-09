@@ -1,44 +1,47 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Options;
+using TheDialgaTeam.Pokemon3D.Server.Network;
+using TheDialgaTeam.Pokemon3D.Server.Options.Server;
 using TheDialgaTeam.Pokemon3D.Server.Packages;
-using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Players
 {
     internal class PlayerCollection
     {
-        private readonly Logger _logger;
         private readonly IOptionsMonitor<ServerOptions> _optionsMonitor;
 
         public SortedDictionary<int, Player> Players { get; } = new();
 
-        public PlayerCollection(Logger logger, IOptionsMonitor<ServerOptions> optionsMonitor)
+        public PlayerCollection(IOptionsMonitor<ServerOptions> optionsMonitor)
         {
-            _logger = logger;
             _optionsMonitor = optionsMonitor;
         }
 
-        public Player? Add(PlayerNetwork playerNetwork)
+        public Player? Add(TcpClientNetwork tcpClientNetwork)
         {
             var id = GetNextRunningNumber();
             if (id == -1) return null;
 
-            var player = new Player(id, playerNetwork);
+            var player = new Player(id, tcpClientNetwork);
             Players.Add(id, player);
             return player;
         }
 
+        public void Remove(int id)
+        {
+            Players.Remove(id);
+        }
+
         public void SendToPlayer(int player, Package package)
         {
-            Players[player].PlayerNetwork.EnqueuePackage(package);
+            Players[player].TcpClientNetwork.EnqueuePackage(package);
         }
 
         public void SendToAllPlayers(Package package)
         {
             foreach (var player in Players)
             {
-                player.Value.PlayerNetwork.EnqueuePackage(package);
+                player.Value.TcpClientNetwork.EnqueuePackage(package);
             }
         }
 
@@ -50,7 +53,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
 
             for (var i = 0; i < serverOptions.MaxPlayers; i++)
             {
-                if (!Players.ContainsKey(i)) return i;
+                var id = i + 1;
+                if (!Players.ContainsKey(id)) return id;
             }
 
             return -1;

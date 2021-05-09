@@ -8,14 +8,14 @@
         Title="Settings" Width="800" Height="450">
 
     <Design.DataContext>
-		<vm:SettingsWindowViewModel />
+        <vm:SettingsWindowViewModel />
     </Design.DataContext>
 
     <Window.Styles>
         <StyleInclude Source="/Frontend/GUI/Assets/WindowStyles.xaml" />
     </Window.Styles>
 
-	<TabControl>
+    <TabControl>
         <TabItem Header="Application">
             <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, Auto">
                 <Label Grid.Row="0" Grid.Column="0" VerticalContentAlignment="Center" Content="Check For Update:" />

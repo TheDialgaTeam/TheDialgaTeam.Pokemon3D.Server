@@ -1,4 +1,4 @@
-﻿namespace TheDialgaTeam.Pokemon3D.Server.Options
+﻿namespace TheDialgaTeam.Pokemon3D.Server.Options.Application
 {
     internal class ApplicationOptions
     {

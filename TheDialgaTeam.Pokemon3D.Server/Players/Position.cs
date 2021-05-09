@@ -4,11 +4,11 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
 {
     internal readonly struct Position
     {
-        public double X { get; init; }
+        public double X { get; }
 
-        public double Y { get; init; }
+        public double Y { get; }
 
-        public double Z { get; init; }
+        public double Z { get; }
 
         public Position(string position, string decimalSeparator)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using System.Threading;
+using Microsoft.Extensions.Hosting;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Frontend.Console.ViewModels
 {
@@ -6,6 +7,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Frontend.Console.ViewModels
     {
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly GameServer _gameServer;
+
+        public CancellationToken CancellationToken => _hostApplicationLifetime.ApplicationStopping;
 
         public ConsoleWindowViewModel(IHostApplicationLifetime hostApplicationLifetime, GameServer gameServer)
         {
