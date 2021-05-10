@@ -126,13 +126,13 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                     _logger.LogTrace("[{IpAddress:l}] Received raw package data: {RawData:l}", true, _remoteIpAddress, rawData);
                     HandlePackage(new Package(rawData));
                 }
-                catch (OutOfMemoryException ex)
+                catch (OutOfMemoryException)
                 {
-                    _logger.LogError(ex, "[{IpAddress:l}] Unable to allocate buffer for the package data due to insufficient memory", true, _remoteIpAddress);
+                    _logger.LogTrace("[{IpAddress:l}] \u001b[31;1mUnable to allocate buffer for the package data due to insufficient memory\u001b[0m", true, _remoteIpAddress);
                 }
-                catch (IOException ex)
+                catch (IOException)
                 {
-                    _logger.LogError(ex, "[{IpAddress:l}] Unable to read data from this network", true, _remoteIpAddress);
+                    _logger.LogTrace("[{IpAddress:l}] \u001b[31;1mUnable to read data from this network\u001b[0m", true, _remoteIpAddress);
                 }
             }
         }
@@ -158,9 +158,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
 
                             _logger.LogTrace("[{IpAddress:l}] Sent raw package data: {RawData:l}", true, _remoteIpAddress, packageData);
                         }
-                        catch (IOException ex)
+                        catch (IOException)
                         {
-                            _logger.LogError(ex, "[{IpAddress:l}] Unable to send data from this network", true, _remoteIpAddress);
+                            _logger.LogTrace("[{IpAddress:l}] \u001b[31;1mUnable to send data from this network\u001b[0m", true, _remoteIpAddress);
                         }
                     }
 
@@ -178,9 +178,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
 
                         _logger.LogTrace("[{IpAddress:l}] Sent raw package data: {RawData:l}", true, _remoteIpAddress, packageData);
                     }
-                    catch (IOException ex)
+                    catch (IOException)
                     {
-                        _logger.LogError(ex, "[{IpAddress:l}] Unable to send data from this network", true, _remoteIpAddress);
+                        _logger.LogTrace("[{IpAddress:l}] \u001b[31;1mUnable to send data from this network\u001b[0m", true, _remoteIpAddress);
                     }
                 }
             }

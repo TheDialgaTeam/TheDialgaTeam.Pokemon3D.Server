@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Options.Server;
+using TheDialgaTeam.Pokemon3D.Server.Options.Server.Network;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Network
@@ -69,7 +69,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                     }
                     catch (SocketException ex)
                     {
-                        _logger.LogError(ex, "[Server] New client could not be accepted due to an error", true);
+                        if (ex.SocketErrorCode != SocketError.Interrupted) _logger.LogError(ex, "[Server] New client could not be accepted due to an error", true);
                     }
                     catch (InvalidOperationException ex)
                     {

@@ -18,6 +18,10 @@
 
         public bool OfflineMode { get; set; } = false;
 
+        public int AFKKickTime { get; set; } = 300;
+
         public WorldOptions World { get; set; } = new();
+
+        public FeaturesOptions Features { get; set; } = new();
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Options.Server
+namespace TheDialgaTeam.Pokemon3D.Server.Options.Server.Network
 {
     internal class GameNetworkOptions
     {

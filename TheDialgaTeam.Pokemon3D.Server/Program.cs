@@ -22,6 +22,7 @@ using TheDialgaTeam.Pokemon3D.Server.Network;
 using TheDialgaTeam.Pokemon3D.Server.Options.Application;
 using TheDialgaTeam.Pokemon3D.Server.Options.Serilog;
 using TheDialgaTeam.Pokemon3D.Server.Options.Server;
+using TheDialgaTeam.Pokemon3D.Server.Options.Server.Network;
 using TheDialgaTeam.Pokemon3D.Server.Players;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 using TheDialgaTeam.Pokemon3D.Server.Services;

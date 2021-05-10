@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Open.Nat;
+using Mono.Nat;
+using TheDialgaTeam.Core.Logger.Formatter;
 using TheDialgaTeam.Pokemon3D.Server.Options.Server;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
@@ -13,98 +13,162 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
     internal class NatDevices : IDisposable
     {
         private readonly Logger _logger;
-        private readonly IOptionsMonitor<NetworkOptions> _networkOptionsMonitor;
+        private readonly IOptionsMonitor<NetworkOptions> _optionsMonitor;
 
-        private readonly NatDiscoverer _natDiscoverer = new();
+        private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
+        private readonly Dictionary<int, string> _portsToOpen = new();
 
-        public NatDevices(Logger logger, IOptionsMonitor<NetworkOptions> networkOptionsMonitor)
+        private readonly Dictionary<INatDevice, List<Mapping>> _mappingsCreated = new();
+
+        public NatDevices(Logger logger, IOptionsMonitor<NetworkOptions> optionsMonitor)
         {
             _logger = logger;
-            _networkOptionsMonitor = networkOptionsMonitor;
-        }
+            _optionsMonitor = optionsMonitor;
 
-        private static async Task<bool> IsPortCreatedAsync(NatDevice natDevice, int targetPort)
-        {
-            try
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
             {
-                var mappings = await natDevice.GetAllMappingsAsync();
-
-                foreach (var mapping in mappings)
+                foreach (var (device, mappings) in _mappingsCreated)
                 {
-                    if (mapping.PublicPort == targetPort)
+                    foreach (var mapping in mappings)
                     {
-                        return true;
+                        try
+                        {
+                            device.DeletePortMapAsync(mapping).GetAwaiter().GetResult();
+                        }
+                        catch (MappingException)
+                        {
+                            // ignored
+                        }
                     }
                 }
-
-                return false;
-            }
-            catch (MappingException)
-            {
-                return false;
-            }
+            };
         }
 
-        public async Task OpenPortAsync(CancellationToken cancellationToken = default)
+        public void StartDiscovering()
         {
-            var networkOptions = _networkOptionsMonitor.CurrentValue;
+            var networkOptions = _optionsMonitor.CurrentValue;
 
-            PortMapper portMapper = 0;
+            if (!networkOptions.UseUniversalPlugAndPlay) return;
 
-            if (networkOptions.UseUniversalPlugAndPlay) portMapper |= PortMapper.Upnp;
-            if (networkOptions.UsePortMappingProtocol) portMapper |= PortMapper.Pmp;
-
-            if (portMapper == 0) return;
-
-            var portsToOpen = new List<int>();
+            _portsToOpen.Clear();
 
             if (IPAddress.TryParse(networkOptions.Game.BindIpAddress, out var gameIpAddress))
             {
-                if (!gameIpAddress.Equals(IPAddress.Loopback)) portsToOpen.Add(networkOptions.Game.Port);
+                if (!gameIpAddress.Equals(IPAddress.Loopback)) _portsToOpen.Add(networkOptions.Game.Port, "Pokemon 3D Server Game Network");
             }
 
             if (IPAddress.TryParse(networkOptions.Rpc.BindIpAddress, out var rpcIpAddress))
             {
-                if (!rpcIpAddress.Equals(IPAddress.Loopback)) portsToOpen.Add(networkOptions.Rpc.Port);
+                if (!rpcIpAddress.Equals(IPAddress.Loopback)) _portsToOpen.Add(networkOptions.Rpc.Port, "Pokemon 3D Server Rpc Network");
             }
 
-            if (portsToOpen.Count == 0) return;
+            if (_portsToOpen.Count == 0) return;
 
-            using var cancellationTokenSource = new CancellationTokenSource(1000);
-            using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
+            _logger.LogInformation("[NAT] Starting NAT discovery", true);
 
-            _logger.LogInformation("[NAT] Discovering NAT devices, please wait...", true);
-
-            var devices = await _natDiscoverer.DiscoverDevicesAsync(portMapper, linkedCancellationTokenSource);
-
-            foreach (var natDevice in devices)
+            foreach (var (device, mappings) in _mappingsCreated)
             {
-                foreach (var portToOpen in portsToOpen)
+                foreach (var mapping in mappings)
                 {
-                    if (await IsPortCreatedAsync(natDevice, portToOpen))
-                    {
-                        _logger.LogWarning("[NAT] {Host:l}:{Port} has already been opened for public communication", true, natDevice.LocalAddress, portToOpen);
-                        continue;
-                    }
-
                     try
                     {
-                        await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, portToOpen, portToOpen, "Pokemon 3D Server"));
-                        _logger.LogInformation("\u001b[32;1m[NAT] {Host:l}:{Port} has successfully opened for public communication\u001b[0m", true, natDevice.LocalAddress, portToOpen);
+                        device.DeletePortMapAsync(mapping).GetAwaiter().GetResult();
                     }
-                    catch (MappingException mappingException)
+                    catch (MappingException)
                     {
-                        _logger.LogError(mappingException, "[NAT] Unable to create port mapping for {Host:l}:{Port}", true, natDevice.LocalAddress, portToOpen);
+                        // ignored
                     }
                 }
+            }
+
+            _mappingsCreated.Clear();
+
+            NatUtility.DeviceFound += NatUtilityOnDeviceFound;
+            NatUtility.StartDiscovery(NatProtocol.Upnp);
+
+            _logger.LogInformation($"{AnsiEscapeCodeConstants.GreenForegroundColor}[NAT] NAT discovery started{AnsiEscapeCodeConstants.DefaultColor}", true);
+        }
+
+        public void StopDiscovering()
+        {
+            _logger.LogInformation("[NAT] Stopping NAT discovery", true);
+
+            NatUtility.StopDiscovery();
+
+            _logger.LogInformation($"{AnsiEscapeCodeConstants.GreenForegroundColor}[NAT] NAT discovery stopped{AnsiEscapeCodeConstants.DefaultColor}", true);
+        }
+
+        private async void NatUtilityOnDeviceFound(object? sender, DeviceEventArgs e)
+        {
+            try
+            {
+                await _semaphoreSlim.WaitAsync();
+
+                try
+                {
+                    var device = e.Device;
+                    var externalIpAddress = await device.GetExternalIPAsync();
+
+                    _logger.LogInformation("[NAT] Discovered NAT device: {Host:l} - {NatProtocol:l}", true, device.DeviceEndpoint.Address.ToString(), device.NatProtocol.ToString());
+
+                    _mappingsCreated.Add(device, new List<Mapping>());
+
+                    foreach (var (portToOpen, description) in _portsToOpen)
+                    {
+                        try
+                        {
+                            var mapping = await device.GetSpecificMappingAsync(Protocol.Tcp, portToOpen);
+
+                            if (mapping.PublicPort != portToOpen || mapping.PrivatePort != portToOpen || mapping.Description != description)
+                            {
+                                await device.DeletePortMapAsync(mapping);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("[NAT] {Host:l}:{Port} has already been opened for public communication", true, externalIpAddress.ToString(), portToOpen);
+                                _mappingsCreated[device].Add(mapping);
+                            }
+                        }
+                        catch (MappingException)
+                        {
+                            var mappingCreated = await device.CreatePortMapAsync(new Mapping(Protocol.Tcp, portToOpen, portToOpen, 0, description));
+                            _logger.LogInformation($"{AnsiEscapeCodeConstants.GreenForegroundColor}[NAT] {{Host:l}}:{{Port}} has successfully opened for public communication{AnsiEscapeCodeConstants.DefaultColor}", true, externalIpAddress.ToString(), portToOpen);
+                            _mappingsCreated[device].Add(mappingCreated);
+                        }
+                    }
+                }
+                finally
+                {
+                    _semaphoreSlim.Release();
+                }
+            }
+            catch (ObjectDisposedException)
+            {
             }
         }
 
         public void Dispose()
         {
             _logger.LogInformation("[NAT] Releasing all the open ports from this session", true);
-            NatDiscoverer.ReleaseAll();
-            _logger.LogInformation("\u001b[32;1m[NAT] Released all the open ports from this session\u001b[0m", true);
+
+            foreach (var (device, mappings) in _mappingsCreated)
+            {
+                foreach (var mapping in mappings)
+                {
+                    try
+                    {
+                        device.DeletePortMapAsync(mapping).GetAwaiter().GetResult();
+                    }
+                    catch (MappingException)
+                    {
+                        // ignored
+                    }
+                }
+            }
+
+            _logger.LogInformation($"{AnsiEscapeCodeConstants.GreenForegroundColor}[NAT] Released all the open ports from this session{AnsiEscapeCodeConstants.DefaultColor}", true);
+
+            _semaphoreSlim.Dispose();
         }
     }
 }

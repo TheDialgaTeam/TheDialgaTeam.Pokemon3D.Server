@@ -34,7 +34,7 @@ namespace TheDialgaTeam.Pokemon3D.Server
                 await context.Database.MigrateAsync();
             }
 
-            await _natDevices.OpenPortAsync();
+            _natDevices.StartDiscovering();
             _world.StartWorld();
             _tcpClientListener.StartListening();
         }
@@ -44,6 +44,7 @@ namespace TheDialgaTeam.Pokemon3D.Server
             if (!_isStarted) return;
             _isStarted = false;
 
+            _natDevices.StopDiscovering();
             _world.StopWorld();
             _tcpClientListener.StopListening();
         }
