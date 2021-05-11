@@ -1,6 +1,3 @@
 [submodule "TheDialgaTeam.Core.Logger"]
 	path = TheDialgaTeam.Core.Logger
 	url = https://github.com/TheDialgaTeam/TheDialgaTeam.Core.Logger.git
-[submodule "Open.NAT"]
-	path = Open.NAT
-	url = https://github.com/lontivero/Open.NAT.git
