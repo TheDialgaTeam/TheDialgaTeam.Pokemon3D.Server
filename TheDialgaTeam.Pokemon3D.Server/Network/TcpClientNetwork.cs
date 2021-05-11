@@ -34,7 +34,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
 
         private readonly Timer _checkingTimer;
 
-        private readonly BlockingCollection<Package> _packages = new();
+        private readonly BlockingCollection<Package> _packagesToSend = new();
 
         private bool _isActive;
 
@@ -51,7 +51,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
             _dbContextFactory = dbContextFactory;
 
             _tcpClient = tcpClient;
-
             _remoteIpAddress = (tcpClient.Client.RemoteEndPoint as IPEndPoint)?.ToString() ?? string.Empty;
 
             _readingThread = new Thread(ReadingThreadStart) { Name = $"[{_remoteIpAddress}] Reading Thread", IsBackground = true };
@@ -88,9 +87,11 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
 
             _tcpClient.Close();
             _checkingTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _packages.CompleteAdding();
+            _packagesToSend.CompleteAdding();
 
             _logger.LogDebug("[{IpAddress:l}] Network Stopped", true, _remoteIpAddress);
+
+            Dispose();
 
             if (_player != null) _playerCollection.Remove(_player.Id);
             _tcpClientCollection.Remove(this);
@@ -100,7 +101,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
         {
             try
             {
-                _packages.Add(package);
+                _packagesToSend.Add(package);
             }
             catch (ObjectDisposedException ex)
             {
@@ -134,6 +135,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                 {
                     _logger.LogTrace("[{IpAddress:l}] \u001b[31;1mUnable to read data from this network\u001b[0m", true, _remoteIpAddress);
                 }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
             }
         }
 
@@ -147,7 +152,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                 while (_isActive)
                 {
 
-                    while (_packages.TryTake(out var package))
+                    while (_packagesToSend.TryTake(out var package))
                     {
                         try
                         {
@@ -167,7 +172,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                     Thread.Sleep(1);
                 }
 
-                while (_packages.TryTake(out var package))
+                while (_packagesToSend.TryTake(out var package))
                 {
                     try
                     {
@@ -272,9 +277,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                                 }
                             }
 
-                            foreach (var (id, player) in _playerCollection.Players)
+                            foreach (var player in _playerCollection.Players)
                             {
-                                if (_player.Id == id) continue;
+                                if (_player.Id == player.Id) continue;
 
                                 if (_player.IsGameJoltPlayer)
                                 {
@@ -297,12 +302,12 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                             // Okay, you are in :)
                             EnqueuePackage(new Package(PackageType.Id, _player.Id.ToString()));
 
-                            foreach (var (id, player) in _playerCollection.Players)
+                            foreach (var player in _playerCollection.Players)
                             {
-                                if (id == _player.Id) continue;
+                                if (_player.Id == player.Id) continue;
 
-                                EnqueuePackage(new Package(PackageType.CreatePlayer, id.ToString()));
-                                EnqueuePackage(new Package(PackageType.GameData, player.GenerateGameData(), id));
+                                EnqueuePackage(new Package(PackageType.CreatePlayer, player.Id.ToString()));
+                                EnqueuePackage(new Package(PackageType.GameData, player.GenerateGameData(), player.Id));
                             }
 
                             _playerCollection.SendToAllPlayers(new Package(PackageType.CreatePlayer, _player.Id.ToString()));
@@ -403,7 +408,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
         {
             _tcpClient.Dispose();
             _checkingTimer.Dispose();
-            _packages.Dispose();
+            _packagesToSend.Dispose();
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.Options;
+using TheDialgaTeam.Core.Logger.Formatter;
 using TheDialgaTeam.Pokemon3D.Server.Options.Server;
 using TheDialgaTeam.Pokemon3D.Server.Packages;
 using TheDialgaTeam.Pokemon3D.Server.Players;
@@ -136,7 +137,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
         {
             _logger.LogInformation("[World] Starting World", true);
             _worldUpdateTimer.Change(0, 1000);
-            _logger.LogInformation("[World] World Started", true);
+            _logger.LogInformation($"[World] {AnsiEscapeCodeConstants.GreenForegroundColor}World Started{AnsiEscapeCodeConstants.DefaultColor}", true);
 
             GenerateNewSeasonAndWeather(DateTime.Now);
         }
@@ -145,7 +146,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Worlds
         {
             _logger.LogInformation("[World] Stopping World", true);
             _worldUpdateTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            _logger.LogInformation("[World] World Stopped", true);
+            _logger.LogInformation($"[World] {AnsiEscapeCodeConstants.GreenForegroundColor}World Stopped{AnsiEscapeCodeConstants.DefaultColor}", true);
         }
 
         public override string ToString()

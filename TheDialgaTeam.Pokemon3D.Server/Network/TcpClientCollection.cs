@@ -16,7 +16,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
         private readonly IOptionsMonitor<ServerOptions> _optionsMonitor;
         private readonly PlayerCollection _playerCollection;
         private readonly IDbContextFactory<SqliteDatabaseContext> _dbContextFactory;
-        private readonly List<TcpClientNetwork> _connectedNetworks = new();
+
+        private readonly List<TcpClientNetwork> _connectedNetworks;
 
         public TcpClientCollection(Logger logger, IOptionsMonitor<ServerOptions> optionsMonitor, PlayerCollection playerCollection, IDbContextFactory<SqliteDatabaseContext> dbContextFactory)
         {
@@ -24,6 +25,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
             _optionsMonitor = optionsMonitor;
             _playerCollection = playerCollection;
             _dbContextFactory = dbContextFactory;
+
+            _connectedNetworks = new List<TcpClientNetwork>(_optionsMonitor.CurrentValue.MaxPlayers + 1);
         }
 
         public void Add(TcpClient tcpClient)
@@ -36,7 +39,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
 
         public void Remove(TcpClientNetwork tcpClientNetwork)
         {
-            tcpClientNetwork.Dispose();
             _connectedNetworks.Remove(tcpClientNetwork);
         }
 

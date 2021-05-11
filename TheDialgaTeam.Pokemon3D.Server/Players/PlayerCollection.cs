@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Network;
 using TheDialgaTeam.Pokemon3D.Server.Options.Server;
@@ -10,7 +11,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
     {
         private readonly IOptionsMonitor<ServerOptions> _optionsMonitor;
 
-        public SortedDictionary<int, Player> Players { get; } = new();
+        public ObservableCollection<Player> Players { get; } = new();
 
         public PlayerCollection(IOptionsMonitor<ServerOptions> optionsMonitor)
         {
@@ -23,13 +24,13 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
             if (id == -1) return null;
 
             var player = new Player(id, tcpClientNetwork);
-            Players.Add(id, player);
+            Players.Insert(id - 1, player);
             return player;
         }
 
         public void Remove(int id)
         {
-            Players.Remove(id);
+            Players.Remove(Players[id - 1]);
         }
 
         public void SendToPlayer(int player, Package package)
@@ -41,7 +42,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
         {
             foreach (var player in Players)
             {
-                player.Value.TcpClientNetwork.EnqueuePackage(package);
+                player.TcpClientNetwork.EnqueuePackage(package);
             }
         }
 
@@ -51,13 +52,13 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
 
             if (Players.Count + 1 > serverOptions.MaxPlayers) return -1;
 
-            for (var i = 0; i < serverOptions.MaxPlayers; i++)
+            for (var i = 0; i < Players.Count; i++)
             {
                 var id = i + 1;
-                if (!Players.ContainsKey(id)) return id;
+                if (Players[i].Id != id) return id;
             }
 
-            return -1;
+            return Players.Count + 1;
         }
     }
 }

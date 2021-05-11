@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Microsoft.Extensions.Options;
+using TheDialgaTeam.Core.Logger.Formatter;
 using TheDialgaTeam.Pokemon3D.Server.Options.Server.Network;
 using TheDialgaTeam.Pokemon3D.Server.Serilog;
 
@@ -45,7 +46,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
             _tcpListener?.Stop();
             if (waitToStop) _tcpListenerThread?.Join();
 
-            _logger.LogInformation("[Server] Listener stopped", true);
+            _logger.LogInformation($"[Server] {AnsiEscapeCodeConstants.GreenForegroundColor}Listener stopped{AnsiEscapeCodeConstants.DefaultColor}", true);
         }
 
         private void TcpListenerThreadStart()
@@ -59,7 +60,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                 _tcpListener = new TcpListener(IPAddress.Parse(gameNetworkOptions.BindIpAddress), gameNetworkOptions.Port);
                 _tcpListener.Start();
 
-                _logger.LogInformation("\u001b[32;1m[Server] Started listening on port {Port} for new players\u001b[0m", true, gameNetworkOptions.Port);
+                _logger.LogInformation($"[Server] {AnsiEscapeCodeConstants.GreenForegroundColor}Started listening on port {{Port}} for new players{AnsiEscapeCodeConstants.DefaultColor}", true, gameNetworkOptions.Port);
 
                 while (_isRunning)
                 {

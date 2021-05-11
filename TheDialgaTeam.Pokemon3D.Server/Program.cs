@@ -62,8 +62,6 @@ namespace TheDialgaTeam.Pokemon3D.Server
                     serviceCollection.Configure<ApplicationOptions>(configuration.GetSection("Application"));
                     serviceCollection.Configure<ServerOptions>(configuration.GetSection("Server"));
                     serviceCollection.Configure<NetworkOptions>(configuration.GetSection("Server:Network"));
-                    serviceCollection.Configure<GameNetworkOptions>(configuration.GetSection("Server:Network:Game"));
-                    serviceCollection.Configure<RpcNetworkOptions>(configuration.GetSection("Server:Network:Rpc"));
                     serviceCollection.Configure<WorldOptions>(configuration.GetSection("Server:World"));
 
                     // Database

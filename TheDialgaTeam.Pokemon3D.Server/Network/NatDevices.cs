@@ -86,7 +86,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
             NatUtility.DeviceFound += NatUtilityOnDeviceFound;
             NatUtility.StartDiscovery(NatProtocol.Upnp);
 
-            _logger.LogInformation($"{AnsiEscapeCodeConstants.GreenForegroundColor}[NAT] NAT discovery started{AnsiEscapeCodeConstants.DefaultColor}", true);
+            _logger.LogInformation($"[NAT] {AnsiEscapeCodeConstants.GreenForegroundColor}NAT discovery started{AnsiEscapeCodeConstants.DefaultColor}", true);
         }
 
         public void StopDiscovering()
@@ -95,7 +95,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
 
             NatUtility.StopDiscovery();
 
-            _logger.LogInformation($"{AnsiEscapeCodeConstants.GreenForegroundColor}[NAT] NAT discovery stopped{AnsiEscapeCodeConstants.DefaultColor}", true);
+            _logger.LogInformation($"[NAT] {AnsiEscapeCodeConstants.GreenForegroundColor}NAT discovery stopped{AnsiEscapeCodeConstants.DefaultColor}", true);
         }
 
         private async void NatUtilityOnDeviceFound(object? sender, DeviceEventArgs e)
@@ -132,7 +132,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                         catch (MappingException)
                         {
                             var mappingCreated = await device.CreatePortMapAsync(new Mapping(Protocol.Tcp, portToOpen, portToOpen, 0, description));
-                            _logger.LogInformation($"{AnsiEscapeCodeConstants.GreenForegroundColor}[NAT] {{Host:l}}:{{Port}} has successfully opened for public communication{AnsiEscapeCodeConstants.DefaultColor}", true, externalIpAddress.ToString(), portToOpen);
+                            _logger.LogInformation($"[NAT] {AnsiEscapeCodeConstants.GreenForegroundColor}{{Host:l}}:{{Port}} has successfully opened for public communication{AnsiEscapeCodeConstants.DefaultColor}", true, externalIpAddress.ToString(), portToOpen);
                             _mappingsCreated[device].Add(mappingCreated);
                         }
                     }
@@ -166,7 +166,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Network
                 }
             }
 
-            _logger.LogInformation($"{AnsiEscapeCodeConstants.GreenForegroundColor}[NAT] Released all the open ports from this session{AnsiEscapeCodeConstants.DefaultColor}", true);
+            _logger.LogInformation($"[NAT] {AnsiEscapeCodeConstants.GreenForegroundColor}Released all the open ports from this session{AnsiEscapeCodeConstants.DefaultColor}", true);
 
             _semaphoreSlim.Dispose();
         }

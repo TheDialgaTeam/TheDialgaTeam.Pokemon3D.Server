@@ -86,6 +86,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Players
         /// </summary>
         public int PokemonFacing { get; private set; }
 
+        public string DisplayStatus => IsGameJoltPlayer ? $"{Id}: {Name} ({GameJoltId}) - {BusyType}" : $"{Id}: {Name} - {BusyType}";
+
         public Player(int id, TcpClientNetwork tcpClientNetwork)
         {
             Id = id;
