@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="TheDialgaTeam.Pokemon3D.Server.Gui/App.axaml" value="TheDialgaTeam.Pokemon3D.Server.Gui/TheDialgaTeam.Pokemon3D.Server.Gui.csproj" />
+        <entry key="TheDialgaTeam.Pokemon3D.Server.Gui/Assets/WindowStyles.xaml" value="TheDialgaTeam.Pokemon3D.Server.Gui/TheDialgaTeam.Pokemon3D.Server.Gui.csproj" />
+        <entry key="TheDialgaTeam.Pokemon3D.Server.Gui/Views/MainWindow.axaml" value="TheDialgaTeam.Pokemon3D.Server.Gui/TheDialgaTeam.Pokemon3D.Server.Gui.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

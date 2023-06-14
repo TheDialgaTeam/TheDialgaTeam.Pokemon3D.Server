@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Core", "TheDialgaTeam.Pokemon3D.Server.Core\TheDialgaTeam.Pokemon3D.Server.Core.csproj", "{234566D7-D85F-4DF0-9DA0-F6D0893F7EA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Cli", "TheDialgaTeam.Pokemon3D.Server.Cli\TheDialgaTeam.Pokemon3D.Server.Cli.csproj", "{FD3DE4A6-6963-4634-91B4-94CC1FDC08EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Gui", "TheDialgaTeam.Pokemon3D.Server.Gui\TheDialgaTeam.Pokemon3D.Server.Gui.csproj", "{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{234566D7-D85F-4DF0-9DA0-F6D0893F7EA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{234566D7-D85F-4DF0-9DA0-F6D0893F7EA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{234566D7-D85F-4DF0-9DA0-F6D0893F7EA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{234566D7-D85F-4DF0-9DA0-F6D0893F7EA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD3DE4A6-6963-4634-91B4-94CC1FDC08EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD3DE4A6-6963-4634-91B4-94CC1FDC08EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD3DE4A6-6963-4634-91B4-94CC1FDC08EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD3DE4A6-6963-4634-91B4-94CC1FDC08EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

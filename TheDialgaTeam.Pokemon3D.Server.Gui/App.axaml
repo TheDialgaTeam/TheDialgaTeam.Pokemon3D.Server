@@ -1,0 +1,12 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="TheDialgaTeam.Pokemon3D.Server.Gui.App">
+
+    <Application.Styles>
+        <FluentTheme Mode="Light"/>
+    </Application.Styles>
+    
+    <Application.Resources>
+        <SvgImage x:Key="Far-Fa-Question-Circle" Source="Assets/FontAwesome/regular/circle-question.svg" />
+    </Application.Resources>
+</Application>

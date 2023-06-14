@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:TheDialgaTeam.Pokemon3D.Server.Gui.ViewModels"
+        x:Class="TheDialgaTeam.Pokemon3D.Server.Gui.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Title="Pokemon 3D Server" Width="800" Height="450"
+        Padding="10">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Window.Styles>
+        <StyleInclude Source="/Assets/WindowStyles.xaml" />
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <Menu Grid.Row="0">
+            <MenuItem Header="Menu">
+                <MenuItem Header="Start Server" Command="{Binding StartServerCommand}" />
+                <MenuItem Header="Stop Server" Command="{Binding StopServerCommand}" />
+                <Separator />
+                <MenuItem Header="Setting" Command="{Binding}" />
+                <Separator />
+                <MenuItem Header="Exit" Command="{Binding ExitCommand}">
+                    <MenuItem.HotKey>
+                        <KeyGesture>Alt+F4</KeyGesture>
+                    </MenuItem.HotKey>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        <Grid Row="1" ColumnDefinitions="*,3*">
+            <Grid Column="0" RowDefinitions="Auto,*" Margin="0, 0, 10, 0">
+                <Label Grid.Row="0" Content="Players:" />
+                <ListBox Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionMode="Single" Items="{Binding}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+							<Label Content="{Binding}">
+                                <Label.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Kick" />
+                                        <MenuItem Header="Ban" />
+                                    </ContextMenu>
+                                </Label.ContextMenu>
+                            </Label>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+
+            <GridSplitter Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeDirection="Columns" />
+
+            <Grid Column="1" RowDefinitions="Auto,*, Auto">
+                <Label Grid.Row="0" Content="Log and chat:" />
+                <TextBox Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding LogOutput}" CaretIndex="{Binding LogOutputPosition}" />
+                <TextBox Grid.Row="2" Watermark="Enter command..." Margin="0, 5, 0, 0" />
+            </Grid>
+        </Grid>
+    </Grid>
+
+</Window>
