@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Reactive;
+﻿using System.Reactive;
 using System.Reactive.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DynamicData;
-using DynamicData.Binding;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -16,30 +15,32 @@ namespace TheDialgaTeam.Pokemon3D.Server.Gui.ViewModels;
 
 public sealed partial class MainWindowViewModel : ReactiveObject
 {
-    [ObservableAsProperty]
-    public string LogOutput { get; }
-
-    [ObservableAsProperty]
-    public int LogOutputPosition { get; }
-
     public ReactiveCommand<Unit, Unit> StartServerCommand { get; }
 
     public ReactiveCommand<Unit, Unit> StopServerCommand { get; }
 
     public ReactiveCommand<Unit, Unit> ExitCommand { get; }
+    
+    [Reactive]
+    public string LogOutput { get; set; } = string.Empty;
+    
+    [ObservableAsProperty]
+    public int LogOutputPosition { get; }
 
     [Reactive]
     private bool IsActive { get; set; }
-
+    
     private readonly PokemonServer _pokemonServer;
 
     private readonly object _logToConsoleLock = new();
-    private readonly ObservableCollection<string> _logEntries = new();
+    private readonly StringBuilder _logEntries = new();
 
     public MainWindowViewModel()
     {
+        if (Avalonia.Controls.Design.IsDesignMode) return;
+
         _pokemonServer = Program.ServiceProvider.GetRequiredService<PokemonServer>();
-        
+
         var actionLoggerConfiguration = Program.ServiceProvider.GetRequiredService<ActionLoggerConfiguration>();
         actionLoggerConfiguration.RegisteredActionLogger = LogToConsole;
 
@@ -47,8 +48,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         StopServerCommand = ReactiveCommand.CreateFromTask(StopServer, this.WhenAnyValue(model => model.IsActive));
         ExitCommand = ReactiveCommand.CreateFromTask(Exit);
 
-        _logEntries.ToObservableChangeSet().ToCollection().Select(collection => RemoveAnsiEscapeCode().Replace(string.Join(string.Empty, collection), string.Empty)).ToPropertyEx(this, model => model.LogOutput);
-        this.WhenValueChanged(model => model.LogOutput).Select(s => s?.Length ?? 0).ToPropertyEx(this, model => model.LogOutputPosition);
+        this.WhenAnyValue(model => model.LogOutput).Select(s => s.Length).ToPropertyEx(this, model => model.LogOutputPosition);
     }
 
     [GeneratedRegex("\x1B(?:[@-Z\\-_]|\\[[0-?]*[ -/]*[@-~])")]
@@ -57,31 +57,39 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     private Task StartServer()
     {
         IsActive = true;
-        return _pokemonServer.StartAsync();
+        return _pokemonServer.StartAsync(default);
     }
 
     private Task StopServer()
     {
         IsActive = false;
-        return _pokemonServer.StopAsync();
+        return _pokemonServer.StopAsync(default);
     }
 
     private async Task Exit()
     {
         await StopServer();
-        Environment.Exit(0);
+
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+        {
+            lifetime.TryShutdown();
+        }
     }
 
     private void LogToConsole(string log)
     {
         lock (_logToConsoleLock)
         {
-            _logEntries.Add(log);
-
-            while (_logEntries.Count > 5000)
+            var textToAppend = RemoveAnsiEscapeCode().Replace(log, string.Empty);
+            var totalLength = _logEntries.Length + textToAppend.Length;
+            
+            if (totalLength > _logEntries.MaxCapacity)
             {
-                _logEntries.RemoveAt(0);
+                _logEntries.Remove(0, totalLength - _logEntries.MaxCapacity);
             }
+
+            _logEntries.Append(textToAppend);
+            LogOutput = _logEntries.ToString();
         }
     }
 }

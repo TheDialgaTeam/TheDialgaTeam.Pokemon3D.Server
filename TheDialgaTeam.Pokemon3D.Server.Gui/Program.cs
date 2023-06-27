@@ -2,6 +2,7 @@
 using Avalonia.ReactiveUI;
 using System;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.Hosting;
 using TheDialgaTeam.Microsoft.Extensions.Logging;
 using TheDialgaTeam.Microsoft.Extensions.Logging.Action;
@@ -9,24 +10,35 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Gui;
 
-internal static class Program
+public static class Program
 {
     public static IServiceProvider ServiceProvider { get; private set; } = null!;
     
     [STAThread]
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
-        var host = CreateHost(args);
-        ServiceProvider = host.Services;
-
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);
+        return BuildAvaloniaApp()
+            .AfterSetup(builder =>
+            {
+                var host = CreateHost(args);
+                ServiceProvider = host.Services;
+                host.Start();
+                
+                if (builder.Instance.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+                {
+                    lifetime.ShutdownRequested += (_, _) =>
+                    {
+                        host.StopAsync().GetAwaiter().GetResult();
+                    };
+                }
+            })
+            .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);
     }
 
     public static AppBuilder BuildAvaloniaApp()
     {
         return AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .LogToTrace()
             .UseReactiveUI();
     }
 
@@ -41,7 +53,7 @@ internal static class Program
             {
                 builder.AddActionLogger(options =>
                 {
-                    options.SetDefaultTemplate(formattingBuilder => formattingBuilder.SetGlobal(messageFormattingBuilder => messageFormattingBuilder.SetPrefix((in LoggingTemplateEntry _) => $"{AnsiEscapeCodeConstants.DarkGrayForegroundColor}{DateTime.Now:yyyy-MM-dd HH:mm:ss}{AnsiEscapeCodeConstants.Reset} ")));
+                    options.SetDefaultTemplate(static formattingBuilder => formattingBuilder.SetGlobal(static messageFormattingBuilder => messageFormattingBuilder.SetPrefix(static (in LoggingTemplateEntry _) => $"{AnsiEscapeCodeConstants.DarkGrayForegroundColor}{DateTime.Now:yyyy-MM-dd HH:mm:ss}{AnsiEscapeCodeConstants.Reset} ")));
                 });
             })
             .Build();

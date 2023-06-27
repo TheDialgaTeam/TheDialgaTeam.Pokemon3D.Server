@@ -6,9 +6,10 @@
         x:Class="TheDialgaTeam.Pokemon3D.Server.Gui.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        Title="Pokemon 3D Server" Width="800" Height="450"
+        Width="800" Height="450"
+        Icon="/Assets/Icon.ico"
         Padding="10">
-
+    
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
@@ -18,27 +19,29 @@
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,*">
-        <Menu Grid.Row="0">
-            <MenuItem Header="Menu">
-                <MenuItem Header="Start Server" Command="{Binding StartServerCommand}" />
-                <MenuItem Header="Stop Server" Command="{Binding StopServerCommand}" />
-                <Separator />
-                <MenuItem Header="Setting" Command="{Binding}" />
-                <Separator />
-                <MenuItem Header="Exit" Command="{Binding ExitCommand}">
-                    <MenuItem.HotKey>
-                        <KeyGesture>Alt+F4</KeyGesture>
-                    </MenuItem.HotKey>
+        <Grid Row="0" RowDefinitions="Auto">
+            <Menu Background="#DEDEDE" BorderBrush="Black" BorderThickness="1">
+                <MenuItem Header="Menu">
+                    <MenuItem Header="Start Server" Command="{Binding StartServerCommand}" />
+                    <MenuItem Header="Stop Server" Command="{Binding StopServerCommand}" />
+                    <Separator />
+                    <MenuItem Header="Setting" Command="{Binding}" />
+                    <Separator />
+                    <MenuItem Header="Exit" Command="{Binding ExitCommand}">
+                        <MenuItem.HotKey>
+                            <KeyGesture>Alt+F4</KeyGesture>
+                        </MenuItem.HotKey>
+                    </MenuItem>
                 </MenuItem>
-            </MenuItem>
-        </Menu>
+            </Menu>
+        </Grid>
         <Grid Row="1" ColumnDefinitions="*,3*">
             <Grid Column="0" RowDefinitions="Auto,*" Margin="0, 0, 10, 0">
                 <Label Grid.Row="0" Content="Players:" />
-                <ListBox Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionMode="Single" Items="{Binding}">
+                <ListBox Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionMode="Single" Items="">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-							<Label Content="{Binding}">
+							<Label Content="">
                                 <Label.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Kick" />
@@ -55,10 +58,10 @@
 
             <Grid Column="1" RowDefinitions="Auto,*, Auto">
                 <Label Grid.Row="0" Content="Log and chat:" />
-                <TextBox Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding LogOutput}" CaretIndex="{Binding LogOutputPosition}" />
+                <TextBox Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding LogOutput}" CaretIndex="{Binding LogOutputPosition}" IsUndoEnabled="False" />
                 <TextBox Grid.Row="2" Watermark="Enter command..." Margin="0, 5, 0, 0" />
             </Grid>
         </Grid>
     </Grid>
-
+    
 </Window>

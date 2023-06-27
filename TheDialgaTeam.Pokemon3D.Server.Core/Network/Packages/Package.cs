@@ -5,7 +5,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
 
 public sealed class Package
 {
-    public string ProtocolVersion { get; } = string.Empty;
+    public string ProtocolVersion { get; } = "0.5";
 
     public PackageType PackageType { get; } = PackageType.Unknown;
 
@@ -108,10 +108,10 @@ public sealed class Package
         return PackageType == PackageType.GameData && DataItems.Length == 15 && !string.IsNullOrWhiteSpace(DataItems[4]);
     }
 
-    public string ToString(string protocolVersion)
+    public override string ToString()
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.Append(protocolVersion);
+        stringBuilder.Append(ProtocolVersion);
         stringBuilder.Append('|');
         stringBuilder.Append((int) PackageType);
         stringBuilder.Append('|');

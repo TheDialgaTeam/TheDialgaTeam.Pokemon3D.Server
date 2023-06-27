@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Options.Models;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Options;
 
-public sealed class PokemonServerOptions : IDisposable
+internal sealed class PokemonServerOptions : IPokemonServerOptions, IDisposable
 {
     public NetworkOptions NetworkOptions { get; set; }
 

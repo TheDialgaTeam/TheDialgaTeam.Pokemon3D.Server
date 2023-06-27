@@ -20,7 +20,7 @@ internal sealed class ConsoleService : BackgroundService
     {
         Console.Title = $"{ApplicationUtility.Name} v{ApplicationUtility.Version} ({ApplicationUtility.FrameworkVersion})";
         
-        await _pokemonServer.StartAsync();
+        await _pokemonServer.StartAsync(stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -36,6 +36,6 @@ internal sealed class ConsoleService : BackgroundService
             // TODO: Handle command
         }
 
-        await _pokemonServer.StopAsync();
+        await _pokemonServer.StopAsync(stoppingToken);
     }
 }

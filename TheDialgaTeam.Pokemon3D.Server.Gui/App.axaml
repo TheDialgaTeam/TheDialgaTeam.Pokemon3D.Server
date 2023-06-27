@@ -6,7 +6,4 @@
         <FluentTheme Mode="Light"/>
     </Application.Styles>
     
-    <Application.Resources>
-        <SvgImage x:Key="Far-Fa-Question-Circle" Source="Assets/FontAwesome/regular/circle-question.svg" />
-    </Application.Resources>
 </Application>
