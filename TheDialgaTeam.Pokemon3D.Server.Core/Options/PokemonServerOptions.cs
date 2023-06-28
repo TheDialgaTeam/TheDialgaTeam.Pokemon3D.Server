@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Options.Models;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Options;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 internal sealed class PokemonServerOptions : IPokemonServerOptions, IDisposable
 {

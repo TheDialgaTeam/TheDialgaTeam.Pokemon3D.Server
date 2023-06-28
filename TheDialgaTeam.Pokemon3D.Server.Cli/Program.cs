@@ -3,6 +3,9 @@ using Microsoft.Extensions.Hosting;
 using TheDialgaTeam.Microsoft.Extensions.Logging;
 using TheDialgaTeam.Microsoft.Extensions.Logging.AnsiConsole;
 using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
+using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Extensions;
+using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Implementations;
+using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Implementations.QueryHandlers;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
@@ -16,6 +19,8 @@ internal static class Program
             .ConfigureServices(collection =>
             {
                 collection.AddPokemonServer();
+                collection.AddMediator();
+                collection.AddQueryHandler<TestQueryHandler>();
                 collection.AddHostedService<ConsoleService>();
             })
             .ConfigureLogging(builder =>

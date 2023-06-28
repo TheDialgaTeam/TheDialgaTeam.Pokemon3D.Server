@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 

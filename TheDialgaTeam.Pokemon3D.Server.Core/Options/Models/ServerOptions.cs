@@ -1,4 +1,4 @@
-﻿namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Options.Models;
+﻿namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
 public sealed class ServerOptions
 {
