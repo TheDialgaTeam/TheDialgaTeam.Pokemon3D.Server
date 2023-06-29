@@ -11,8 +11,4 @@
         <PackageReference Include="Mono.Nat" Version="3.0.4" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Queries\Implementations\QueryHandlers\" />
-    </ItemGroup>
-
 </Project>

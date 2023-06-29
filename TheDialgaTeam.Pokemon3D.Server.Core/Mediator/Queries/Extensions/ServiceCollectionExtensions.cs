@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Implementations;
-using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Implementations.Middleware;
-using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Implementations;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Implementations.Middleware;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Queries.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Extensions;
 
 public static class ServiceCollectionExtensions
 {

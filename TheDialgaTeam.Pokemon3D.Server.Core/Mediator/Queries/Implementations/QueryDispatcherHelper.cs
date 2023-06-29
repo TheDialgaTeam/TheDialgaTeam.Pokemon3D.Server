@@ -1,6 +1,6 @@
-﻿using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Interfaces;
+﻿using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Queries.Implementations;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Implementations;
 
 internal class QueryDispatcherHelper<TQuery, TQueryResult> : IQueryDispatcherHelper<TQueryResult> where TQuery : IQuery<TQueryResult>
 {

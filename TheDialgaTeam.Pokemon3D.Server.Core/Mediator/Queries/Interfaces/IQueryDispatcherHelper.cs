@@ -1,4 +1,4 @@
-﻿namespace TheDialgaTeam.Pokemon3D.Server.Core.Queries.Interfaces;
+﻿namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Interfaces;
 
 internal interface IQueryDispatcherHelper
 {

@@ -1,7 +1,6 @@
-﻿using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
+﻿using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Client.Events;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
 
 public sealed class NewPackageReceivedEventArgs : EventArgs
 {

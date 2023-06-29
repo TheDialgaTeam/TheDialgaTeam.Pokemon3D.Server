@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Queries.Implementations.Middleware;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Implementations.Middleware;
 
 internal sealed partial class LogSlowQueryMiddleware<TQuery, TQueryResult> : IQueryMiddleware<TQuery, TQueryResult> where TQuery : IQuery<TQueryResult>
 {

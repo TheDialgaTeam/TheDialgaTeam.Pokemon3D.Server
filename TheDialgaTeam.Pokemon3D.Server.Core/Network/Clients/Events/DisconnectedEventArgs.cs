@@ -1,6 +1,4 @@
-﻿using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
-
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Client.Events;
+﻿namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
 
 public sealed class DisconnectedEventArgs : EventArgs
 {

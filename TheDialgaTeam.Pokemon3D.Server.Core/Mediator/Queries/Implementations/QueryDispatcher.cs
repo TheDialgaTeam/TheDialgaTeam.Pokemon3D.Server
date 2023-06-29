@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.Pokemon3D.Server.Core.Queries.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Queries.Implementations;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Implementations;
 
 internal sealed class QueryDispatcher : IQueryDispatcher
 {
