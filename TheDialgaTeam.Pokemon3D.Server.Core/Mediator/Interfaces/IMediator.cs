@@ -2,17 +2,21 @@
 
 public interface IMediator
 {
-    Task<TResponse> FetchAsync<TResponse>(IRequest<TResponse> query, CancellationToken cancellationToken);
+    Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default);
     
-    Task PostAsync(IRequest command, CancellationToken cancellationToken);
+    Task SendAsync(IRequest request, CancellationToken cancellationToken = default);
 }
 
-internal interface IBaseMediator
+internal interface IBaseMediatorSender
 {
-    Task PostAsync(IRequest command, CancellationToken cancellationToken);
 }
 
-internal interface IBaseMediator<TResponse>
+internal interface IMediatorSender : IBaseMediatorSender
 {
-    Task<TResponse> FetchAsync(IRequest<TResponse> query, CancellationToken cancellationToken);
+    Task SendAsync(IRequest request, CancellationToken cancellationToken);
+}
+
+internal interface IMediatorSender<TResponse> : IBaseMediatorSender
+{
+    Task<TResponse> SendAsync(IRequest<TResponse> request, CancellationToken cancellationToken);
 }
