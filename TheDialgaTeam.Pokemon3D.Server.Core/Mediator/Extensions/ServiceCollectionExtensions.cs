@@ -1,4 +1,20 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿// Pokemon 3D Server Client
+// Copyright (C) 2023 Yong Jian Ming
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
@@ -13,11 +29,23 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IMediator, Mediator>();
         collection.AddSingleton(typeof(MediatorSender<>));
         collection.AddSingleton(typeof(MediatorSender<,>));
+
+        collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<>), typeof(PostProcessorRequestMiddleware<>)));
+        collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<,>), typeof(PostProcessorRequestMiddleware<,>)));
+
+        collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<>), typeof(PreProcessorRequestMiddleware<>)));
+        collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<,>), typeof(PreProcessorRequestMiddleware<,>)));
+
+        collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<>), typeof(LogSlowRequestMiddleware<>)));
+        collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<,>), typeof(LogSlowRequestMiddleware<,>)));
+        
+        collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<>), typeof(CatchUnhandledExceptionMiddleware<>)));
+        collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<,>), typeof(CatchUnhandledExceptionMiddleware<,>)));
         
         return collection;
     }
-    
-    public static IServiceCollection AddRequestHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TRequestHandler>(this IServiceCollection collection, ServiceLifetime serviceLifetime = ServiceLifetime.Singleton) where TRequestHandler : IRequestHandler
+
+    public static IServiceCollection AddRequestHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] TRequestHandler>(this IServiceCollection collection, ServiceLifetime serviceLifetime = ServiceLifetime.Singleton) where TRequestHandler : IRequestHandler
     {
         collection.TryAdd(ServiceDescriptor.Describe(typeof(TRequestHandler), typeof(TRequestHandler), serviceLifetime));
 
@@ -28,66 +56,7 @@ public static class ServiceCollectionExtensions
                 collection.TryAdd(ServiceDescriptor.Describe(@interface, static provider => provider.GetRequiredService(typeof(TRequestHandler)), serviceLifetime));
             }
         }
+
         return collection;
-    }
-    
-    public static IServiceCollection AddRequestHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TRequestHandler>(this IServiceCollection collection, Action<RequestHandlerBuilder<TRequestHandler>> configure, ServiceLifetime serviceLifetime = ServiceLifetime.Singleton) where TRequestHandler : IRequestHandler
-    {
-        configure(new RequestHandlerBuilder<TRequestHandler>(collection));
-        return AddRequestHandler<TRequestHandler>(collection, serviceLifetime);
-    }
-}
-
-public sealed class RequestHandlerBuilder<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TRequestHandler> where TRequestHandler : IRequestHandler
-{
-    private readonly IServiceCollection _collection;
-
-    public RequestHandlerBuilder(IServiceCollection collection)
-    {
-        _collection = collection;
-    }
-    
-    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
-    [RequiresUnreferencedCode("If some of the generic arguments are annotated (either with DynamicallyAccessedMembersAttribute, or generic constraints), trimming can\'t validate that the requirements of those annotations are met.")]
-    public RequestHandlerBuilder<TRequestHandler> UseLogSlowRequestMiddleware()
-    {
-        foreach (var @interface in typeof(TRequestHandler).GetInterfaces())
-        {
-            if (@interface.GetGenericTypeDefinition() == typeof(IRequestHandler<>))
-            {
-                var types = @interface.GetGenericArguments();
-                _collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<>).MakeGenericType(types), typeof(LogSlowRequestMiddleware<>).MakeGenericType(types)));
-            }
-
-            if (@interface.GetGenericTypeDefinition() == typeof(IRequestHandler<,>))
-            {
-                var types = @interface.GetGenericArguments();
-                _collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<,>).MakeGenericType(types), typeof(LogSlowRequestMiddleware<,>).MakeGenericType(types)));
-            }
-        }
-        
-        return this;
-    }
-    
-    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
-    [RequiresUnreferencedCode("If some of the generic arguments are annotated (either with DynamicallyAccessedMembersAttribute, or generic constraints), trimming can\'t validate that the requirements of those annotations are met.")]
-    public RequestHandlerBuilder<TRequestHandler> UseCatchUnhandledExceptionMiddleware()
-    {
-        foreach (var @interface in typeof(TRequestHandler).GetInterfaces())
-        {
-            if (@interface.GetGenericTypeDefinition() == typeof(IRequestHandler<>))
-            {
-                var types = @interface.GetGenericArguments();
-                _collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<>).MakeGenericType(types), typeof(CatchUnhandledExceptionMiddleware<>).MakeGenericType(types)));
-            }
-
-            if (@interface.GetGenericTypeDefinition() == typeof(IRequestHandler<,>))
-            {
-                var types = @interface.GetGenericArguments();
-                _collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestMiddleware<,>).MakeGenericType(types), typeof(CatchUnhandledExceptionMiddleware<,>).MakeGenericType(types)));
-            }
-        }
-        
-        return this;
     }
 }

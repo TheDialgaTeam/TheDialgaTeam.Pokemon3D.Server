@@ -1,4 +1,20 @@
-﻿using System.Net;
+﻿// Pokemon 3D Server Client
+// Copyright (C) 2023 Yong Jian Ming
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+using System.Net;
 using Microsoft.Extensions.Logging;
 using Mono.Nat;
 
@@ -7,7 +23,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 public sealed partial class PokemonServer
 {
     private INatDevice[] _natDevices = Array.Empty<INatDevice>();
-    
+
     private static async Task<INatDevice[]> DiscoverNatDevicesAsync(CancellationToken cancellationToken)
     {
         var devices = new List<INatDevice>();
@@ -35,11 +51,11 @@ public sealed partial class PokemonServer
 
         return devices.ToArray();
     }
-    
+
     private async Task CreatePortMappingAsync(CancellationToken cancellationToken = default)
     {
         var portToForward = _options.NetworkOptions.BindIpEndPoint.Port;
-        
+
         PrintNatSearchForUpnpDevices();
         _natDevices = await DiscoverNatDevicesAsync(cancellationToken).ConfigureAwait(false);
         PrintNatFoundUpnpDevices(_natDevices.Length);
@@ -77,7 +93,7 @@ public sealed partial class PokemonServer
     private async Task DestroyPortMappingAsync()
     {
         var portToForward = _options.NetworkOptions.BindIpEndPoint.Port;
-        
+
         foreach (var natDevice in _natDevices)
         {
             try

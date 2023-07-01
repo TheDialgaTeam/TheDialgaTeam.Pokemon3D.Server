@@ -1,10 +1,25 @@
-﻿using System.Collections.Concurrent;
+﻿// Pokemon 3D Server Client
+// Copyright (C) 2023 Yong Jian Ming
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
@@ -20,7 +35,7 @@ public sealed partial class TcpClientNetwork
     public IPAddress RemoteIpAddress { get; }
 
     public Player.Player? Player { get; internal set; }
-    
+
     private readonly ILogger _logger;
     private readonly IPokemonServerOptions _options;
 
@@ -160,7 +175,7 @@ public sealed partial class TcpClientNetwork
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Invalid package received")]
     private partial void PrintInvalidPackageReceive(IPAddress ipAddress);
-    
+
     [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Disconnected")]
     private partial void PrintDisconnected(IPAddress ipAddress);
 }

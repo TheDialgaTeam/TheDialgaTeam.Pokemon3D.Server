@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
-
-public sealed class NewPackageReceivedEventArgs : EventArgs
+public interface IRequestPostProcessor<in TRequest> where TRequest : IBaseRequest
 {
-    public required TcpClientNetwork Network { get; init; }
+    Task Process(TRequest request, CancellationToken cancellationToken);
+}
 
-    public required Package Package { get; init; }
+public interface IRequestPostProcessor<in TRequest, in TResponse> where TRequest : IBaseRequest
+{
+    Task Process(TRequest request, TResponse response, CancellationToken cancellationToken);
 }

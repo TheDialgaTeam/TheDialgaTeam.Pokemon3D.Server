@@ -1,4 +1,20 @@
-﻿using System.Net;
+﻿// Pokemon 3D Server Client
+// Copyright (C) 2023 Yong Jian Ming
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+using System.Net;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
@@ -10,7 +26,7 @@ public sealed partial class PokemonServer
 {
     private readonly List<TcpClientNetwork> _tcpClientNetworks = new();
     private readonly object _clientLock = new();
-    
+
     private void AddClient(TcpClientNetwork network)
     {
         lock (_clientLock)
@@ -20,7 +36,7 @@ public sealed partial class PokemonServer
             _tcpClientNetworks.Add(network);
         }
     }
-    
+
     private void RemoveClient(TcpClientNetwork network)
     {
         lock (_clientLock)
@@ -29,7 +45,7 @@ public sealed partial class PokemonServer
             _tcpClientNetworks.Remove(network);
         }
     }
-    
+
     private void SubscribeTcpClientNetworkEvent(TcpClientNetwork network)
     {
         network.NewPackageReceived += TcpClientNetworkOnNewPackageReceived;
@@ -41,12 +57,12 @@ public sealed partial class PokemonServer
         network.NewPackageReceived -= TcpClientNetworkOnNewPackageReceived;
         network.Disconnected -= TcpClientNetworkOnDisconnected;
     }
-    
+
     private void TcpClientNetworkOnDisconnected(object? sender, DisconnectedEventArgs e)
     {
         RemoveClient(e.Network);
     }
-    
+
     private void TcpClientNetworkOnNewPackageReceived(object? sender, NewPackageReceivedEventArgs e)
     {
         switch (e.Package.PackageType)
@@ -126,7 +142,7 @@ public sealed partial class PokemonServer
             case PackageType.ServerDataRequest:
             {
                 PrintHandleServerDataRequest(e.Network.RemoteIpAddress);
-                
+
                 var serverInfoData = new Package(PackageType.ServerInfoData, new[]
                 {
                     "0",
@@ -134,13 +150,13 @@ public sealed partial class PokemonServer
                     _options.ServerOptions.ServerName,
                     _options.ServerOptions.ServerDescription
                 });
-                
+
                 e.Network.EnqueuePackage(serverInfoData);
                 break;
             }
         }
     }
-    
+
     [LoggerMessage(Level = LogLevel.Trace, Message = "[{ipAddress}] Received ServerDataRequest Package")]
     private partial void PrintHandleServerDataRequest(IPAddress ipAddress);
 }

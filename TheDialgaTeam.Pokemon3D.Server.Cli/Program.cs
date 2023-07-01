@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using TheDialgaTeam.Microsoft.Extensions.Logging;
 using TheDialgaTeam.Microsoft.Extensions.Logging.AnsiConsole;
 using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Queries.Extensions;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Extensions;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 

@@ -1,4 +1,20 @@
-﻿using System.Net;
+﻿// Pokemon 3D Server Client
+// Copyright (C) 2023 Yong Jian Ming
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -21,7 +37,7 @@ public sealed partial class PokemonServer : BackgroundService
         _options = options;
         _httpClient = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) });
     }
-    
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
@@ -75,7 +91,7 @@ public sealed partial class PokemonServer : BackgroundService
             {
                 await DestroyPortMappingAsync().ConfigureAwait(false);
             }
-            
+
             PrintServerStopped();
         }
     }
@@ -83,7 +99,7 @@ public sealed partial class PokemonServer : BackgroundService
     private async Task<IPAddress> GetPublicIpAddressAsync(CancellationToken cancellationToken = default)
     {
         if (!string.IsNullOrWhiteSpace(_options.NetworkOptions.PublicIpAddress)) return IPAddress.Parse(_options.NetworkOptions.PublicIpAddress);
-        
+
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
@@ -94,7 +110,7 @@ public sealed partial class PokemonServer : BackgroundService
     private async Task RunServerPortCheckingTask()
     {
         var portToCheck = _options.NetworkOptions.BindIpEndPoint.Port;
-        
+
         PrintRunningPortCheck(portToCheck);
 
         try
@@ -120,24 +136,18 @@ public sealed partial class PokemonServer : BackgroundService
         }
     }
 
-    public override void Dispose()
-    {
-        base.Dispose();
-        _httpClient.Dispose();
-    }
-    
     [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Starting Pokemon 3D Server.")]
     private partial void PrintServerStarting();
-    
+
     [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Started listening on {ipEndPoint} for new players.")]
     private partial void PrintServerStarted(IPEndPoint ipEndPoint);
-    
+
     [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Server is allowing offline players")]
     private partial void PrintServerOfflineMode();
-    
+
     [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Checking port {port} is open...")]
     private partial void PrintRunningPortCheck(int port);
-    
+
     [LoggerMessage(Level = LogLevel.Error, Message = "[Server] Unable to get public ip address. Ensure that you have open the port {port} for external users to join.")]
     private partial void PrintUnableToGetPublicIpAddress(int port);
 
@@ -149,10 +159,16 @@ public sealed partial class PokemonServer : BackgroundService
 
     [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Stopping Pokemon 3D Server")]
     private partial void PrintServerStopping();
-    
+
     [LoggerMessage(Level = LogLevel.Error, Message = "[Server] Error ({socketError}): {message}")]
     private partial void PrintServerError(SocketError socketError, string message);
-    
+
     [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Stopped listening for new players")]
     private partial void PrintServerStopped();
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        _httpClient.Dispose();
+    }
 }
