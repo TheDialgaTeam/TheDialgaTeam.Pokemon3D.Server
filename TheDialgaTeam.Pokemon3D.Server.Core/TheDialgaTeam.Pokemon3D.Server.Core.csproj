@@ -6,9 +6,6 @@
         <Nullable>enable</Nullable>
 
         <IsTrimmable>true</IsTrimmable>
-        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-        <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
-        <EnableAotAnalyzer>true</EnableAotAnalyzer>
     </PropertyGroup>
 
     <PropertyGroup>

@@ -1,14 +1,15 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TheDialgaTeam.Microsoft.Extensions.Logging;
 using TheDialgaTeam.Microsoft.Extensions.Logging.AnsiConsole;
 using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Extensions;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
 internal static class Program
 {
+    [SuppressMessage("Trimming", "IL2026:Members annotated with \'RequiresUnreferencedCodeAttribute\' require dynamic access otherwise can break functionality when trimming application code")]
     public static Task Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainOnUnhandledException;
@@ -17,7 +18,6 @@ internal static class Program
             .ConfigureServices(collection =>
             {
                 collection.AddPokemonServer();
-                collection.AddMediator();
                 collection.AddHostedService<ConsoleService>();
             })
             .ConfigureLogging(builder =>

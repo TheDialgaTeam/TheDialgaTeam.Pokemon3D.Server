@@ -30,7 +30,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     [Reactive]
     private bool IsActive { get; set; }
     
-    private readonly PokemonServer _pokemonServer;
+    private readonly IPokemonServer _pokemonServer;
 
     private readonly object _logToConsoleLock = new();
     private readonly StringBuilder _logEntries = new();
@@ -39,7 +39,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     {
         if (Avalonia.Controls.Design.IsDesignMode) return;
 
-        _pokemonServer = Program.ServiceProvider.GetRequiredService<PokemonServer>();
+        _pokemonServer = Program.ServiceProvider.GetRequiredService<IPokemonServer>();
 
         var actionLoggerConfiguration = Program.ServiceProvider.GetRequiredService<ActionLoggerConfiguration>();
         actionLoggerConfiguration.RegisteredActionLogger = LogToConsole;

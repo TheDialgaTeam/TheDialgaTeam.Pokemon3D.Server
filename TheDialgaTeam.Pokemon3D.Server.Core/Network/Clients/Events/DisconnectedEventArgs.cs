@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
+
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
 
-public sealed class DisconnectedEventArgs : EventArgs
-{
-    public required TcpClientNetwork Network { get; init; }
-}
+public sealed record DisconnectedEventArgs(ITcpClientNetwork Network) : INotification;

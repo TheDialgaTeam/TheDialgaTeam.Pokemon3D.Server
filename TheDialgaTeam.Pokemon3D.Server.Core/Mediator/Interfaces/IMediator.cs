@@ -21,24 +21,11 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 public interface IMediator
 {
     [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
-    Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default);
-
-    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
     Task SendAsync(IRequest request, CancellationToken cancellationToken = default);
-
-    Task PublishAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification;
-}
-
-internal interface IBaseMediatorSender
-{
-}
-
-internal interface IMediatorSender : IBaseMediatorSender
-{
-    Task SendAsync(IRequest request, CancellationToken cancellationToken);
-}
-
-internal interface IMediatorSender<TResponse> : IBaseMediatorSender
-{
-    Task<TResponse> SendAsync(IRequest<TResponse> request, CancellationToken cancellationToken);
+    
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+    Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default);
+    
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+    Task PublishAsync(INotification notification, CancellationToken cancellationToken = default);
 }

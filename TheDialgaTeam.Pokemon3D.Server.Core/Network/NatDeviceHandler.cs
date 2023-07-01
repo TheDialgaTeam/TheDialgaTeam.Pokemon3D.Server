@@ -20,7 +20,7 @@ using Mono.Nat;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public sealed partial class PokemonServer
+internal sealed partial class PokemonServer
 {
     private INatDevice[] _natDevices = Array.Empty<INatDevice>();
 
@@ -52,21 +52,21 @@ public sealed partial class PokemonServer
         return devices.ToArray();
     }
 
-    private async Task CreatePortMappingAsync(CancellationToken cancellationToken = default)
+    private async Task CreatePortMappingAsync(IPEndPoint endPoint, CancellationToken cancellationToken = default)
     {
-        var portToForward = _options.NetworkOptions.BindIpEndPoint.Port;
-
         PrintNatSearchForUpnpDevices();
         _natDevices = await DiscoverNatDevicesAsync(cancellationToken).ConfigureAwait(false);
         PrintNatFoundUpnpDevices(_natDevices.Length);
 
         foreach (var natDevice in _natDevices)
         {
+            if (!endPoint.Address.Equals(IPAddress.Any) && !endPoint.Address.Equals(natDevice.DeviceEndpoint.Address)) continue;
+            
             var createMapping = true;
 
             try
             {
-                var mapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, portToForward).ConfigureAwait(false);
+                var mapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, endPoint.Port).ConfigureAwait(false);
 
                 if (mapping.IsExpired())
                 {
@@ -82,23 +82,22 @@ public sealed partial class PokemonServer
                 createMapping = true;
             }
 
-            if (createMapping)
-            {
-                await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, portToForward, portToForward)).ConfigureAwait(false);
-                PrintNatCreatedUpnpDeviceMapping(natDevice.DeviceEndpoint.Address);
-            }
+            if (!createMapping) continue;
+            
+            await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, endPoint.Port, endPoint.Port)).ConfigureAwait(false);
+            PrintNatCreatedUpnpDeviceMapping(natDevice.DeviceEndpoint.Address);
         }
     }
 
-    private async Task DestroyPortMappingAsync()
+    private async Task DestroyPortMappingAsync(IPEndPoint endPoint)
     {
-        var portToForward = _options.NetworkOptions.BindIpEndPoint.Port;
-
         foreach (var natDevice in _natDevices)
         {
+            if (!endPoint.Address.Equals(IPAddress.Any) && !endPoint.Address.Equals(natDevice.DeviceEndpoint.Address)) continue;
+
             try
             {
-                var mapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, portToForward).ConfigureAwait(false);
+                var mapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, endPoint.Port).ConfigureAwait(false);
                 await natDevice.DeletePortMapAsync(mapping).ConfigureAwait(false);
             }
             catch (MappingException)

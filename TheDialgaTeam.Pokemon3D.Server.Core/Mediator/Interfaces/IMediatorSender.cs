@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
-
-public interface IPokemonServerOptions
+internal interface IBaseMediatorSender
 {
-    NetworkOptions NetworkOptions { get; set; }
+}
 
-    ServerOptions ServerOptions { get; set; }
+internal interface IMediatorSender : IBaseMediatorSender
+{
+    Task SendAsync(IRequest request, CancellationToken cancellationToken);
+}
+
+internal interface IMediatorSender<TResponse> : IBaseMediatorSender
+{
+    Task<TResponse> SendAsync(IRequest<TResponse> request, CancellationToken cancellationToken);
 }

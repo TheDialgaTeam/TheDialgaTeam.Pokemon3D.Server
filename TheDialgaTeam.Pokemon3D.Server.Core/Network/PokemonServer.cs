@@ -14,47 +14,59 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public sealed partial class PokemonServer : BackgroundService
+public interface IPokemonServer : IHostedService
+{
+}
+
+internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
 {
     private readonly ILogger<PokemonServer> _logger;
-    private readonly IPokemonServerOptions _options;
+    private readonly IMediator _mediator;
+    private readonly TcpClientNetworkFactory _tcpClientNetworkFactory;
     private readonly HttpClient _httpClient;
 
     private TcpListener? _tcpListener;
 
-    public PokemonServer(ILogger<PokemonServer> logger, IPokemonServerOptions options)
+    public PokemonServer(ILogger<PokemonServer> logger, IMediator mediator, TcpClientNetworkFactory tcpClientNetworkFactory)
     {
         _logger = logger;
-        _options = options;
+        _mediator = mediator;
+        _tcpClientNetworkFactory = tcpClientNetworkFactory;
         _httpClient = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) });
     }
 
+    [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var networkOptions = await _mediator.SendAsync(GetNetworkOptions.Empty, stoppingToken).ConfigureAwait(false);
+        var serverOptions = await _mediator.SendAsync(GetServerOptions.Empty, stoppingToken).ConfigureAwait(false);
+
         try
         {
             PrintServerStarting();
-
-            if (_options.NetworkOptions.UseUpnp)
+            
+            if (networkOptions.UseUpnp)
             {
-                await CreatePortMappingAsync(stoppingToken).ConfigureAwait(false);
+                await CreatePortMappingAsync(networkOptions.BindIpEndPoint, stoppingToken).ConfigureAwait(false);
             }
 
-            _tcpListener = new TcpListener(_options.NetworkOptions.BindIpEndPoint);
+            _tcpListener = new TcpListener(networkOptions.BindIpEndPoint);
             _tcpListener.Start();
 
-            PrintServerStarted(_options.NetworkOptions.BindIpEndPoint);
+            PrintServerStarted(networkOptions.BindIpEndPoint);
 
-            if (_options.ServerOptions.OfflineMode)
+            if (serverOptions.OfflineMode)
             {
                 PrintServerOfflineMode();
             }
@@ -66,7 +78,7 @@ public sealed partial class PokemonServer : BackgroundService
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     var tcpClient = await _tcpListener.AcceptTcpClientAsync(stoppingToken).ConfigureAwait(false);
-                    AddClient(new TcpClientNetwork(_logger, _options, tcpClient));
+                    AddClient(_tcpClientNetworkFactory.CreateTcpClientNetwork(tcpClient));
                 }
             }
             catch (TaskCanceledException)
@@ -87,19 +99,17 @@ public sealed partial class PokemonServer : BackgroundService
         }
         finally
         {
-            if (_options.NetworkOptions.UseUpnp)
+            if (networkOptions.UseUpnp)
             {
-                await DestroyPortMappingAsync().ConfigureAwait(false);
+                await DestroyPortMappingAsync(networkOptions.BindIpEndPoint).ConfigureAwait(false);
             }
 
             PrintServerStopped();
         }
     }
-
+    
     private async Task<IPAddress> GetPublicIpAddressAsync(CancellationToken cancellationToken = default)
     {
-        if (!string.IsNullOrWhiteSpace(_options.NetworkOptions.PublicIpAddress)) return IPAddress.Parse(_options.NetworkOptions.PublicIpAddress);
-
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
 
@@ -107,9 +117,11 @@ public sealed partial class PokemonServer : BackgroundService
         return IPAddress.Parse(externalIpAddress);
     }
 
+    [RequiresDynamicCode("Calls TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.IMediator.SendAsync<TResponse>(IRequest<TResponse>, CancellationToken)")]
     private async Task RunServerPortCheckingTask()
     {
-        var portToCheck = _options.NetworkOptions.BindIpEndPoint.Port;
+        var networkOptions = await _mediator.SendAsync(GetNetworkOptions.Empty).ConfigureAwait(false);
+        var portToCheck = networkOptions.BindIpEndPoint.Port;
 
         PrintRunningPortCheck(portToCheck);
 
@@ -168,7 +180,7 @@ public sealed partial class PokemonServer : BackgroundService
 
     public override void Dispose()
     {
-        base.Dispose();
         _httpClient.Dispose();
+        base.Dispose();
     }
 }

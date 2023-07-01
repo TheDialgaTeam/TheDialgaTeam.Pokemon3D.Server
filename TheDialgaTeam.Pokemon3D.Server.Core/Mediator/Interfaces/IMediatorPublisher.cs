@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
+internal interface IBaseMediatorPublisher
+{
+}
 
-public sealed record NewPackageReceivedEventArgs(ITcpClientNetwork Network, Package Package) : INotification;
+internal interface IMediatorPublisher : IBaseMediatorPublisher
+{
+    Task PublishAsync(INotification notification, CancellationToken cancellationToken);
+}

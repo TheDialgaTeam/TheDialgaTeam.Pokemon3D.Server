@@ -16,51 +16,38 @@
 
 using System.Net;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public sealed partial class PokemonServer
+internal sealed partial class PokemonServer : INotificationHandler<DisconnectedEventArgs>
 {
-    private readonly List<TcpClientNetwork> _tcpClientNetworks = new();
+    private readonly List<ITcpClientNetwork> _tcpClientNetworks = new();
     private readonly object _clientLock = new();
 
-    private void AddClient(TcpClientNetwork network)
+    private void AddClient(ITcpClientNetwork network)
     {
         lock (_clientLock)
         {
-            SubscribeTcpClientNetworkEvent(network);
-            network.Start();
             _tcpClientNetworks.Add(network);
         }
     }
 
-    private void RemoveClient(TcpClientNetwork network)
+    private void RemoveClient(ITcpClientNetwork network)
     {
         lock (_clientLock)
         {
-            UnsubscribeTcpClientNetworkEvent(network);
             _tcpClientNetworks.Remove(network);
         }
     }
-
-    private void SubscribeTcpClientNetworkEvent(TcpClientNetwork network)
+    
+    public Task HandleAsync(DisconnectedEventArgs notification, CancellationToken cancellationToken)
     {
-        network.NewPackageReceived += TcpClientNetworkOnNewPackageReceived;
-        network.Disconnected += TcpClientNetworkOnDisconnected;
-    }
-
-    private void UnsubscribeTcpClientNetworkEvent(TcpClientNetwork network)
-    {
-        network.NewPackageReceived -= TcpClientNetworkOnNewPackageReceived;
-        network.Disconnected -= TcpClientNetworkOnDisconnected;
-    }
-
-    private void TcpClientNetworkOnDisconnected(object? sender, DisconnectedEventArgs e)
-    {
-        RemoveClient(e.Network);
+        RemoveClient(notification.Network);
+        return Task.CompletedTask;
     }
 
     private void TcpClientNetworkOnNewPackageReceived(object? sender, NewPackageReceivedEventArgs e)
@@ -143,15 +130,15 @@ public sealed partial class PokemonServer
             {
                 PrintHandleServerDataRequest(e.Network.RemoteIpAddress);
 
-                var serverInfoData = new Package(PackageType.ServerInfoData, new[]
-                {
-                    "0",
-                    _options.ServerOptions.MaxPlayers.ToString(),
-                    _options.ServerOptions.ServerName,
-                    _options.ServerOptions.ServerDescription
-                });
+                // var serverInfoData = new Package(PackageType.ServerInfoData, new[]
+                // {
+                //     "0",
+                //     _options.ServerOptions.MaxPlayers.ToString(),
+                //     _options.ServerOptions.ServerName,
+                //     _options.ServerOptions.ServerDescription
+                // });
 
-                e.Network.EnqueuePackage(serverInfoData);
+                // e.Network.EnqueuePackage(serverInfoData);
                 break;
             }
         }

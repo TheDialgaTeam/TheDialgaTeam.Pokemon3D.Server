@@ -18,48 +18,48 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
 
-public sealed partial class TcpClientNetwork
+public interface ITcpClientNetwork
 {
-    public event EventHandler<NewPackageReceivedEventArgs>? NewPackageReceived;
+    IPAddress RemoteIpAddress { get; }
+    
+    Player.Player? Player { get; }
 
-    public event EventHandler<DisconnectedEventArgs>? Disconnected;
+    void EnqueuePackage(Package package);
+    
+    void Disconnect();
+}
 
-    public bool IsConnected => _tcpClient.Connected;
-
+internal sealed partial class TcpClientNetwork : ITcpClientNetwork
+{
     public IPAddress RemoteIpAddress { get; }
 
     public Player.Player? Player { get; internal set; }
 
-    private readonly ILogger _logger;
-    private readonly IPokemonServerOptions _options;
-
+    private readonly ILogger<TcpClientNetwork> _logger;
+    private readonly IMediator _mediator;
     private readonly TcpClient _tcpClient;
 
-    private Task? _readingTask;
-    private Task? _writingTask;
-    private Task? _connectionCheckTask;
+    private readonly Task _readingTask;
+    private readonly Task _writingTask;
+    private readonly Task _connectionCheckTask;
 
     private readonly ConcurrentQueue<Package> _packages = new();
 
     private DateTime _lastValidPackage = DateTime.Now;
 
-    public TcpClientNetwork(ILogger logger, IPokemonServerOptions options, TcpClient tcpClient)
+    public TcpClientNetwork(ILogger<TcpClientNetwork> logger, IMediator mediator, TcpClient tcpClient)
     {
         _logger = logger;
-        _options = options;
+        _mediator = mediator;
         _tcpClient = tcpClient;
 
         RemoteIpAddress = (_tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
-    }
-
-    public void Start()
-    {
+        
         _readingTask = Task.Factory.StartNew(RunReadingTask, TaskCreationOptions.LongRunning).Unwrap();
         _writingTask = Task.Factory.StartNew(RunWritingTask, TaskCreationOptions.LongRunning).Unwrap();
         _connectionCheckTask = Task.Factory.StartNew(RunConnectionCheckTask, TaskCreationOptions.LongRunning).Unwrap();
@@ -69,7 +69,7 @@ public sealed partial class TcpClientNetwork
     {
         _tcpClient.Close();
         PrintDisconnected(RemoteIpAddress);
-        Disconnected?.Invoke(this, new DisconnectedEventArgs { Network = this });
+        // Disconnected?.Invoke(this, new DisconnectedEventArgs { Network = this });
     }
 
     public void EnqueuePackage(Package package)
@@ -99,7 +99,7 @@ public sealed partial class TcpClientNetwork
                 else
                 {
                     _lastValidPackage = DateTime.Now;
-                    _ = Task.Run(() => NewPackageReceived?.Invoke(this, new NewPackageReceivedEventArgs { Network = this, Package = package }));
+                    // _ = Task.Run(() => NewPackageReceived?.Invoke(this, new NewPackageReceivedEventArgs { Network = this, Package = package }));
                 }
             }
             catch (OutOfMemoryException)

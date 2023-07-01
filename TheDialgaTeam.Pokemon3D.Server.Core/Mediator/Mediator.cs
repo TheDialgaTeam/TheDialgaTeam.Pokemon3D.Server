@@ -24,29 +24,32 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator;
 internal sealed class Mediator : IMediator
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ConcurrentDictionary<Type, IBaseMediatorSender> _caches = new();
+    private readonly ConcurrentDictionary<Type, IBaseMediatorSender> _senders = new();
+    private readonly ConcurrentDictionary<Type, IBaseMediatorPublisher> _publishers = new();
 
     public Mediator(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
-
-    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
-    public Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
-    {
-        var handler = (IMediatorSender<TResponse>) _caches.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<,>).MakeGenericType(type, typeof(TResponse))), _serviceProvider);
-        return handler.SendAsync(request, cancellationToken);
-    }
-
+    
     [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
     public Task SendAsync(IRequest request, CancellationToken cancellationToken = default)
     {
-        var handler = (IMediatorSender) _caches.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<>).MakeGenericType(type)), _serviceProvider);
+        var handler = (IMediatorSender) _senders.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<>).MakeGenericType(type)), _serviceProvider);
+        return handler.SendAsync(request, cancellationToken);
+    }
+    
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+    public Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+    {
+        var handler = (IMediatorSender<TResponse>) _senders.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<,>).MakeGenericType(type, typeof(TResponse))), _serviceProvider);
         return handler.SendAsync(request, cancellationToken);
     }
 
-    public Task PublishAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+    public Task PublishAsync(INotification notification, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var handler = (IMediatorPublisher) _publishers.GetOrAdd(notification.GetType(), static (type, serviceProvider) => (IBaseMediatorPublisher) serviceProvider.GetRequiredService(typeof(MediatorPublisher<>).MakeGenericType(type)), _serviceProvider);
+        return handler.PublishAsync(notification, cancellationToken);
     }
 }

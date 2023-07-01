@@ -15,16 +15,20 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-internal sealed class PokemonServerOptions : IPokemonServerOptions, IDisposable
+internal sealed class PokemonServerOptions : 
+    IRequestHandler<GetNetworkOptions, NetworkOptions>,
+    IRequestHandler<GetServerOptions, ServerOptions>,
+    IDisposable
 {
-    public NetworkOptions NetworkOptions { get; set; }
+    public NetworkOptions NetworkOptions { get; private set; }
 
-    public ServerOptions ServerOptions { get; set; }
+    public ServerOptions ServerOptions { get; private set; }
 
     private readonly IDisposable? _networkOptionsDisposable;
     private readonly IDisposable? _serverOptionsDisposable;
@@ -36,6 +40,16 @@ internal sealed class PokemonServerOptions : IPokemonServerOptions, IDisposable
 
         _networkOptionsDisposable = networkOptions.OnChange(options => NetworkOptions = options);
         _serverOptionsDisposable = serverOptions.OnChange(options => ServerOptions = options);
+    }
+
+    public Task<NetworkOptions> HandleAsync(GetNetworkOptions request, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(NetworkOptions);
+    }
+    
+    public Task<ServerOptions> HandleAsync(GetServerOptions request, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(ServerOptions);
     }
 
     public void Dispose()

@@ -18,43 +18,13 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator;
 
-internal sealed class MediatorSender<TRequest, TResponse> : IMediatorSender<TResponse> where TRequest : IRequest<TResponse>
-{
-    private readonly IRequestHandler<TRequest, TResponse> _handler;
-    private readonly IEnumerable<IRequestMiddleware<TRequest, TResponse>>? _middlewares;
-
-    public MediatorSender(IRequestHandler<TRequest, TResponse> handler)
-    {
-        _handler = handler;
-        _middlewares = null;
-    }
-
-    public MediatorSender(IRequestHandler<TRequest, TResponse> handler, IEnumerable<IRequestMiddleware<TRequest, TResponse>> middlewares)
-    {
-        _handler = handler;
-        _middlewares = middlewares;
-    }
-
-    public Task<TResponse> SendAsync(IRequest<TResponse> request, CancellationToken cancellationToken)
-    {
-        return SendAsync((TRequest) request, cancellationToken);
-    }
-
-    private Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken)
-    {
-        return _middlewares == null ? _handler.HandleAsync(request, cancellationToken) : _middlewares.Aggregate(() => _handler.HandleAsync(request, cancellationToken), (next, middleware) => () => middleware.HandleAsync(request, next, cancellationToken))();
-    }
-}
-
 internal sealed class MediatorSender<TRequest> : IMediatorSender where TRequest : IRequest
 {
     private readonly IRequestHandler<TRequest> _handler;
-    private readonly IEnumerable<IRequestMiddleware<TRequest>>? _middlewares;
+    private readonly IEnumerable<IRequestMiddleware<TRequest>> _middlewares;
 
-    public MediatorSender(IRequestHandler<TRequest> handler)
+    public MediatorSender(IRequestHandler<TRequest> handler) : this(handler, Array.Empty<IRequestMiddleware<TRequest>>())
     {
-        _handler = handler;
-        _middlewares = null;
     }
 
     public MediatorSender(IRequestHandler<TRequest> handler, IEnumerable<IRequestMiddleware<TRequest>> middlewares)
@@ -70,6 +40,32 @@ internal sealed class MediatorSender<TRequest> : IMediatorSender where TRequest 
 
     private Task SendAsync(TRequest request, CancellationToken cancellationToken)
     {
-        return _middlewares == null ? _handler.HandleAsync(request, cancellationToken) : _middlewares.Aggregate(() => _handler.HandleAsync(request, cancellationToken), (next, middleware) => () => middleware.HandleAsync(request, next, cancellationToken))();
+        return _middlewares.Aggregate(() => _handler.HandleAsync(request, cancellationToken), (next, middleware) => () => middleware.HandleAsync(request, next, cancellationToken))();
+    }
+}
+
+internal sealed class MediatorSender<TRequest, TResponse> : IMediatorSender<TResponse> where TRequest : IRequest<TResponse>
+{
+    private readonly IRequestHandler<TRequest, TResponse> _handler;
+    private readonly IEnumerable<IRequestMiddleware<TRequest, TResponse>> _middlewares;
+
+    public MediatorSender(IRequestHandler<TRequest, TResponse> handler) : this(handler, Array.Empty<IRequestMiddleware<TRequest, TResponse>>())
+    {
+    }
+
+    public MediatorSender(IRequestHandler<TRequest, TResponse> handler, IEnumerable<IRequestMiddleware<TRequest, TResponse>> middlewares)
+    {
+        _handler = handler;
+        _middlewares = middlewares;
+    }
+
+    public Task<TResponse> SendAsync(IRequest<TResponse> request, CancellationToken cancellationToken)
+    {
+        return SendAsync((TRequest) request, cancellationToken);
+    }
+
+    private Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken)
+    {
+        return _middlewares.Aggregate(() => _handler.HandleAsync(request, cancellationToken), (next, middleware) => () => middleware.HandleAsync(request, next, cancellationToken))();
     }
 }

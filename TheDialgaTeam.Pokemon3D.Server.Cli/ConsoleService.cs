@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
@@ -7,12 +6,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
 internal sealed class ConsoleService : BackgroundService
 {
-    private readonly ILogger<ConsoleService> _logger;
-    private readonly PokemonServer _pokemonServer;
+    private readonly IPokemonServer _pokemonServer;
 
-    public ConsoleService(ILogger<ConsoleService> logger, PokemonServer pokemonServer)
+    public ConsoleService(IPokemonServer pokemonServer)
     {
-        _logger = logger;
         _pokemonServer = pokemonServer;
     }
 
