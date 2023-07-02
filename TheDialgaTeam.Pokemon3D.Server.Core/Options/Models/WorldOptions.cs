@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
-
-public record GetNetworkOptions : IQuery<NetworkOptions>
+internal sealed record WorldOptions
 {
-    public static GetNetworkOptions Empty { get; } = new();
+    public int Season { get; init; } = -1;
+
+    public int Weather { get; init; } = -1;
+
+    public bool DoDayCycle { get; init; } = true;
+
+    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+
+    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
 }

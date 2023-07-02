@@ -16,12 +16,9 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Extensions;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Extensions;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 
@@ -32,21 +29,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPokemonServer(this IServiceCollection collection)
     {
         collection.AddMediator();
+
+        collection.AddPokemonServerNetwork();
         collection.AddPokemonServerOptions();
-        
-        collection.TryAddSingleton<TcpClientNetworkFactory>();
-        collection.TryAddSingleton<IPokemonServer, PokemonServer>();
-        
+
         return collection;
-    }
-
-    [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
-    [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
-    private static void AddPokemonServerOptions(this IServiceCollection collection)
-    {
-        collection.AddOptions<NetworkOptions>().BindConfiguration("Network");
-        collection.AddOptions<ServerOptions>().BindConfiguration("Server");
-
-        collection.AddRequestHandler<PokemonServerOptions>();
     }
 }

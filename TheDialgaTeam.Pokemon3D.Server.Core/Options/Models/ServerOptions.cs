@@ -33,46 +33,4 @@ internal sealed record ServerOptions
     public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(10);
 
     public TimeSpan AwayFromKeyboardKickTime { get; init; } = TimeSpan.FromMinutes(5);
-
-    public WorldOptions WorldOptions { get; init; } = new();
-
-    public ChatOptions ChatOptions { get; init; } = new();
-
-    public PvPOptions PvPOptions { get; init; } = new();
-
-    public TradeOptions TradeOptions { get; init; } = new();
-}
-
-internal sealed record WorldOptions
-{
-    public int Season { get; init; } = -1;
-
-    public int Weather { get; init; } = -1;
-
-    public bool DoDayCycle { get; init; } = true;
-
-    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-
-    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
-}
-
-internal sealed record ChatOptions
-{
-    public bool AllowChat { get; init; } = true;
-
-    public string[] ChatChannels { get; init; } = { "All" };
-}
-
-internal sealed record PvPOptions
-{
-    public bool AllowPvP { get; init; } = true;
-
-    public bool AllowPvPValidation { get; init; } = true;
-}
-
-internal sealed record TradeOptions
-{
-    public bool AllowTrade { get; init; } = true;
-
-    public bool AllowTradeValidation { get; init; } = true;
 }

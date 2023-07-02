@@ -31,7 +31,7 @@ internal sealed class Mediator : IMediator
     {
         _serviceProvider = serviceProvider;
     }
-    
+
     [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
     public Task SendAsync(IRequest request, CancellationToken cancellationToken = default)
     {

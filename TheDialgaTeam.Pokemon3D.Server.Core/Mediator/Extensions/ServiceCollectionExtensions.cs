@@ -22,7 +22,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Middlewares;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Extensions;
 
-public static class ServiceCollectionExtensions
+public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddMediator(this IServiceCollection collection)
     {
@@ -75,7 +75,7 @@ public static class ServiceCollectionExtensions
             
             if (@interface.GetGenericTypeDefinition() == typeof(INotificationHandler<>))
             {
-                collection.TryAdd(ServiceDescriptor.Describe(@interface, static provider => provider.GetRequiredService(typeof(TNotificationHandler)), serviceLifetime));
+                collection.TryAddEnumerable(ServiceDescriptor.Describe(@interface, static provider => provider.GetRequiredService(typeof(TNotificationHandler)), serviceLifetime));
             }
         }
         

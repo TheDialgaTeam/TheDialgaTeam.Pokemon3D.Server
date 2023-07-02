@@ -67,6 +67,6 @@ internal sealed partial class CatchUnhandledExceptionMiddleware<TRequest, TRespo
         }
     }
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "[Request] Unhandled Exception for Request {name}: {request}")]
+    [LoggerMessage(Level = LogLevel.Error, Message = "[Request] Unhandled Exception for Request {name} {request}")]
     private partial void PrintException(Exception exception, string name, TRequest request);
 }

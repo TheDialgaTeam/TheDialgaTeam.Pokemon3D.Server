@@ -21,6 +21,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 internal sealed record NetworkOptions
 {
     public IPEndPoint BindIpEndPoint { get; init; } = new(IPAddress.Any, 15124);
-    
+
     public bool UseUpnp { get; init; }
 }

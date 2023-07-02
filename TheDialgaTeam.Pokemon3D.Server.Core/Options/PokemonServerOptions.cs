@@ -15,41 +15,40 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 internal sealed class PokemonServerOptions : 
-    IRequestHandler<GetNetworkOptions, NetworkOptions>,
-    IRequestHandler<GetServerOptions, ServerOptions>,
+    IQueryHandler<GetNetworkOptions, NetworkOptions>,
+    IQueryHandler<GetServerOptions, ServerOptions>,
     IDisposable
 {
-    public NetworkOptions NetworkOptions { get; private set; }
-
-    public ServerOptions ServerOptions { get; private set; }
+    private NetworkOptions _networkOptions;
+    private ServerOptions _serverOptions;
 
     private readonly IDisposable? _networkOptionsDisposable;
     private readonly IDisposable? _serverOptionsDisposable;
 
     public PokemonServerOptions(IOptionsMonitor<NetworkOptions> networkOptions, IOptionsMonitor<ServerOptions> serverOptions)
     {
-        NetworkOptions = networkOptions.CurrentValue;
-        ServerOptions = serverOptions.CurrentValue;
+        _networkOptions = networkOptions.CurrentValue;
+        _serverOptions = serverOptions.CurrentValue;
 
-        _networkOptionsDisposable = networkOptions.OnChange(options => NetworkOptions = options);
-        _serverOptionsDisposable = serverOptions.OnChange(options => ServerOptions = options);
+        _networkOptionsDisposable = networkOptions.OnChange(options => _networkOptions = options);
+        _serverOptionsDisposable = serverOptions.OnChange(options => _serverOptions = options);
     }
 
     public Task<NetworkOptions> HandleAsync(GetNetworkOptions request, CancellationToken cancellationToken)
     {
-        return Task.FromResult(NetworkOptions);
+        return Task.FromResult(_networkOptions);
     }
     
     public Task<ServerOptions> HandleAsync(GetServerOptions request, CancellationToken cancellationToken)
     {
-        return Task.FromResult(ServerOptions);
+        return Task.FromResult(_serverOptions);
     }
 
     public void Dispose()

@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
-
-public record GetNetworkOptions : IQuery<NetworkOptions>
+internal sealed record PvPOptions
 {
-    public static GetNetworkOptions Empty { get; } = new();
+    public bool AllowPvP { get; init; } = true;
+
+    public bool AllowPvPValidation { get; init; } = true;
 }

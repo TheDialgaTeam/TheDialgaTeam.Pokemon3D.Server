@@ -17,12 +17,20 @@
 using System.Net;
 using Microsoft.Extensions.Logging;
 using Mono.Nat;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed partial class PokemonServer
+internal sealed partial class NatDeviceUtility : INatDeviceUtility
 {
+    private readonly ILogger<NatDeviceUtility> _logger;
+
     private INatDevice[] _natDevices = Array.Empty<INatDevice>();
+
+    public NatDeviceUtility(ILogger<NatDeviceUtility> logger)
+    {
+        _logger = logger;
+    }
 
     private static async Task<INatDevice[]> DiscoverNatDevicesAsync(CancellationToken cancellationToken)
     {
@@ -52,7 +60,7 @@ internal sealed partial class PokemonServer
         return devices.ToArray();
     }
 
-    private async Task CreatePortMappingAsync(IPEndPoint endPoint, CancellationToken cancellationToken = default)
+    public async Task CreatePortMappingAsync(IPEndPoint endPoint, CancellationToken cancellationToken = default)
     {
         PrintNatSearchForUpnpDevices();
         _natDevices = await DiscoverNatDevicesAsync(cancellationToken).ConfigureAwait(false);
@@ -61,7 +69,7 @@ internal sealed partial class PokemonServer
         foreach (var natDevice in _natDevices)
         {
             if (!endPoint.Address.Equals(IPAddress.Any) && !endPoint.Address.Equals(natDevice.DeviceEndpoint.Address)) continue;
-            
+
             var createMapping = true;
 
             try
@@ -83,13 +91,13 @@ internal sealed partial class PokemonServer
             }
 
             if (!createMapping) continue;
-            
+
             await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, endPoint.Port, endPoint.Port)).ConfigureAwait(false);
             PrintNatCreatedUpnpDeviceMapping(natDevice.DeviceEndpoint.Address);
         }
     }
 
-    private async Task DestroyPortMappingAsync(IPEndPoint endPoint)
+    public async Task DestroyPortMappingAsync(IPEndPoint endPoint)
     {
         foreach (var natDevice in _natDevices)
         {

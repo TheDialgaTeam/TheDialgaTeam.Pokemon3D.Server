@@ -21,32 +21,30 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
-
-public interface IPokemonServer : IHostedService
-{
-}
 
 internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
 {
     private readonly ILogger<PokemonServer> _logger;
     private readonly IMediator _mediator;
+    private readonly INatDeviceUtility _natDeviceUtility;
     private readonly TcpClientNetworkFactory _tcpClientNetworkFactory;
     private readonly HttpClient _httpClient;
 
     private TcpListener? _tcpListener;
 
-    public PokemonServer(ILogger<PokemonServer> logger, IMediator mediator, TcpClientNetworkFactory tcpClientNetworkFactory)
+    public PokemonServer(ILogger<PokemonServer> logger, IMediator mediator, INatDeviceUtility natDeviceUtility, TcpClientNetworkFactory tcpClientNetworkFactory)
     {
         _logger = logger;
         _mediator = mediator;
+        _natDeviceUtility = natDeviceUtility;
         _tcpClientNetworkFactory = tcpClientNetworkFactory;
         _httpClient = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) });
     }
 
-    [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var networkOptions = await _mediator.SendAsync(GetNetworkOptions.Empty, stoppingToken).ConfigureAwait(false);
@@ -58,7 +56,7 @@ internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
             
             if (networkOptions.UseUpnp)
             {
-                await CreatePortMappingAsync(networkOptions.BindIpEndPoint, stoppingToken).ConfigureAwait(false);
+                await _natDeviceUtility.CreatePortMappingAsync(networkOptions.BindIpEndPoint, stoppingToken).ConfigureAwait(false);
             }
 
             _tcpListener = new TcpListener(networkOptions.BindIpEndPoint);
@@ -101,7 +99,7 @@ internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
         {
             if (networkOptions.UseUpnp)
             {
-                await DestroyPortMappingAsync(networkOptions.BindIpEndPoint).ConfigureAwait(false);
+                await _natDeviceUtility.DestroyPortMappingAsync(networkOptions.BindIpEndPoint).ConfigureAwait(false);
             }
 
             PrintServerStopped();
@@ -117,7 +115,6 @@ internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
         return IPAddress.Parse(externalIpAddress);
     }
 
-    [RequiresDynamicCode("Calls TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.IMediator.SendAsync<TResponse>(IRequest<TResponse>, CancellationToken)")]
     private async Task RunServerPortCheckingTask()
     {
         var networkOptions = await _mediator.SendAsync(GetNetworkOptions.Empty).ConfigureAwait(false);

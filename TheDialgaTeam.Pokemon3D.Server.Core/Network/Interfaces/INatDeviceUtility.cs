@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+using System.Net;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-public record GetNetworkOptions : IQuery<NetworkOptions>
+public interface INatDeviceUtility
 {
-    public static GetNetworkOptions Empty { get; } = new();
+    Task CreatePortMappingAsync(IPEndPoint endPoint, CancellationToken cancellationToken = default);
+
+    Task DestroyPortMappingAsync(IPEndPoint endPoint);
 }
