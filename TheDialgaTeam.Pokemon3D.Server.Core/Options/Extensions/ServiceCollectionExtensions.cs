@@ -17,13 +17,12 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
+using TheDialgaTeam.Pokemon3D.Server.SourceGenerator;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Extensions;
 
-public static class ServiceCollectionExtensions
+public static partial class ServiceCollectionExtensions
 {
     [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
     [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
@@ -37,9 +36,11 @@ public static class ServiceCollectionExtensions
         collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
         
         collection.TryAddSingleton<PokemonServerOptions>();
-        collection.TryAddSingleton<IRequestHandler<GetNetworkOptions, NetworkOptions>>(static provider => provider.GetRequiredService<PokemonServerOptions>());
-        collection.TryAddSingleton<IRequestHandler<GetServerOptions, ServerOptions>>(static provider => provider.GetRequiredService<PokemonServerOptions>());
-
+        AddPokemonServerOptionsQueryHandler(collection);
+        
         return collection;
     }
+
+    [QueryHandler(typeof(PokemonServerOptions))]
+    private static partial void AddPokemonServerOptionsQueryHandler(IServiceCollection collection);
 }

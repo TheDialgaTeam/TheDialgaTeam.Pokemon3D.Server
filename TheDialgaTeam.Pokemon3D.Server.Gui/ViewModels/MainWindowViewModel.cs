@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TheDialgaTeam.Microsoft.Extensions.Logging.Action;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Gui.ViewModels;
 

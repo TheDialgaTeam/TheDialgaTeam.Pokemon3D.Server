@@ -21,4 +21,8 @@
         <PackageReference Include="Mono.Nat" Version="3.0.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\TheDialgaTeam.Pokemon3D.Server.SourceGenerator\TheDialgaTeam.Pokemon3D.Server.SourceGenerator.csproj" OutputItemType="Analyzer" />
+    </ItemGroup>
+    
 </Project>

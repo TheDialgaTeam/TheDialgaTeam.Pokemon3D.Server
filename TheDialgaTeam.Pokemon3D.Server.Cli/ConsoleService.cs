@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli;
