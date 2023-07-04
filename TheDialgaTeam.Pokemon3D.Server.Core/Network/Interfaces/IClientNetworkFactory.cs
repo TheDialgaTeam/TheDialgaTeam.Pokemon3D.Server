@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+using System.Net.Sockets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-public record GetServerOptions : IQuery<ServerOptions>
+public interface IClientNetworkFactory
 {
-    public static GetServerOptions Empty { get; } = new();
+    IClientNetwork CreateTcpClientNetwork(TcpClient client);
 }

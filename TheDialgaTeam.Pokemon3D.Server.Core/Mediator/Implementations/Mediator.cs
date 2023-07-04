@@ -19,7 +19,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations;
 
 internal sealed class Mediator : IMediator
 {
@@ -38,7 +38,7 @@ internal sealed class Mediator : IMediator
         var handler = (IMediatorSender) _senders.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<>).MakeGenericType(type)), _serviceProvider);
         return handler.SendAsync(request, cancellationToken);
     }
-    
+
     [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
     public Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {

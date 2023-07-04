@@ -17,7 +17,7 @@
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Middlewares;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations.Middlewares;
 
 internal sealed partial class CatchUnhandledExceptionMiddleware<TRequest> : IRequestMiddleware<TRequest> where TRequest : IRequest
 {

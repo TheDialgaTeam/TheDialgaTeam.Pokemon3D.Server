@@ -17,7 +17,7 @@
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class QueryHandlerAttribute : Attribute
+public sealed class QueryHandlerAttribute : Attribute
 {
     public Type Type { get; }
 

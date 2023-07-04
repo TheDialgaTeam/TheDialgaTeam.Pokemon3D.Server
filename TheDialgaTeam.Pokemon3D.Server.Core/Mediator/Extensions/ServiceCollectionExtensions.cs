@@ -17,8 +17,9 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations.Middlewares;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Middlewares;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Extensions;
 
@@ -26,7 +27,7 @@ public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddMediator(this IServiceCollection collection)
     {
-        collection.AddSingleton<IMediator, Mediator>();
+        collection.AddSingleton<IMediator, Implementations.Mediator>();
         collection.AddSingleton(typeof(MediatorSender<>));
         collection.AddSingleton(typeof(MediatorSender<,>));
         collection.AddSingleton(typeof(MediatorPublisher<>));

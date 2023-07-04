@@ -19,26 +19,15 @@ using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
 
-public interface ITcpClientNetwork
-{
-    IPAddress RemoteIpAddress { get; }
-    
-    Player.Player? Player { get; }
-
-    void EnqueuePackage(Package package);
-    
-    void Disconnect();
-}
-
-internal sealed partial class TcpClientNetwork : ITcpClientNetwork
+internal sealed partial class TcpClientNetwork : IClientNetwork
 {
     public IPAddress RemoteIpAddress { get; }
-
-    public Player.Player? Player { get; internal set; }
 
     private readonly ILogger<TcpClientNetwork> _logger;
     private readonly IMediator _mediator;
@@ -59,22 +48,22 @@ internal sealed partial class TcpClientNetwork : ITcpClientNetwork
         _tcpClient = tcpClient;
 
         RemoteIpAddress = (_tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
-        
+
         _readingTask = Task.Factory.StartNew(RunReadingTask, TaskCreationOptions.LongRunning).Unwrap();
         _writingTask = Task.Factory.StartNew(RunWritingTask, TaskCreationOptions.LongRunning).Unwrap();
         _connectionCheckTask = Task.Factory.StartNew(RunConnectionCheckTask, TaskCreationOptions.LongRunning).Unwrap();
     }
 
-    public void Disconnect()
-    {
-        _tcpClient.Close();
-        PrintDisconnected(RemoteIpAddress);
-        // Disconnected?.Invoke(this, new DisconnectedEventArgs { Network = this });
-    }
-
     public void EnqueuePackage(Package package)
     {
         _packages.Enqueue(package);
+    }
+
+    public Task DisconnectAsync()
+    {
+        _tcpClient.Close();
+        PrintDisconnected(RemoteIpAddress);
+        return _mediator.PublishAsync(new DisconnectedEventArgs(this));
     }
 
     private async Task RunReadingTask()
@@ -99,13 +88,12 @@ internal sealed partial class TcpClientNetwork : ITcpClientNetwork
                 else
                 {
                     _lastValidPackage = DateTime.Now;
-                    // _ = Task.Run(() => NewPackageReceived?.Invoke(this, new NewPackageReceivedEventArgs { Network = this, Package = package }));
+                    _ = Task.Run(() => _mediator.PublishAsync(new NewPackageReceivedEventArgs(this, package)));
                 }
             }
             catch (OutOfMemoryException)
             {
                 PrintOutOfMemory(RemoteIpAddress);
-                Disconnect();
             }
             catch (IOException)
             {
@@ -151,7 +139,7 @@ internal sealed partial class TcpClientNetwork : ITcpClientNetwork
             if ((DateTime.Now - _lastValidPackage).TotalSeconds > 10)
             {
                 // Most likely disconnected, so let's destroy it.
-                Disconnect();
+                await DisconnectAsync().ConfigureAwait(false);
             }
 
             await Task.Delay(1000).ConfigureAwait(false);
@@ -178,4 +166,12 @@ internal sealed partial class TcpClientNetwork : ITcpClientNetwork
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Disconnected")]
     private partial void PrintDisconnected(IPAddress ipAddress);
+
+    public void Dispose()
+    {
+        _tcpClient.Dispose();
+        _readingTask.Dispose();
+        _writingTask.Dispose();
+        _connectionCheckTask.Dispose();
+    }
 }

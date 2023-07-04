@@ -14,8 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
+using System.Net;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
-public sealed record DisconnectedEventArgs(ITcpClientNetwork Network) : INotification;
+public static class NetworkUtility
+{
+    public static IPAddress[] GetLocalIpAddress()
+    {
+        return Dns.GetHostAddresses(Dns.GetHostName());
+    }
+    
+    public static async Task<IPAddress[]> GetLocalIpAddressAsync(CancellationToken cancellationToken = default)
+    {
+        return await Dns.GetHostAddressesAsync(Dns.GetHostName(), cancellationToken).ConfigureAwait(false);
+    }
+}

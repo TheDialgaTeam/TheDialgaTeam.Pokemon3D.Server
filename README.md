@@ -29,6 +29,6 @@ This is an application which allows players to host a [Pokemon 3D](https://pokem
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the GPL-3.0 license. See `LICENSE` for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>

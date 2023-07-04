@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.Hosting;
@@ -14,6 +15,8 @@ public static class Program
 {
     public static IServiceProvider ServiceProvider { get; private set; } = null!;
     
+    [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
+    [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
     [STAThread]
     public static int Main(string[] args)
     {
@@ -37,21 +40,21 @@ public static class Program
 
     public static AppBuilder BuildAvaloniaApp()
     {
-        return AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .UseReactiveUI();
+        return AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
     }
 
+    [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
+    [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
     private static IHost CreateHost(string[] args)
     {
         return Host.CreateDefaultBuilder(args)
-            .ConfigureServices(collection =>
+            .ConfigureServices(static collection =>
             {
                 collection.AddPokemonServer();
             })
-            .ConfigureLogging(builder =>
+            .ConfigureLogging(static builder =>
             {
-                builder.AddActionLogger(options =>
+                builder.AddActionLogger(static options =>
                 {
                     options.SetDefaultTemplate(static formattingBuilder => formattingBuilder.SetGlobal(static messageFormattingBuilder => messageFormattingBuilder.SetPrefix(static (in LoggingTemplateEntry _) => $"{AnsiEscapeCodeConstants.DarkGrayForegroundColor}{DateTime.Now:yyyy-MM-dd HH:mm:ss}{AnsiEscapeCodeConstants.Reset} ")));
                 });

@@ -16,7 +16,7 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
-internal sealed record WorldOptions
+public sealed record WorldOptions
 {
     public int Season { get; init; } = -1;
 

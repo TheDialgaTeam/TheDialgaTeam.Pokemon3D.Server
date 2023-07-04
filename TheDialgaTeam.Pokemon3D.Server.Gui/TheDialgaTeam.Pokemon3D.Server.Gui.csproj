@@ -1,13 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <AssemblyName>Pokemon3D_Server</AssemblyName>
+        <AssemblyName>Pokemon3D.Server.Gui</AssemblyName>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net7.0</TargetFramework>
+        <ApplicationIcon>Assets\Icon.ico</ApplicationIcon>
+
+        <PackageId>TheDialgaTeam.Pokemon3D.Server.Gui</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Yong Jian Ming</Authors>
+        <Company>The Dialga Team</Company>
+        <Product>Pokemon3D.Server.Gui</Product>
+        <Description>Pokemon 3D Server in graphical mode.</Description>
+        <PackageProjectUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</RepositoryUrl>
+        
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <ApplicationIcon>Assets\Icon.ico</ApplicationIcon>
+
+        <PublishTrimmed>true</PublishTrimmed>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        <PublishSingleFile>true</PublishSingleFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,7 +36,7 @@
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="0.10.21" />
         <PackageReference Include="Avalonia.Desktop" Version="0.10.21" />
-        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.21" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="0.10.21" Condition="'$(Configuration)' == 'Debug'" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.21" />
         <PackageReference Include="Avalonia.Svg.Skia" Version="0.10.18" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
@@ -36,7 +50,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Update="appsettings.json">
+        <Content Include="..\appsettings.Development.json" Condition="'$(Configuration)' == 'Debug'">
+            <Link>appsettings.Development.json</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="..\appsettings.json">
+            <Link>appsettings.json</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

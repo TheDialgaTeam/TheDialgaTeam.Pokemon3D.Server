@@ -16,7 +16,7 @@
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Middlewares;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations.Middlewares;
 
 internal sealed class PreProcessorRequestMiddleware<TRequest> : IRequestMiddleware<TRequest> where TRequest : IRequest
 {
@@ -38,7 +38,7 @@ internal sealed class PreProcessorRequestMiddleware<TRequest> : IRequestMiddlewa
         {
             await processor.Process(request, cancellationToken).ConfigureAwait(false);
         }
-        
+
         await next().ConfigureAwait(false);
     }
 }
@@ -56,14 +56,14 @@ internal sealed class PreProcessorRequestMiddleware<TRequest, TResponse> : IRequ
     {
         _processors = processors;
     }
-    
+
     public async Task<TResponse> HandleAsync(TRequest request, Func<Task<TResponse>> next, CancellationToken cancellationToken)
     {
         foreach (var processor in _processors)
         {
             await processor.Process(request, cancellationToken).ConfigureAwait(false);
         }
-        
+
         return await next().ConfigureAwait(false);
     }
 }

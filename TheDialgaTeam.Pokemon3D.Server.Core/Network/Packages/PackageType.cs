@@ -19,12 +19,12 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
 public enum PackageType
 {
     /// <summary>
-    ///     Package Type: Unknown Data
+    ///     Unknown Data
     /// </summary>
     Unknown = -1,
 
     /// <summary>
-    ///     Package Type: Game Data
+    ///     Game Data
     ///     <para>Join: {Origin = PlayerID | DataItem[] = FullPackageData[] | To other players}</para>
     ///     <para>Update: {Origin = PlayerID | DataItem[] = PartialPackageData[] | To other players}</para>
     /// </summary>

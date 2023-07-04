@@ -16,6 +16,6 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
 
-public interface IQuery<out TQuery> : IRequest<TQuery>
+public interface IQuery<out TResponse> : IRequest<TResponse>
 {
 }

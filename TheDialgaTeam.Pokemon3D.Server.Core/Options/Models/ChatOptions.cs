@@ -16,7 +16,7 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
-internal sealed record ChatOptions
+public sealed record ChatOptions
 {
     public bool AllowChat { get; init; } = true;
 

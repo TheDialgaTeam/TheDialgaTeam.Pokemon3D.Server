@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Text;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -23,61 +24,162 @@ namespace TheDialgaTeam.Pokemon3D.Server.SourceGenerator;
 [Generator]
 public sealed class MediatorGenerator : IIncrementalGenerator
 {
+    private const string CommandHandlerAttribute = "TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes.CommandHandlerAttribute";
     private const string QueryHandlerAttribute = "TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes.QueryHandlerAttribute";
     
+    [SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1024:Symbols should be compared for equality")]
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var queryHandlerAttributeMethod = context.SyntaxProvider.ForAttributeWithMetadataName(QueryHandlerAttribute, 
+        var getCommandHandlerMethods = context.SyntaxProvider.ForAttributeWithMetadataName(CommandHandlerAttribute, 
             (node, _) => node is MemberDeclarationSyntax,
-            (syntaxContext, token) => syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.TargetNode, token) as IMethodSymbol);
+            (syntaxContext, token) => syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.TargetNode, token));
 
-        context.RegisterSourceOutput(queryHandlerAttributeMethod, (productionContext, symbol) =>
+        var getQueryHandlerMethods = context.SyntaxProvider.ForAttributeWithMetadataName(QueryHandlerAttribute, 
+            (node, _) => node is MemberDeclarationSyntax,
+            (syntaxContext, token) => syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.TargetNode, token));
+        
+        context.RegisterSourceOutput(getCommandHandlerMethods, (productionContext, symbol) =>
         {
-            if (symbol == null) return;
-            if (!symbol.IsPartialDefinition) return;
-            if (symbol.Parameters.IsEmpty || symbol.Parameters.Length > 1) return;
-            if (!symbol.Parameters[0].Type.ToDisplayString().Equals("Microsoft.Extensions.DependencyInjection.IServiceCollection")) return;
+            if (symbol is not IMethodSymbol methodSymbol) return;
+            if (!methodSymbol.IsPartialDefinition) return;
+            if (methodSymbol.Parameters.Length != 1) return;
+            if (!methodSymbol.Parameters[0].Type.ToDisplayString().Equals("Microsoft.Extensions.DependencyInjection.IServiceCollection")) return;
             
-            var accessibility = symbol.DeclaredAccessibility switch
+            var accessibility = methodSymbol.DeclaredAccessibility switch
             {
-                Accessibility.Private => "private",
-                Accessibility.Public => "public",
-                Accessibility.Internal => "internal",
+                Accessibility.Public => "public ",
+                Accessibility.ProtectedAndInternal => "protected internal ",
+                Accessibility.Protected => "protected ",
+                Accessibility.Internal => "internal ",
+                Accessibility.Private => "private ",
                 var _ => ""
             };
             
-            var queryHandlerTypes = symbol.GetAttributes()
-                .Where(data => data.AttributeClass?.ToDisplayString().Equals(QueryHandlerAttribute) ?? false)
-                .SelectMany(data => data.ConstructorArguments.Select(constant => constant.Value))
+            var commandHandlerTypes = methodSymbol.GetAttributes()
+                .Where(attributeData => attributeData.AttributeClass?.ToDisplayString().Equals(CommandHandlerAttribute) ?? false)
+                .SelectMany(attributeData => attributeData.ConstructorArguments.Select(argument => argument.Value))
                 .OfType<ITypeSymbol>()
                 .SelectMany(typeSymbol => typeSymbol.AllInterfaces
-                    .Where(namedTypeSymbol => namedTypeSymbol.IsGenericType && namedTypeSymbol.Name == "IRequestHandler")
-                    .Select(namedTypeSymbol => $"            {symbol.Parameters[0].Name}.TryAddSingleton<{namedTypeSymbol.ToDisplayString()}>(static provider => provider.GetRequiredService<{typeSymbol.ToDisplayString()}>());"));
+                    .Where(namedTypeSymbol => namedTypeSymbol.IsGenericType && namedTypeSymbol is { Name: "IRequestHandler", TypeParameters.Length: 1 })
+                    .Select(namedTypeSymbol => $"{methodSymbol.Parameters[0].Name}.TryAddSingleton<{namedTypeSymbol.ToDisplayString()}>(static provider => provider.GetRequiredService<{typeSymbol.ToDisplayString()}>());"))
+                .ToImmutableArray();
 
+            var sourceBuilder = new SourceBuilder();
+            sourceBuilder.WriteLine("using Microsoft.Extensions.DependencyInjection;");
+            sourceBuilder.WriteLine("using Microsoft.Extensions.DependencyInjection.Extensions;");
+            sourceBuilder.WriteEmptyLine();
+            sourceBuilder.WriteLine($"namespace {methodSymbol.ContainingNamespace.ToDisplayString()}");
+            sourceBuilder.WriteOpenBlock();
 
-            var sourceOutputBuilder = new StringBuilder();
-            sourceOutputBuilder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
-            sourceOutputBuilder.AppendLine("using Microsoft.Extensions.DependencyInjection.Extensions;");
-            sourceOutputBuilder.AppendLine(string.Empty);
-            sourceOutputBuilder.AppendLine($"namespace {symbol.ContainingNamespace.ToDisplayString()}");
-            sourceOutputBuilder.AppendLine("{");
-            sourceOutputBuilder.AppendLine("    [global::System.CodeDom.Compiler.GeneratedCodeAttribute(\"TheDialgaTeam.Pokemon3D.Server.SourceGenerator\", \"1.0.0\")]");
-            sourceOutputBuilder.AppendLine($"    {(symbol.ContainingType.IsStatic ? "static" : "")} partial class {symbol.ContainingType.Name}");
-            sourceOutputBuilder.AppendLine("    {");
-            sourceOutputBuilder.AppendLine("        [global::System.CodeDom.Compiler.GeneratedCode(\"TheDialgaTeam.Pokemon3D.Server.SourceGenerator\", \"1.0.0\")]");
-            sourceOutputBuilder.AppendLine($"        {accessibility} {(symbol.IsStatic ? "static " : "")}partial {symbol.ReturnType.ToDisplayString()} {symbol.Name}({symbol.Parameters[0].ToDisplayString()})");
-            sourceOutputBuilder.AppendLine("        {");
+            var innerTypeCount = 0;
+            
+            IEnumerable<INamedTypeSymbol> GetContainingTypes(ISymbol? s)
+            {
+                if (s != null)
+                {
+                    yield return s.ContainingType;
+                }
+            }
+            
+            foreach (var namedTypeSymbol in GetContainingTypes(methodSymbol).Reverse())
+            {
+                sourceBuilder.WriteLine("[global::System.CodeDom.Compiler.GeneratedCodeAttribute(\"TheDialgaTeam.Pokemon3D.Server.SourceGenerator\", \"1.0.0\")]");
+                sourceBuilder.WriteLine($"{(namedTypeSymbol.IsStatic ? "static" : "")} partial class {namedTypeSymbol.Name}");
+                sourceBuilder.WriteOpenBlock();
+                innerTypeCount++;
+            }
+
+            sourceBuilder.WriteLine("[global::System.CodeDom.Compiler.GeneratedCode(\"TheDialgaTeam.Pokemon3D.Server.SourceGenerator\", \"1.0.0\")]");
+            sourceBuilder.WriteLine($"{accessibility}{(methodSymbol.IsStatic ? "static " : "")}partial {methodSymbol.ReturnType.ToDisplayString()} {methodSymbol.Name}({methodSymbol.Parameters[0].ToDisplayString()})");
+            sourceBuilder.WriteOpenBlock();
+
+            foreach (var queryHandlerType in commandHandlerTypes)
+            {
+                sourceBuilder.WriteLine(queryHandlerType);
+            }
+            
+            sourceBuilder.WriteCloseBlock();
+            
+            for (var i = 0; i < innerTypeCount; i++)
+            {
+                sourceBuilder.WriteCloseBlock();
+            }
+            
+            sourceBuilder.WriteCloseBlock();
+            
+            productionContext.AddSource($"{methodSymbol.Name}.{methodSymbol.GetHashCode().ToString()}.g.cs", sourceBuilder.ToString());
+        });
+        
+        context.RegisterSourceOutput(getQueryHandlerMethods, (productionContext, symbol) =>
+        {
+            if (symbol is not IMethodSymbol methodSymbol) return;
+            if (!methodSymbol.IsPartialDefinition) return;
+            if (methodSymbol.Parameters.Length != 1) return;
+            if (!methodSymbol.Parameters[0].Type.ToDisplayString().Equals("Microsoft.Extensions.DependencyInjection.IServiceCollection")) return;
+            
+            var accessibility = methodSymbol.DeclaredAccessibility switch
+            {
+                Accessibility.Public => "public ",
+                Accessibility.ProtectedAndInternal => "protected internal ",
+                Accessibility.Protected => "protected ",
+                Accessibility.Internal => "internal ",
+                Accessibility.Private => "private ",
+                var _ => ""
+            };
+            
+            var queryHandlerTypes = methodSymbol.GetAttributes()
+                .Where(attributeData => attributeData.AttributeClass?.ToDisplayString().Equals(QueryHandlerAttribute) ?? false)
+                .SelectMany(attributeData => attributeData.ConstructorArguments.Select(argument => argument.Value))
+                .OfType<ITypeSymbol>()
+                .SelectMany(typeSymbol => typeSymbol.AllInterfaces
+                    .Where(namedTypeSymbol => namedTypeSymbol.IsGenericType && namedTypeSymbol is { Name: "IRequestHandler", TypeParameters.Length: 2 })
+                    .Select(namedTypeSymbol => $"{methodSymbol.Parameters[0].Name}.TryAddSingleton<{namedTypeSymbol.ToDisplayString()}>(static provider => provider.GetRequiredService<{typeSymbol.ToDisplayString()}>());"))
+                .ToImmutableArray();
+
+            var sourceBuilder = new SourceBuilder();
+            sourceBuilder.WriteLine("using Microsoft.Extensions.DependencyInjection;");
+            sourceBuilder.WriteLine("using Microsoft.Extensions.DependencyInjection.Extensions;");
+            sourceBuilder.WriteEmptyLine();
+            sourceBuilder.WriteLine($"namespace {methodSymbol.ContainingNamespace.ToDisplayString()}");
+            sourceBuilder.WriteOpenBlock();
+
+            var innerTypeCount = 0;
+            
+            IEnumerable<INamedTypeSymbol> GetContainingTypes(ISymbol? s)
+            {
+                if (s != null)
+                {
+                    yield return s.ContainingType;
+                }
+            }
+            
+            foreach (var namedTypeSymbol in GetContainingTypes(methodSymbol).Reverse())
+            {
+                sourceBuilder.WriteGeneratedCodeAttribute();
+                sourceBuilder.WriteLine($"{(namedTypeSymbol.IsStatic ? "static" : "")} partial class {namedTypeSymbol.Name}");
+                sourceBuilder.WriteOpenBlock();
+                innerTypeCount++;
+            }
+
+            sourceBuilder.WriteGeneratedCodeAttribute();
+            sourceBuilder.WriteLine($"{accessibility}{(methodSymbol.IsStatic ? "static " : "")}partial {methodSymbol.ReturnType.ToDisplayString()} {methodSymbol.Name}({methodSymbol.Parameters[0].ToDisplayString()})");
+            sourceBuilder.WriteOpenBlock();
 
             foreach (var queryHandlerType in queryHandlerTypes)
             {
-                sourceOutputBuilder.AppendLine(queryHandlerType);
+                sourceBuilder.WriteLine(queryHandlerType);
             }
             
-            sourceOutputBuilder.AppendLine("        }");
-            sourceOutputBuilder.AppendLine("    }");
-            sourceOutputBuilder.Append("}");
+            sourceBuilder.WriteCloseBlock();
             
-            productionContext.AddSource($"{symbol.Name}.{symbol.GetHashCode().ToString()}.g.cs", sourceOutputBuilder.ToString());
+            for (var i = 0; i < innerTypeCount; i++)
+            {
+                sourceBuilder.WriteCloseBlock();
+            }
+            
+            sourceBuilder.WriteCloseBlock();
+            
+            productionContext.AddSource($"{methodSymbol.Name}.{methodSymbol.GetHashCode().ToString()}.g.cs", sourceBuilder.ToString());
         });
     }
 }

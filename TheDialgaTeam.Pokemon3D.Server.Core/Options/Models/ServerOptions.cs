@@ -16,7 +16,7 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
-internal sealed record ServerOptions
+public sealed record ServerOptions
 {
     public string ServerName { get; init; } = "Pokemon 3D Server";
 
@@ -24,13 +24,11 @@ internal sealed record ServerOptions
 
     public string WelcomeMessage { get; init; } = string.Empty;
 
-    public string[] GameModes { get; init; } = { "Kolben" };
+    public string[] GameModes { get; init; } = Array.Empty<string>();
 
     public int MaxPlayers { get; init; } = 20;
 
     public bool OfflineMode { get; init; }
-
-    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(10);
 
     public TimeSpan AwayFromKeyboardKickTime { get; init; } = TimeSpan.FromMinutes(5);
 }

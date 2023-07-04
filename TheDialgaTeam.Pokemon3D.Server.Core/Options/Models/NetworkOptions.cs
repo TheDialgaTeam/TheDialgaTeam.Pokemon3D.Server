@@ -18,9 +18,11 @@ using System.Net;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
-internal sealed record NetworkOptions
+public sealed record NetworkOptions
 {
     public IPEndPoint BindIpEndPoint { get; init; } = new(IPAddress.Any, 15124);
 
     public bool UseUpnp { get; init; }
+    
+    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(10);
 }

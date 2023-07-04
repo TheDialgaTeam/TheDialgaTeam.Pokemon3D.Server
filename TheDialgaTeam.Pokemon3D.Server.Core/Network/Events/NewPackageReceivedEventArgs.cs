@@ -14,21 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 
-public static class ServiceCollectionExtensions
-{
-    public static IServiceCollection AddPokemonServerNetwork(this IServiceCollection collection)
-    {
-        collection.TryAddSingleton<IPokemonServer, PokemonServer>();
-        collection.TryAddSingleton<INatDeviceUtility, NatDeviceUtility>();
-        collection.TryAddSingleton<IClientNetworkFactory, ClientNetworkFactory>();
-        
-        return collection;
-    }
-}
+public sealed record NewPackageReceivedEventArgs(IClientNetwork Network, Package Package) : IEvent;

@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Queries;
-
-public record GetNetworkOptions : IQuery<NetworkOptions>
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class CommandHandlerAttribute : Attribute
 {
-    public static GetNetworkOptions Empty { get; } = new();
+    public Type Type { get; }
+
+    public CommandHandlerAttribute(Type type)
+    {
+        Type = type;
+    }
 }

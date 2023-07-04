@@ -16,7 +16,7 @@
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations;
 
 internal sealed class MediatorSender<TRequest> : IMediatorSender where TRequest : IRequest
 {

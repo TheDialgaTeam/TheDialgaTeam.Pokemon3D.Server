@@ -14,9 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Net.Sockets;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients.Events;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
 
-public sealed record NewPackageReceivedEventArgs(ITcpClientNetwork Network, Package Package) : INotification;
+internal sealed class ClientNetworkFactory : IClientNetworkFactory
+{
+    private readonly IServiceProvider _provider;
+
+    public ClientNetworkFactory(IServiceProvider provider)
+    {
+        _provider = provider;
+    }
+
+    public IClientNetwork CreateTcpClientNetwork(TcpClient client)
+    {
+        return new TcpClientNetwork(_provider.GetRequiredService<ILogger<TcpClientNetwork>>(), _provider.GetRequiredService<IMediator>(), client);
+    }
+}

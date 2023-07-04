@@ -16,7 +16,7 @@
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations;
 
 internal sealed class MediatorPublisher<TNotification> : IMediatorPublisher where TNotification : INotification
 {
@@ -30,12 +30,12 @@ internal sealed class MediatorPublisher<TNotification> : IMediatorPublisher wher
     {
         _handlers = handlers;
     }
-    
+
     public Task PublishAsync(INotification notification, CancellationToken cancellationToken)
     {
         return PublishAsync((TNotification) notification, cancellationToken);
     }
-    
+
     private async Task PublishAsync(TNotification notification, CancellationToken cancellationToken)
     {
         foreach (var handler in _handlers)
