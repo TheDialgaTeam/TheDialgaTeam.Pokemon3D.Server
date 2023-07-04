@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TheDialgaTeam.Pokemon3D.Server.SourceGenerator\TheDialgaTeam.Pokemon3D.Server.SourceGenerator.csproj" OutputItemType="Analyzer" />
+      <ProjectReference Include="..\TheDialgaTeam.Pokemon3D.Server.SourceGenerator\TheDialgaTeam.Pokemon3D.Server.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
     
 </Project>

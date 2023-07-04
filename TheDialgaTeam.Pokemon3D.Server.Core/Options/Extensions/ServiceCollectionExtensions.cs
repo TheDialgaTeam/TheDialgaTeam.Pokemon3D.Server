@@ -17,8 +17,8 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
-using TheDialgaTeam.Pokemon3D.Server.SourceGenerator;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Extensions;
 
@@ -36,11 +36,11 @@ public static partial class ServiceCollectionExtensions
         collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
         
         collection.TryAddSingleton<PokemonServerOptions>();
-        AddPokemonServerOptionsQueryHandler(collection);
+        AddQueryHandler(collection);
         
         return collection;
     }
 
     [QueryHandler(typeof(PokemonServerOptions))]
-    private static partial void AddPokemonServerOptionsQueryHandler(IServiceCollection collection);
+    private static partial void AddQueryHandler(IServiceCollection collection);
 }
