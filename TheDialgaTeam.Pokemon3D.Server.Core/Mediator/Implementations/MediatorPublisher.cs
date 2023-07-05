@@ -33,14 +33,6 @@ internal sealed class MediatorPublisher<TNotification> : IMediatorPublisher wher
 
     public Task PublishAsync(INotification notification, CancellationToken cancellationToken)
     {
-        return PublishAsync((TNotification) notification, cancellationToken);
-    }
-
-    private async Task PublishAsync(TNotification notification, CancellationToken cancellationToken)
-    {
-        foreach (var handler in _handlers)
-        {
-            await handler.HandleAsync(notification, cancellationToken);
-        }
+        return Task.WhenAll(_handlers.Select(handler => handler.HandleAsync((TNotification) notification, cancellationToken)));
     }
 }

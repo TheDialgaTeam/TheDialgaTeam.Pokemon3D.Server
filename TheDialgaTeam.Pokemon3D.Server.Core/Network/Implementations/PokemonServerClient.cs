@@ -20,43 +20,64 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
+using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 
-internal sealed partial class TcpClientNetwork : IClientNetwork
+internal sealed partial class PokemonServerClient : IPokemonServerClient
 {
     public IPAddress RemoteIpAddress { get; }
 
-    private readonly ILogger<TcpClientNetwork> _logger;
+    private readonly ILogger<PokemonServerClient> _logger;
     private readonly IMediator _mediator;
     private readonly TcpClient _tcpClient;
 
-    private readonly Task _readingTask;
-    private readonly Task _writingTask;
-    private readonly Task _connectionCheckTask;
-
-    private readonly ConcurrentQueue<Package> _packages = new();
+    private readonly StreamWriter _streamWriter;
+    private readonly object _streamWriterLock = new();
+    
+    private readonly IEnumerable<IDisposable> _disposables;
 
     private DateTime _lastValidPackage = DateTime.Now;
 
-    public TcpClientNetwork(ILogger<TcpClientNetwork> logger, IMediator mediator, TcpClient tcpClient)
+    public PokemonServerClient(ILogger<PokemonServerClient> logger, IMediator mediator, TcpClient tcpClient)
     {
         _logger = logger;
         _mediator = mediator;
         _tcpClient = tcpClient;
+        _streamWriter = new StreamWriter(tcpClient.GetStream());
 
         RemoteIpAddress = (_tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
 
-        _readingTask = Task.Factory.StartNew(RunReadingTask, TaskCreationOptions.LongRunning).Unwrap();
-        _writingTask = Task.Factory.StartNew(RunWritingTask, TaskCreationOptions.LongRunning).Unwrap();
-        _connectionCheckTask = Task.Factory.StartNew(RunConnectionCheckTask, TaskCreationOptions.LongRunning).Unwrap();
+        _disposables = new IDisposable[]
+        {
+            Task.Factory.StartNew(RunReadingTask, TaskCreationOptions.LongRunning).Unwrap(),
+            Task.Factory.StartNew(RunConnectionCheckTask, TaskCreationOptions.LongRunning).Unwrap()
+        };
     }
 
-    public void EnqueuePackage(Package package)
+    public void SendPackage(Package package)
     {
-        _packages.Enqueue(package);
+        lock (_streamWriterLock)
+        {
+            try
+            {
+                var packageData = package.ToString();
+
+                PrintSendRawPackage(RemoteIpAddress, packageData);
+
+                _streamWriter.WriteLine(packageData);
+                _streamWriter.Flush();
+
+                package.TaskCompletionSource.SetResult();
+            }
+            catch (IOException exception)
+            {
+                PrintWriteSocketIssue(RemoteIpAddress);
+                package.TaskCompletionSource.SetException(exception);
+            }
+        }
     }
 
     public Task DisconnectAsync()
@@ -88,7 +109,7 @@ internal sealed partial class TcpClientNetwork : IClientNetwork
                 else
                 {
                     _lastValidPackage = DateTime.Now;
-                    _ = Task.Run(() => _mediator.PublishAsync(new NewPackageReceivedEventArgs(this, package)));
+                    Task.Run(() => _mediator.PublishAsync(new NewPackageReceivedEventArgs(this, package))).FireAndForget();
                 }
             }
             catch (OutOfMemoryException)
@@ -99,36 +120,6 @@ internal sealed partial class TcpClientNetwork : IClientNetwork
             {
                 PrintReadSocketIssue(RemoteIpAddress);
             }
-        }
-    }
-
-    private async Task RunWritingTask()
-    {
-        var streamWriter = new StreamWriter(_tcpClient.GetStream());
-
-        while (_tcpClient.Connected)
-        {
-            while (_packages.TryDequeue(out var package))
-            {
-                try
-                {
-                    var packageData = package.ToString();
-
-                    PrintSendRawPackage(RemoteIpAddress, packageData);
-
-                    await streamWriter.WriteLineAsync(packageData).ConfigureAwait(false);
-                    await streamWriter.FlushAsync().ConfigureAwait(false);
-
-                    package.TaskCompletionSource.SetResult();
-                }
-                catch (IOException exception)
-                {
-                    PrintWriteSocketIssue(RemoteIpAddress);
-                    package.TaskCompletionSource.SetException(exception);
-                }
-            }
-
-            await Task.Delay(1).ConfigureAwait(false);
         }
     }
 
@@ -170,8 +161,10 @@ internal sealed partial class TcpClientNetwork : IClientNetwork
     public void Dispose()
     {
         _tcpClient.Dispose();
-        _readingTask.Dispose();
-        _writingTask.Dispose();
-        _connectionCheckTask.Dispose();
+
+        foreach (var disposable in _disposables)
+        {
+            disposable.Dispose();
+        }
     }
 }

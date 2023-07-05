@@ -35,12 +35,7 @@ internal sealed class MediatorSender<TRequest> : IMediatorSender where TRequest 
 
     public Task SendAsync(IRequest request, CancellationToken cancellationToken)
     {
-        return SendAsync((TRequest) request, cancellationToken);
-    }
-
-    private Task SendAsync(TRequest request, CancellationToken cancellationToken)
-    {
-        return _middlewares.Aggregate(() => _handler.HandleAsync(request, cancellationToken), (next, middleware) => () => middleware.HandleAsync(request, next, cancellationToken))();
+        return _middlewares.Aggregate(() => _handler.HandleAsync((TRequest) request, cancellationToken), (next, middleware) => () => middleware.HandleAsync((TRequest) request, next, cancellationToken))();
     }
 }
 
@@ -61,11 +56,6 @@ internal sealed class MediatorSender<TRequest, TResponse> : IMediatorSender<TRes
 
     public Task<TResponse> SendAsync(IRequest<TResponse> request, CancellationToken cancellationToken)
     {
-        return SendAsync((TRequest) request, cancellationToken);
-    }
-
-    private Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken)
-    {
-        return _middlewares.Aggregate(() => _handler.HandleAsync(request, cancellationToken), (next, middleware) => () => middleware.HandleAsync(request, next, cancellationToken))();
+        return _middlewares.Aggregate(() => _handler.HandleAsync((TRequest) request, cancellationToken), (next, middleware) => () => middleware.HandleAsync((TRequest) request, next, cancellationToken))();
     }
 }

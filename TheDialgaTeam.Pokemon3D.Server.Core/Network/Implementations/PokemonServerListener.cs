@@ -24,26 +24,31 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 
-internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
+internal sealed partial class PokemonServerListener : BackgroundService, IPokemonServerListener
 {
-    private readonly ILogger<PokemonServer> _logger;
+    private readonly ILogger<PokemonServerListener> _logger;
     private readonly IMediator _mediator;
     private readonly IPokemonServerOptions _options;
     private readonly INatDeviceUtility _natDeviceUtility;
-    private readonly IClientNetworkFactory _clientNetworkFactory;
+    private readonly IPokemonServerClientFactory _pokemonServerClientFactory;
     private readonly HttpClient _httpClient = new();
 
     private TcpListener? _tcpListener;
 
-    public PokemonServer(ILogger<PokemonServer> logger, IMediator mediator, IPokemonServerOptions options, INatDeviceUtility natDeviceUtility, IClientNetworkFactory clientNetworkFactory)
+    public PokemonServerListener(
+        ILogger<PokemonServerListener> logger, 
+        IMediator mediator, 
+        IPokemonServerOptions options, 
+        INatDeviceUtility natDeviceUtility, 
+        IPokemonServerClientFactory pokemonServerClientFactory)
     {
         _logger = logger;
         _mediator = mediator;
         _options = options;
         _natDeviceUtility = natDeviceUtility;
-        _clientNetworkFactory = clientNetworkFactory;
+        _pokemonServerClientFactory = pokemonServerClientFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -57,7 +62,7 @@ internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
 
             if (networkOptions.UseUpnp)
             {
-                await _natDeviceUtility.CreatePortMappingAsync(networkOptions.BindIpEndPoint, stoppingToken).ConfigureAwait(false);
+                await _natDeviceUtility.CreatePortMappingAsync(stoppingToken).ConfigureAwait(false);
             }
             
             stoppingToken.ThrowIfCancellationRequested();
@@ -75,12 +80,12 @@ internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
             var localIpAddress = await NetworkUtility.GetLocalIpAddressAsync(stoppingToken).ConfigureAwait(false);
             PrintServerPlayerCanJoinVia(string.Join(", ", localIpAddress.Where(address => address.AddressFamily == AddressFamily.InterNetwork).Select(address => address.ToString())), string.Join(", ", serverOptions.GameModes));
             
-            _ = Task.Run(RunServerPortCheckingTask, stoppingToken);
+            Task.Run(RunServerPortCheckingTask, stoppingToken).FireAndForget();
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 var tcpClient = await _tcpListener.AcceptTcpClientAsync(stoppingToken).ConfigureAwait(false);
-                await _mediator.PublishAsync(new ConnectedEventArgs(_clientNetworkFactory.CreateTcpClientNetwork(tcpClient)), stoppingToken).ConfigureAwait(false);
+                await _mediator.PublishAsync(new ConnectedEventArgs(_pokemonServerClientFactory.CreateTcpClientNetwork(tcpClient)), stoppingToken).ConfigureAwait(false);
             }
         }
         catch (SocketException exception)
@@ -95,7 +100,7 @@ internal sealed partial class PokemonServer : BackgroundService, IPokemonServer
 
         if (networkOptions.UseUpnp)
         {
-            await _natDeviceUtility.DestroyPortMappingAsync(networkOptions.BindIpEndPoint).ConfigureAwait(false);
+            await _natDeviceUtility.DestroyPortMappingAsync().ConfigureAwait(false);
         }
 
         PrintServerStopped();

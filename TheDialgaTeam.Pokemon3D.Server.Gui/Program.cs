@@ -13,7 +13,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Gui;
 
 public static class Program
 {
-    public static IServiceProvider ServiceProvider { get; private set; } = null!;
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
+    public static IServiceProvider ServiceProvider { get; private set; } = CreateHost(Array.Empty<string>()).Services;
     
     [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
     [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
@@ -40,7 +41,9 @@ public static class Program
 
     public static AppBuilder BuildAvaloniaApp()
     {
-        return AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
+        return AppBuilder.Configure<App>()
+            .UsePlatformDetect()
+            .UseReactiveUI();
     }
 
     [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]

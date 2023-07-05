@@ -15,9 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 
-public sealed record NewPackageReceivedEventArgs(IClientNetwork Network, Package Package) : IEvent;
+public sealed record NewPackageReceivedEventArgs(IPokemonServerClient Network, Package Package) : IEvent;

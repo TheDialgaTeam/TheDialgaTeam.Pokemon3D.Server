@@ -16,19 +16,27 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
+using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Extensions;
 
-public static class ServiceCollectionExtensions
+public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddPokemonServerNetwork(this IServiceCollection collection)
     {
-        collection.TryAddSingleton<IPokemonServer, PokemonServer>();
+        collection.TryAddSingleton<IPokemonServerListener, PokemonServerListener>();
         collection.TryAddSingleton<INatDeviceUtility, NatDeviceUtility>();
-        collection.TryAddSingleton<IClientNetworkFactory, ClientNetworkFactory>();
+        collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
+        
+        collection.TryAddSingleton<PlayerContainer>();
+        
+        AddMediatorHandlers(collection);
         
         return collection;
     }
+    
+    [AddMediatorHandlers(typeof(PlayerContainer))]
+    private static partial void AddMediatorHandlers(IServiceCollection collection);
 }

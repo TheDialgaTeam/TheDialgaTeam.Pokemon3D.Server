@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net.Sockets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-
-public interface IClientNetworkFactory
+public static class TaskUtility
 {
-    IClientNetwork CreateTcpClientNetwork(TcpClient client);
+    public static void FireAndForget(this Task task)
+    {
+    }
 }

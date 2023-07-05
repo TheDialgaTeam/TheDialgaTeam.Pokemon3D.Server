@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 

@@ -18,18 +18,21 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using Mono.Nat;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 
 internal sealed partial class NatDeviceUtility : INatDeviceUtility
 {
     private readonly ILogger<NatDeviceUtility> _logger;
+    private readonly IPokemonServerOptions _options;
 
     private INatDevice[] _natDevices = Array.Empty<INatDevice>();
 
-    public NatDeviceUtility(ILogger<NatDeviceUtility> logger)
+    public NatDeviceUtility(ILogger<NatDeviceUtility> logger, IPokemonServerOptions options)
     {
         _logger = logger;
+        _options = options;
     }
 
     private static async Task<INatDevice[]> DiscoverNatDevicesAsync(CancellationToken cancellationToken)
@@ -60,11 +63,13 @@ internal sealed partial class NatDeviceUtility : INatDeviceUtility
         return devices.ToArray();
     }
 
-    public async Task CreatePortMappingAsync(IPEndPoint endPoint, CancellationToken cancellationToken = default)
+    public async Task CreatePortMappingAsync(CancellationToken cancellationToken = default)
     {
         PrintNatSearchForUpnpDevices();
         _natDevices = await DiscoverNatDevicesAsync(cancellationToken).ConfigureAwait(false);
         PrintNatFoundUpnpDevices(_natDevices.Length);
+
+        var endPoint = _options.NetworkOptions.BindIpEndPoint;
 
         foreach (var natDevice in _natDevices)
         {
@@ -97,8 +102,10 @@ internal sealed partial class NatDeviceUtility : INatDeviceUtility
         }
     }
 
-    public async Task DestroyPortMappingAsync(IPEndPoint endPoint)
+    public async Task DestroyPortMappingAsync()
     {
+        var endPoint = _options.NetworkOptions.BindIpEndPoint;
+        
         foreach (var natDevice in _natDevices)
         {
             if (!endPoint.Address.Equals(IPAddress.Any) && !endPoint.Address.Equals(natDevice.DeviceEndpoint.Address)) continue;

@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packages;
+using System.Net.Sockets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-public interface IClientNetwork : IDisposable
+public interface IPokemonServerClientFactory
 {
-    IPAddress RemoteIpAddress { get; }
-
-    void EnqueuePackage(Package package);
-    
-    Task DisconnectAsync();
+    IPokemonServerClient CreateTcpClientNetwork(TcpClient client);
 }

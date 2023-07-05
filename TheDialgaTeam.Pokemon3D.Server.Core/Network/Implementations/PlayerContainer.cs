@@ -18,14 +18,14 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 
-internal sealed class NetworkContainer : IEventHandler<ConnectedEventArgs>, IEventHandler<DisconnectedEventArgs>
+internal sealed class PlayerContainer : IEventHandler<ConnectedEventArgs>, IEventHandler<DisconnectedEventArgs>
 {
-    private readonly List<IClientNetwork> _tcpClientNetworks = new();
+    private readonly List<IPokemonServerClient> _tcpClientNetworks = new();
     private readonly object _clientLock = new();
 
-    private void AddClient(IClientNetwork network)
+    private void AddClient(IPokemonServerClient network)
     {
         lock (_clientLock)
         {
@@ -33,7 +33,7 @@ internal sealed class NetworkContainer : IEventHandler<ConnectedEventArgs>, IEve
         }
     }
 
-    private void RemoveClient(IClientNetwork network)
+    private void RemoveClient(IPokemonServerClient network)
     {
         lock (_clientLock)
         {
@@ -43,14 +43,14 @@ internal sealed class NetworkContainer : IEventHandler<ConnectedEventArgs>, IEve
     
     public Task HandleAsync(ConnectedEventArgs e, CancellationToken cancellationToken)
     {
-        AddClient(e.ClientNetwork);
+        AddClient(e.PokemonServerClient);
         return Task.CompletedTask;
     }
 
     public Task HandleAsync(DisconnectedEventArgs e, CancellationToken cancellationToken)
     {
-        e.ClientNetwork.Dispose();
-        RemoveClient(e.ClientNetwork);
+        e.PokemonServerClient.Dispose();
+        RemoveClient(e.PokemonServerClient);
         return Task.CompletedTask;
     }
 }

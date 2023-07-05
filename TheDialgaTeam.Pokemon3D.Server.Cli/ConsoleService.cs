@@ -6,18 +6,18 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
 internal sealed class ConsoleService : BackgroundService
 {
-    private readonly IPokemonServer _pokemonServer;
+    private readonly IPokemonServerListener _pokemonServerListener;
 
-    public ConsoleService(IPokemonServer pokemonServer)
+    public ConsoleService(IPokemonServerListener pokemonServerListener)
     {
-        _pokemonServer = pokemonServer;
+        _pokemonServerListener = pokemonServerListener;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Console.Title = $"{ApplicationUtility.Name} v{ApplicationUtility.Version} ({ApplicationUtility.FrameworkVersion})";
         
-        await _pokemonServer.StartAsync(stoppingToken);
+        await _pokemonServerListener.StartAsync(stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -33,6 +33,6 @@ internal sealed class ConsoleService : BackgroundService
             // TODO: Handle command
         }
 
-        await _pokemonServer.StopAsync(stoppingToken);
+        await _pokemonServerListener.StopAsync(stoppingToken);
     }
 }

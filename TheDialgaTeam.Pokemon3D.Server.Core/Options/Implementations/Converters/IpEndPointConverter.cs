@@ -14,9 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using System.ComponentModel;
+using System.Globalization;
+using System.Net;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Converters;
 
-public sealed record ConnectedEventArgs(IPokemonServerClient PokemonServerClient) : IEvent;
+internal sealed class IpEndPointConverter : TypeConverter
+{
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+    {
+        return sourceType == typeof(string);
+    }
+
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    {
+        if (value is string valueString && IPEndPoint.TryParse(valueString, out var result))
+        {
+            return result;
+        }
+        
+        return default;
+    }
+}

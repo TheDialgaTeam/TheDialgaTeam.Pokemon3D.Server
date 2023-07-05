@@ -14,10 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Hosting;
+using System.Net;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-public interface IPokemonServer : IHostedService
+public interface IPokemonServerClient : IDisposable
 {
+    IPAddress RemoteIpAddress { get; }
+
+    void SendPackage(Package package);
+    
+    Task DisconnectAsync();
 }

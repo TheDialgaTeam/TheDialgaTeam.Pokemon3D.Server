@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Converters;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Validations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
@@ -29,6 +34,8 @@ public static class ServiceCollectionExtensions
     [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
     public static IServiceCollection AddPokemonServerOptions(this IServiceCollection collection)
     {
+        TypeDescriptor.AddAttributes(typeof(IPEndPoint), new TypeConverterAttribute(typeof(IpEndPointConverter)));
+        
         collection.AddOptions<NetworkOptions>().BindConfiguration("Network");
         collection.AddOptions<ServerOptions>().BindConfiguration("Server");
         collection.AddOptions<WorldOptions>().BindConfiguration("Server:World");
@@ -37,6 +44,7 @@ public static class ServiceCollectionExtensions
         collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
         
         collection.TryAddSingleton<IPokemonServerOptions, PokemonServerOptions>();
+        collection.TryAddSingleton<IValidateOptions<NetworkOptions>, NetworkOptionsValidation>();
         
         return collection;
     }

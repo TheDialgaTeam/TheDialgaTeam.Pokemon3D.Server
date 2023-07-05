@@ -19,4 +19,4 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 
-public sealed record DisconnectedEventArgs(IClientNetwork ClientNetwork) : IEvent;
+public sealed record DisconnectedEventArgs(IPokemonServerClient PokemonServerClient) : IEvent;

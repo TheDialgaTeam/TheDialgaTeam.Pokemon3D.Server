@@ -24,21 +24,16 @@ namespace TheDialgaTeam.Pokemon3D.Server.SourceGenerator;
 [Generator]
 public sealed class MediatorGenerator : IIncrementalGenerator
 {
-    private const string CommandHandlerAttribute = "TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes.CommandHandlerAttribute";
-    private const string QueryHandlerAttribute = "TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes.QueryHandlerAttribute";
+    private const string AddMediatorHandlersAttribute = "TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes.AddMediatorHandlersAttribute";
     
     [SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1024:Symbols should be compared for equality")]
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var getCommandHandlerMethods = context.SyntaxProvider.ForAttributeWithMetadataName(CommandHandlerAttribute, 
-            (node, _) => node is MemberDeclarationSyntax,
-            (syntaxContext, token) => syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.TargetNode, token));
-
-        var getQueryHandlerMethods = context.SyntaxProvider.ForAttributeWithMetadataName(QueryHandlerAttribute, 
+        var getAllMediatorHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(AddMediatorHandlersAttribute,
             (node, _) => node is MemberDeclarationSyntax,
             (syntaxContext, token) => syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.TargetNode, token));
         
-        context.RegisterSourceOutput(getCommandHandlerMethods, (productionContext, symbol) =>
+        context.RegisterSourceOutput(getAllMediatorHandlers, (productionContext, symbol) =>
         {
             if (symbol is not IMethodSymbol methodSymbol) return;
             if (!methodSymbol.IsPartialDefinition) return;
@@ -54,86 +49,23 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                 Accessibility.Private => "private ",
                 var _ => ""
             };
-            
-            var commandHandlerTypes = methodSymbol.GetAttributes()
-                .Where(attributeData => attributeData.AttributeClass?.ToDisplayString().Equals(CommandHandlerAttribute) ?? false)
-                .SelectMany(attributeData => attributeData.ConstructorArguments.Select(argument => argument.Value))
-                .OfType<ITypeSymbol>()
-                .SelectMany(typeSymbol => typeSymbol.AllInterfaces
-                    .Where(namedTypeSymbol => namedTypeSymbol.IsGenericType && namedTypeSymbol is { Name: "IRequestHandler", TypeParameters.Length: 1 })
-                    .Select(namedTypeSymbol => $"{methodSymbol.Parameters[0].Name}.TryAddSingleton<{namedTypeSymbol.ToDisplayString()}>(static provider => provider.GetRequiredService<{typeSymbol.ToDisplayString()}>());"))
-                .ToImmutableArray();
 
-            var sourceBuilder = new SourceBuilder();
-            sourceBuilder.WriteLine("using Microsoft.Extensions.DependencyInjection;");
-            sourceBuilder.WriteLine("using Microsoft.Extensions.DependencyInjection.Extensions;");
-            sourceBuilder.WriteEmptyLine();
-            sourceBuilder.WriteLine($"namespace {methodSymbol.ContainingNamespace.ToDisplayString()}");
-            sourceBuilder.WriteOpenBlock();
-
-            var innerTypeCount = 0;
-            
-            IEnumerable<INamedTypeSymbol> GetContainingTypes(ISymbol? s)
-            {
-                if (s != null)
-                {
-                    yield return s.ContainingType;
-                }
-            }
-            
-            foreach (var namedTypeSymbol in GetContainingTypes(methodSymbol).Reverse())
-            {
-                sourceBuilder.WriteLine("[global::System.CodeDom.Compiler.GeneratedCodeAttribute(\"TheDialgaTeam.Pokemon3D.Server.SourceGenerator\", \"1.0.0\")]");
-                sourceBuilder.WriteLine($"{(namedTypeSymbol.IsStatic ? "static" : "")} partial class {namedTypeSymbol.Name}");
-                sourceBuilder.WriteOpenBlock();
-                innerTypeCount++;
-            }
-
-            sourceBuilder.WriteLine("[global::System.CodeDom.Compiler.GeneratedCode(\"TheDialgaTeam.Pokemon3D.Server.SourceGenerator\", \"1.0.0\")]");
-            sourceBuilder.WriteLine($"{accessibility}{(methodSymbol.IsStatic ? "static " : "")}partial {methodSymbol.ReturnType.ToDisplayString()} {methodSymbol.Name}({methodSymbol.Parameters[0].ToDisplayString()})");
-            sourceBuilder.WriteOpenBlock();
-
-            foreach (var queryHandlerType in commandHandlerTypes)
-            {
-                sourceBuilder.WriteLine(queryHandlerType);
-            }
-            
-            sourceBuilder.WriteCloseBlock();
-            
-            for (var i = 0; i < innerTypeCount; i++)
-            {
-                sourceBuilder.WriteCloseBlock();
-            }
-            
-            sourceBuilder.WriteCloseBlock();
-            
-            productionContext.AddSource($"{methodSymbol.Name}.{methodSymbol.GetHashCode().ToString()}.g.cs", sourceBuilder.ToString());
-        });
-        
-        context.RegisterSourceOutput(getQueryHandlerMethods, (productionContext, symbol) =>
-        {
-            if (symbol is not IMethodSymbol methodSymbol) return;
-            if (!methodSymbol.IsPartialDefinition) return;
-            if (methodSymbol.Parameters.Length != 1) return;
-            if (!methodSymbol.Parameters[0].Type.ToDisplayString().Equals("Microsoft.Extensions.DependencyInjection.IServiceCollection")) return;
-            
-            var accessibility = methodSymbol.DeclaredAccessibility switch
-            {
-                Accessibility.Public => "public ",
-                Accessibility.ProtectedAndInternal => "protected internal ",
-                Accessibility.Protected => "protected ",
-                Accessibility.Internal => "internal ",
-                Accessibility.Private => "private ",
-                var _ => ""
-            };
-            
             var queryHandlerTypes = methodSymbol.GetAttributes()
-                .Where(attributeData => attributeData.AttributeClass?.ToDisplayString().Equals(QueryHandlerAttribute) ?? false)
-                .SelectMany(attributeData => attributeData.ConstructorArguments.Select(argument => argument.Value))
-                .OfType<ITypeSymbol>()
-                .SelectMany(typeSymbol => typeSymbol.AllInterfaces
-                    .Where(namedTypeSymbol => namedTypeSymbol.IsGenericType && namedTypeSymbol is { Name: "IRequestHandler", TypeParameters.Length: 2 })
-                    .Select(namedTypeSymbol => $"{methodSymbol.Parameters[0].Name}.TryAddSingleton<{namedTypeSymbol.ToDisplayString()}>(static provider => provider.GetRequiredService<{typeSymbol.ToDisplayString()}>());"))
+                .Where(attributeData => attributeData.AttributeClass?.ToDisplayString().Equals(AddMediatorHandlersAttribute) ?? false)
+                .Select(attributeData => attributeData.ConstructorArguments.Select(argument => argument.Value).ToArray())
+                .Select(args => (args[0] as ITypeSymbol, args[1]))
+                .SelectMany(tuple => tuple.Item1?.AllInterfaces
+                    .Where(typeParameterSymbol => typeParameterSymbol.IsGenericType && typeParameterSymbol.Name is "IRequestHandler" or "INotificationHandler")
+                    .Select(typeParameterSymbol =>
+                    {
+                        return typeParameterSymbol.Name switch
+                        {
+                            "IRequestHandler" => $"{methodSymbol.Parameters[0].Name}.TryAdd(ServiceDescriptor.Describe(typeof({typeParameterSymbol.ToDisplayString()}), static provider => provider.GetRequiredService<{tuple.Item1.ToDisplayString()}>(), {tuple.Item2}));",
+                            "INotificationHandler" => $"{methodSymbol.Parameters[0].Name}.Add(ServiceDescriptor.Describe(typeof({typeParameterSymbol.ToDisplayString()}), static provider => provider.GetRequiredService<{tuple.Item1.ToDisplayString()}>(), {tuple.Item2}));",
+                            var _ => string.Empty
+                        };
+                    })
+                )
                 .ToImmutableArray();
 
             var sourceBuilder = new SourceBuilder();
@@ -155,7 +87,6 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             
             foreach (var namedTypeSymbol in GetContainingTypes(methodSymbol).Reverse())
             {
-                sourceBuilder.WriteGeneratedCodeAttribute();
                 sourceBuilder.WriteLine($"{(namedTypeSymbol.IsStatic ? "static" : "")} partial class {namedTypeSymbol.Name}");
                 sourceBuilder.WriteOpenBlock();
                 innerTypeCount++;

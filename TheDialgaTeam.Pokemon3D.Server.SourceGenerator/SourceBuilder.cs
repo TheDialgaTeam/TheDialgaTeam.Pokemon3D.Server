@@ -53,7 +53,7 @@ public sealed class SourceBuilder
 
     public SourceBuilder WriteGeneratedCodeAttribute()
     {
-        return WriteLine($"[global::System.CodeDom.Compiler.GeneratedCodeAttribute(\"{Assembly.GetExecutingAssembly().FullName}\", \"{Assembly.GetExecutingAssembly().GetName().Version}\")]");
+        return WriteLine($"[System.CodeDom.Compiler.GeneratedCodeAttribute(\"{Assembly.GetExecutingAssembly().GetName().Name}\", \"{Assembly.GetExecutingAssembly().GetName().Version}\")]");
     }
 
     public SourceBuilder WriteOpenBlock()

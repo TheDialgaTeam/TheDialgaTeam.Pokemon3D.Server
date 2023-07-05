@@ -14,9 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes;
 
-public sealed record ConnectedEventArgs(IPokemonServerClient PokemonServerClient) : IEvent;
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public sealed class AddMediatorHandlersAttribute : Attribute
+{
+    public Type Type { get; }
+    
+    public ServiceLifetime ServiceLifetime { get; }
+    
+    public AddMediatorHandlersAttribute(Type type, ServiceLifetime serviceLifetime = ServiceLifetime.Singleton)
+    {
+        Type = type;
+        ServiceLifetime = serviceLifetime;
+    }
+}

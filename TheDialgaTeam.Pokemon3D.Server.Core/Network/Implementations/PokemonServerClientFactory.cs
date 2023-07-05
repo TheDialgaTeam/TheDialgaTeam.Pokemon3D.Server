@@ -20,19 +20,19 @@ using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Clients;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 
-internal sealed class ClientNetworkFactory : IClientNetworkFactory
+internal sealed class PokemonServerClientFactory : IPokemonServerClientFactory
 {
     private readonly IServiceProvider _provider;
 
-    public ClientNetworkFactory(IServiceProvider provider)
+    public PokemonServerClientFactory(IServiceProvider provider)
     {
         _provider = provider;
     }
 
-    public IClientNetwork CreateTcpClientNetwork(TcpClient client)
+    public IPokemonServerClient CreateTcpClientNetwork(TcpClient client)
     {
-        return new TcpClientNetwork(_provider.GetRequiredService<ILogger<TcpClientNetwork>>(), _provider.GetRequiredService<IMediator>(), client);
+        return new PokemonServerClient(_provider.GetRequiredService<ILogger<PokemonServerClient>>(), _provider.GetRequiredService<IMediator>(), client);
     }
 }

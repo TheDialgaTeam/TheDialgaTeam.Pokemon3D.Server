@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 public interface INatDeviceUtility
 {
-    Task CreatePortMappingAsync(IPEndPoint endPoint, CancellationToken cancellationToken = default);
+    Task CreatePortMappingAsync(CancellationToken cancellationToken = default);
 
-    Task DestroyPortMappingAsync(IPEndPoint endPoint);
+    Task DestroyPortMappingAsync();
 }
