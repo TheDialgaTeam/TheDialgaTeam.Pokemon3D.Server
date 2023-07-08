@@ -16,23 +16,21 @@
 
 using System.Net.Sockets;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 
 internal sealed class PokemonServerClientFactory : IPokemonServerClientFactory
 {
-    private readonly IServiceProvider _provider;
+    private readonly IServiceProvider _serviceProvider;
 
-    public PokemonServerClientFactory(IServiceProvider provider)
+    public PokemonServerClientFactory(IServiceProvider serviceProvider)
     {
-        _provider = provider;
+        _serviceProvider = serviceProvider;
     }
 
     public IPokemonServerClient CreateTcpClientNetwork(TcpClient client)
     {
-        return new PokemonServerClient(_provider.GetRequiredService<ILogger<PokemonServerClient>>(), _provider.GetRequiredService<IMediator>(), client);
+        return ActivatorUtilities.CreateInstance<PokemonServerClient>(_serviceProvider, client);
     }
 }

@@ -104,6 +104,7 @@ public sealed class Player
         Id = id;
     }
 
+    /*
     public string[] Update(Package package)
     {
         if (package.IsFullPackageData())
@@ -243,6 +244,7 @@ public sealed class Player
 
         return difference.ToArray();
     }
+    */
 
     public string[] GenerateGameData()
     {

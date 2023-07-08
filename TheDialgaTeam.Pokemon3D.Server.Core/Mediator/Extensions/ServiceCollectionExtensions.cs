@@ -23,7 +23,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Extensions;
 
-public static partial class ServiceCollectionExtensions
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddMediator(this IServiceCollection collection)
     {

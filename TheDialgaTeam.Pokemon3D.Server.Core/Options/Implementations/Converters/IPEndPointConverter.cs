@@ -14,15 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Net;
 
-[AttributeUsage(AttributeTargets.Method)]
-public sealed class CommandHandlerAttribute : Attribute
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Converters;
+
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+internal sealed class IPEndPointConverter : TypeConverter
 {
-    public Type Type { get; }
-
-    public CommandHandlerAttribute(Type type)
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
     {
-        Type = type;
+        return sourceType == typeof(string);
+    }
+
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    {
+        if (value is string valueString && IPEndPoint.TryParse(valueString, out var result))
+        {
+            return result;
+        }
+        
+        return default;
     }
 }

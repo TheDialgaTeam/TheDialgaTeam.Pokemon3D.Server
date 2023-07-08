@@ -17,7 +17,8 @@
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packages;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 
-public sealed record NewPackageReceivedEventArgs(IPokemonServerClient Network, Package Package) : IEvent;
+public sealed record NewPackageReceivedEventArgs(IPokemonServerClient Network, IPackage Package) : IEvent;

@@ -87,7 +87,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             
             foreach (var namedTypeSymbol in GetContainingTypes(methodSymbol).Reverse())
             {
-                sourceBuilder.WriteLine($"{(namedTypeSymbol.IsStatic ? "static" : "")} partial class {namedTypeSymbol.Name}");
+                sourceBuilder.WriteLine($"{(namedTypeSymbol.IsStatic ? "static " : "")}partial class {namedTypeSymbol.Name}");
                 sourceBuilder.WriteOpenBlock();
                 innerTypeCount++;
             }

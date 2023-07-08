@@ -34,7 +34,7 @@ public static class ServiceCollectionExtensions
     [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
     public static IServiceCollection AddPokemonServerOptions(this IServiceCollection collection)
     {
-        TypeDescriptor.AddAttributes(typeof(IPEndPoint), new TypeConverterAttribute(typeof(IpEndPointConverter)));
+        TypeDescriptor.AddAttributes(typeof(IPEndPoint), new TypeConverterAttribute(typeof(IPEndPointConverter)));
         
         collection.AddOptions<NetworkOptions>().BindConfiguration("Network");
         collection.AddOptions<ServerOptions>().BindConfiguration("Server");

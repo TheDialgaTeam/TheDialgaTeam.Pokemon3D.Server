@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
@@ -31,22 +32,24 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
     public IPAddress RemoteIpAddress { get; }
 
     private readonly ILogger<PokemonServerClient> _logger;
+    private readonly IPokemonServerOptions _options;
     private readonly IMediator _mediator;
     private readonly TcpClient _tcpClient;
 
     private readonly StreamWriter _streamWriter;
     private readonly object _streamWriterLock = new();
     
-    private readonly IEnumerable<IDisposable> _disposables;
+    private readonly IDisposable[] _disposables;
 
     private DateTime _lastValidPackage = DateTime.Now;
 
-    public PokemonServerClient(ILogger<PokemonServerClient> logger, IMediator mediator, TcpClient tcpClient)
+    public PokemonServerClient(ILogger<PokemonServerClient> logger, IPokemonServerOptions options, IMediator mediator, TcpClient tcpClient)
     {
         _logger = logger;
+        _options = options;
         _mediator = mediator;
         _tcpClient = tcpClient;
-        _streamWriter = new StreamWriter(tcpClient.GetStream());
+        _streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize);
 
         RemoteIpAddress = (_tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
 
@@ -89,27 +92,30 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
     private async Task RunReadingTask()
     {
-        var streamReader = new StreamReader(_tcpClient.GetStream());
+        var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, true, _tcpClient.ReceiveBufferSize);
 
         while (_tcpClient.Connected)
         {
             try
             {
                 var rawData = await streamReader.ReadLineAsync().ConfigureAwait(false);
-                if (rawData == null) break;
+
+                if (rawData == null)
+                {
+                    await DisconnectAsync().ConfigureAwait(false);
+                    return;
+                }
 
                 PrintReceiveRawPackage(RemoteIpAddress, rawData);
 
-                var package = new Package(rawData);
-
-                if (!package.IsValid)
+                if (!Package.TryParse(rawData, out var package))
                 {
                     PrintInvalidPackageReceive(RemoteIpAddress);
                 }
                 else
                 {
                     _lastValidPackage = DateTime.Now;
-                    Task.Run(() => _mediator.PublishAsync(new NewPackageReceivedEventArgs(this, package))).FireAndForget();
+                    _mediator.PublishAsync(new NewPackageReceivedEventArgs(this, package)).FireAndForget();
                 }
             }
             catch (OutOfMemoryException)
