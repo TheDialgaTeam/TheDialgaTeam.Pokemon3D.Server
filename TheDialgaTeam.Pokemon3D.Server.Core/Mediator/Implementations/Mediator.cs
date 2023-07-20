@@ -33,6 +33,7 @@ internal sealed class Mediator : IMediator
     }
 
     [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+    [RequiresUnreferencedCode("If some of the generic arguments are annotated (either with DynamicallyAccessedMembersAttribute, or generic constraints), trimming can\'t validate that the requirements of those annotations are met.")]
     public Task SendAsync(IRequest request, CancellationToken cancellationToken = default)
     {
         var handler = (IMediatorSender) _senders.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<>).MakeGenericType(type)), _serviceProvider);
@@ -40,6 +41,7 @@ internal sealed class Mediator : IMediator
     }
 
     [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+    [RequiresUnreferencedCode("If some of the generic arguments are annotated (either with DynamicallyAccessedMembersAttribute, or generic constraints), trimming can\'t validate that the requirements of those annotations are met.")]
     public Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         var handler = (IMediatorSender<TResponse>) _senders.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<,>).MakeGenericType(type, typeof(TResponse))), _serviceProvider);
@@ -47,6 +49,7 @@ internal sealed class Mediator : IMediator
     }
 
     [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+    [RequiresUnreferencedCode("If some of the generic arguments are annotated (either with DynamicallyAccessedMembersAttribute, or generic constraints), trimming can\'t validate that the requirements of those annotations are met.")]
     public Task PublishAsync(INotification notification, CancellationToken cancellationToken = default)
     {
         var handler = (IMediatorPublisher) _publishers.GetOrAdd(notification.GetType(), static (type, serviceProvider) => (IBaseMediatorPublisher) serviceProvider.GetRequiredService(typeof(MediatorPublisher<>).MakeGenericType(type)), _serviceProvider);

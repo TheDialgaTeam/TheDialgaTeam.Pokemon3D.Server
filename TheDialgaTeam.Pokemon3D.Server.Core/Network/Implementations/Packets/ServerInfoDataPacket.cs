@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
 
-public sealed record ServerInfoDataPackage(
+public sealed record ServerInfoDataPacket(
     int PlayerCount,
     int MaxServerSize,
     string ServerName,
     string ServerDescription,
-    string[] Players) : Package(PackageType.ServerInfoData)
+    string[] Players) : Packet(PacketType.ServerInfoData)
 {
     protected override string[] GetDataItems()
     {

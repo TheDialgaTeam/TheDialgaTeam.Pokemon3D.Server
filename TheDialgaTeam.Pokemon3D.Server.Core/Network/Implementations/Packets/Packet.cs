@@ -17,11 +17,11 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packages;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
 
-public abstract record Package(PackageType PackageType = PackageType.Unknown, int Origin = -1) : IPackage
+public abstract record Packet(PacketType PacketType = PacketType.Unknown, int Origin = -1) : IPacket
 {
     private const string ProtocolVersion = "0.5";
 
@@ -102,12 +102,12 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
     }
     */
 
-    public static bool TryParse(ReadOnlySpan<char> rawData, [MaybeNullWhen(false)] out IPackage package)
+    public static bool TryParse(ReadOnlySpan<char> rawData, [MaybeNullWhen(false)] out IPacket packet)
     {
         var currentPackageIndex = 0;
         var maxPackageIndex = 3;
 
-        var packageType = PackageType.Unknown;
+        var packageType = PacketType.Unknown;
         var origin = -1;
 
         var dataIndexLength = 0;
@@ -120,7 +120,7 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
 
             if (nextDataLength == -1)
             {
-                package = null;
+                packet = null;
                 return false;
             }
             
@@ -133,7 +133,7 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
                 {
                     if (!data.SequenceEqual(ProtocolVersion.AsSpan()))
                     {
-                        package = null;
+                        packet = null;
                         return false;
                     }
                     break;
@@ -144,7 +144,7 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
                 {
                     if (!Enum.TryParse(data, out packageType))
                     {
-                        package = null;
+                        packet = null;
                         return false;
                     }
                     break;
@@ -155,7 +155,7 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
                 {
                     if (!int.TryParse(data, out origin))
                     {
-                        package = null;
+                        packet = null;
                         return false;
                     }
                     break;
@@ -166,7 +166,7 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
                 {
                     if (!int.TryParse(data, out dataIndexLength))
                     {
-                        package = null;
+                        packet = null;
                         return false;
                     }
 
@@ -181,7 +181,7 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
                 {
                     if (!int.TryParse(data, out var dataIndex))
                     {
-                        package = null;
+                        packet = null;
                         return false;
                     }
 
@@ -201,15 +201,15 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
         
         switch (packageType)
         {
-            case PackageType.ServerDataRequest:
+            case PacketType.ServerDataRequest:
             {
-                package = new ServerDataRequestPackage();
+                packet = new ServerDataRequestPacket();
                 return true;
             }
 
             default:
             {
-                package = null;
+                packet = null;
                 return false;
             }
         }
@@ -233,7 +233,7 @@ public abstract record Package(PackageType PackageType = PackageType.Unknown, in
         
         _stringBuilder.Append(ProtocolVersion);
         _stringBuilder.Append('|');
-        _stringBuilder.Append((int) PackageType);
+        _stringBuilder.Append((int) PacketType);
         _stringBuilder.Append('|');
         _stringBuilder.Append(Origin);
         _stringBuilder.Append('|');

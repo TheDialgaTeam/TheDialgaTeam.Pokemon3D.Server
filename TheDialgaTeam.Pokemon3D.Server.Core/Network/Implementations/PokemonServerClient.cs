@@ -20,7 +20,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
@@ -60,25 +60,25 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
         };
     }
 
-    public void SendPackage(Package package)
+    public void SendPackage(Packet packet)
     {
         lock (_streamWriterLock)
         {
             try
             {
-                var packageData = package.ToString();
+                var packageData = packet.ToString();
 
                 PrintSendRawPackage(RemoteIpAddress, packageData);
 
                 _streamWriter.WriteLine(packageData);
                 _streamWriter.Flush();
 
-                package.TaskCompletionSource.SetResult();
+                packet.TaskCompletionSource.SetResult();
             }
             catch (IOException exception)
             {
                 PrintWriteSocketIssue(RemoteIpAddress);
-                package.TaskCompletionSource.SetException(exception);
+                packet.TaskCompletionSource.SetException(exception);
             }
         }
     }
@@ -108,7 +108,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
                 PrintReceiveRawPackage(RemoteIpAddress, rawData);
 
-                if (!Package.TryParse(rawData, out var package))
+                if (!Packet.TryParse(rawData, out var package))
                 {
                     PrintInvalidPackageReceive(RemoteIpAddress);
                 }

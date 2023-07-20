@@ -32,7 +32,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         var getAllMediatorHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(AddMediatorHandlersAttribute,
             (node, _) => node is MemberDeclarationSyntax,
             (syntaxContext, token) => syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.TargetNode, token));
-        
+
         context.RegisterSourceOutput(getAllMediatorHandlers, (productionContext, symbol) =>
         {
             if (symbol is not IMethodSymbol methodSymbol) return;
@@ -60,8 +60,8 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                     {
                         return typeParameterSymbol.Name switch
                         {
-                            "IRequestHandler" => $"{methodSymbol.Parameters[0].Name}.TryAdd(ServiceDescriptor.Describe(typeof({typeParameterSymbol.ToDisplayString()}), static provider => provider.GetRequiredService<{tuple.Item1.ToDisplayString()}>(), {tuple.Item2}));",
-                            "INotificationHandler" => $"{methodSymbol.Parameters[0].Name}.Add(ServiceDescriptor.Describe(typeof({typeParameterSymbol.ToDisplayString()}), static provider => provider.GetRequiredService<{tuple.Item1.ToDisplayString()}>(), {tuple.Item2}));",
+                            "IRequestHandler" => $"{methodSymbol.Parameters[0].Name}.TryAdd(ServiceDescriptor.Describe(typeof({typeParameterSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}), static provider => provider.GetRequiredService<{tuple.Item1.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(), {tuple.Item2}));",
+                            "INotificationHandler" => $"{methodSymbol.Parameters[0].Name}.Add(ServiceDescriptor.Describe(typeof({typeParameterSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}), static provider => provider.GetRequiredService<{tuple.Item1.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>(), {tuple.Item2}));",
                             var _ => string.Empty
                         };
                     })
@@ -69,8 +69,8 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                 .ToImmutableArray();
 
             var sourceBuilder = new SourceBuilder();
-            sourceBuilder.WriteLine("using Microsoft.Extensions.DependencyInjection;");
-            sourceBuilder.WriteLine("using Microsoft.Extensions.DependencyInjection.Extensions;");
+            sourceBuilder.WriteLine("using global::Microsoft.Extensions.DependencyInjection;");
+            sourceBuilder.WriteLine("using global::Microsoft.Extensions.DependencyInjection.Extensions;");
             sourceBuilder.WriteEmptyLine();
             sourceBuilder.WriteLine($"namespace {methodSymbol.ContainingNamespace.ToDisplayString()}");
             sourceBuilder.WriteOpenBlock();
@@ -93,7 +93,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             }
 
             sourceBuilder.WriteGeneratedCodeAttribute();
-            sourceBuilder.WriteLine($"{accessibility}{(methodSymbol.IsStatic ? "static " : "")}partial {methodSymbol.ReturnType.ToDisplayString()} {methodSymbol.Name}({methodSymbol.Parameters[0].ToDisplayString()})");
+            sourceBuilder.WriteLine($"{accessibility}{(methodSymbol.IsStatic ? "static " : "")}partial {methodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {methodSymbol.Name}({methodSymbol.Parameters[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.AddParameterOptions(~SymbolDisplayParameterOptions.None))})");
             sourceBuilder.WriteOpenBlock();
 
             foreach (var queryHandlerType in queryHandlerTypes)

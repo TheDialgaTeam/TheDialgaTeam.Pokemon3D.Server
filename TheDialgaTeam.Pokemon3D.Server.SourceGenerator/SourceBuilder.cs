@@ -21,7 +21,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.SourceGenerator;
 
 public sealed class SourceBuilder
 {
-    private readonly char _indentationChar;
     private readonly int _indentationAmount;
     private readonly char[] _indentationCache;
 
@@ -31,9 +30,8 @@ public sealed class SourceBuilder
 
     public SourceBuilder(char indentationChar = ' ', int indentationAmount = 4)
     {
-        _indentationChar = indentationChar;
         _indentationAmount = indentationAmount;
-        _indentationCache = new char[indentationAmount * 5];
+        _indentationCache = new char[Math.Min(indentationAmount * 5, 1024 / sizeof(char))];
         _indentationCache.AsSpan().Fill(indentationChar);
     }
 
@@ -53,7 +51,7 @@ public sealed class SourceBuilder
 
     public SourceBuilder WriteGeneratedCodeAttribute()
     {
-        return WriteLine($"[System.CodeDom.Compiler.GeneratedCodeAttribute(\"{Assembly.GetExecutingAssembly().GetName().Name}\", \"{Assembly.GetExecutingAssembly().GetName().Version}\")]");
+        return WriteLine($"[global::System.CodeDom.Compiler.GeneratedCodeAttribute(\"{Assembly.GetExecutingAssembly().GetName().Name}\", \"{Assembly.GetExecutingAssembly().GetName().Version}\")]");
     }
 
     public SourceBuilder WriteOpenBlock()
@@ -83,16 +81,13 @@ public sealed class SourceBuilder
 
     private void AddIndentation()
     {
-        if (_currentIndentation <= _indentationCache.Length)
+        var indentationApplied = 0;
+
+        do
         {
-            _stringBuilder.Append(_indentationCache.AsSpan(0, _currentIndentation).ToString());
-        }
-        else
-        {
-            for (var i = 0; i < _currentIndentation; i++)
-            {
-                _stringBuilder.Append(_indentationChar);
-            }
-        }
+            var indentAmount = Math.Min(_currentIndentation - indentationApplied, _indentationCache.Length);
+            _stringBuilder.Append(_indentationCache, 0, indentAmount);
+            indentationApplied += indentAmount;
+        } while (_currentIndentation != indentationApplied);
     }
 }

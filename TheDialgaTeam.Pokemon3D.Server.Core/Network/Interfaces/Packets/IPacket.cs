@@ -14,6 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packages;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
 
-public sealed record ServerDataRequestPackage() : Package(PackageType.ServerDataRequest);
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+
+public interface IPacket
+{
+    PacketType PacketType { get; }
+    
+    int Origin { get; }
+    
+    string ToString();
+}

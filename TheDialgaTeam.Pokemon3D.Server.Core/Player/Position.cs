@@ -29,7 +29,7 @@ public readonly struct Position
     public Position(string position, string decimalSeparator)
     {
         var positionString = position.Split('|');
-        var numberFormatInfo = new NumberFormatInfo { NumberDecimalSeparator = decimalSeparator };
+        var numberFormatInfo = new NumberFormatInfo { NumberDecimalSeparator = decimalSeparator, NumberGroupSeparator = decimalSeparator == "." ? "," : "." };
 
         X = double.Parse(positionString[0], NumberStyles.Number, numberFormatInfo);
         Y = double.Parse(positionString[1], NumberStyles.Number, numberFormatInfo);

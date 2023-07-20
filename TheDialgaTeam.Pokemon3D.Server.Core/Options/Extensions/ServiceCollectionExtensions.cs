@@ -43,8 +43,11 @@ public static class ServiceCollectionExtensions
         collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
         collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
         
-        collection.TryAddSingleton<IPokemonServerOptions, PokemonServerOptions>();
-        collection.TryAddSingleton<IValidateOptions<NetworkOptions>, NetworkOptionsValidation>();
+        collection.TryAddSingleton<PokemonServerOptions>();
+        collection.TryAddSingleton<IPokemonServerOptions>(provider => provider.GetRequiredService<PokemonServerOptions>());
+        
+        collection.TryAddSingleton<NetworkOptionsValidation>();
+        collection.TryAddSingleton<IValidateOptions<NetworkOptions>>(provider => provider.GetRequiredService<NetworkOptionsValidation>());
         
         return collection;
     }
