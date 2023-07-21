@@ -69,10 +69,8 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                 .ToImmutableArray();
 
             var sourceBuilder = new SourceBuilder();
-            sourceBuilder.WriteLine("using global::Microsoft.Extensions.DependencyInjection;");
-            sourceBuilder.WriteLine("using global::Microsoft.Extensions.DependencyInjection.Extensions;");
-            sourceBuilder.WriteEmptyLine();
-            sourceBuilder.WriteLine($"namespace {methodSymbol.ContainingNamespace.ToDisplayString()}");
+            sourceBuilder.WriteUsing("global::Microsoft.Extensions.DependencyInjection", "global::Microsoft.Extensions.DependencyInjection.Extensions");
+            sourceBuilder.WriteNamespace(methodSymbol.ContainingNamespace.ToDisplayString());
             sourceBuilder.WriteOpenBlock();
 
             var innerTypeCount = 0;
@@ -87,6 +85,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             
             foreach (var namedTypeSymbol in GetContainingTypes(methodSymbol).Reverse())
             {
+                sourceBuilder.WriteGeneratedCodeAttribute();
                 sourceBuilder.WriteLine($"{(namedTypeSymbol.IsStatic ? "static " : "")}partial class {namedTypeSymbol.Name}");
                 sourceBuilder.WriteOpenBlock();
                 innerTypeCount++;
@@ -94,15 +93,14 @@ public sealed class MediatorGenerator : IIncrementalGenerator
 
             sourceBuilder.WriteGeneratedCodeAttribute();
             sourceBuilder.WriteLine($"{accessibility}{(methodSymbol.IsStatic ? "static " : "")}partial {methodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {methodSymbol.Name}({methodSymbol.Parameters[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.AddParameterOptions(~SymbolDisplayParameterOptions.None))})");
-            sourceBuilder.WriteOpenBlock();
-
-            foreach (var queryHandlerType in queryHandlerTypes)
+            sourceBuilder.WriteBlock(builder =>
             {
-                sourceBuilder.WriteLine(queryHandlerType);
-            }
-            
-            sourceBuilder.WriteCloseBlock();
-            
+                foreach (var queryHandlerType in queryHandlerTypes)
+                {
+                    builder.WriteLine(queryHandlerType);
+                }
+            });
+
             for (var i = 0; i < innerTypeCount; i++)
             {
                 sourceBuilder.WriteCloseBlock();

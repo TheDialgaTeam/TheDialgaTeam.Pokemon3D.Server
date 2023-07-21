@@ -34,12 +34,19 @@ public sealed class SourceBuilder
         _indentationCache = new char[Math.Min(indentationAmount * 5, 1024 / sizeof(char))];
         _indentationCache.AsSpan().Fill(indentationChar);
     }
+    
+    private SourceBuilder(char indentationChar = ' ', int indentationAmount = 4, int currentIndentation = 0)
+    {
+        _indentationAmount = indentationAmount;
+        _indentationCache = new char[Math.Min(indentationAmount * 5, 1024 / sizeof(char))];
+        _indentationCache.AsSpan().Fill(indentationChar);
+        _currentIndentation = currentIndentation;
+    }
 
     public SourceBuilder WriteLine(string source)
     {
         AddIndentation();
         _stringBuilder.AppendLine(source);
-
         return this;
     }
 
@@ -47,6 +54,23 @@ public sealed class SourceBuilder
     {
         _stringBuilder.AppendLine(string.Empty);
         return this;
+    }
+
+    public SourceBuilder WriteUsing(params string[] namespaces)
+    {
+        foreach (var @namespace in namespaces)
+        {
+            WriteLine($"using {@namespace};");
+        }
+
+        WriteEmptyLine();
+        
+        return this;
+    }
+    
+    public SourceBuilder WriteNamespace(string @namespace)
+    {
+        return WriteLine($"namespace {@namespace}");
     }
 
     public SourceBuilder WriteGeneratedCodeAttribute()
@@ -71,6 +95,19 @@ public sealed class SourceBuilder
         AddIndentation();
         _stringBuilder.AppendLine("}");
 
+        return this;
+    }
+
+    public SourceBuilder WriteBlock(Action<SourceBuilder> action)
+    {
+        WriteOpenBlock();
+
+        var sourceBuilder = new SourceBuilder(_indentationCache[0], _indentationAmount, _currentIndentation);
+        action(sourceBuilder);
+        _stringBuilder.Append(sourceBuilder);
+        
+        WriteCloseBlock();
+        
         return this;
     }
 
