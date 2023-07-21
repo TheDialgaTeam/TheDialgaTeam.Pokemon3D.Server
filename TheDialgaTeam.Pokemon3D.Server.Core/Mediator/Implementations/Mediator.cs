@@ -15,44 +15,42 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations;
 
-internal sealed class Mediator : IMediator
+internal sealed partial class Mediator : IMediator
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ConcurrentDictionary<Type, IBaseMediatorSender> _senders = new();
     private readonly ConcurrentDictionary<Type, IBaseMediatorPublisher> _publishers = new();
+    private readonly Dictionary<Type, Type> _mediatorTypes = new();
 
     public Mediator(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+        Initialize();
     }
 
-    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
-    [RequiresUnreferencedCode("If some of the generic arguments are annotated (either with DynamicallyAccessedMembersAttribute, or generic constraints), trimming can\'t validate that the requirements of those annotations are met.")]
     public Task SendAsync(IRequest request, CancellationToken cancellationToken = default)
     {
-        var handler = (IMediatorSender) _senders.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<>).MakeGenericType(type)), _serviceProvider);
+        var handler = Unsafe.As<IMediatorSender>(_senders.GetOrAdd(request.GetType(), static (type, args) => Unsafe.As<IBaseMediatorSender>(args._serviceProvider.GetRequiredService(args._mediatorTypes[type])), (_serviceProvider, _mediatorTypes)));
         return handler.SendAsync(request, cancellationToken);
     }
 
-    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
-    [RequiresUnreferencedCode("If some of the generic arguments are annotated (either with DynamicallyAccessedMembersAttribute, or generic constraints), trimming can\'t validate that the requirements of those annotations are met.")]
     public Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
-        var handler = (IMediatorSender<TResponse>) _senders.GetOrAdd(request.GetType(), static (type, serviceProvider) => (IBaseMediatorSender) serviceProvider.GetRequiredService(typeof(MediatorSender<,>).MakeGenericType(type, typeof(TResponse))), _serviceProvider);
+        var handler = Unsafe.As<IMediatorSender<TResponse>>(_senders.GetOrAdd(request.GetType(), static (type, args) => Unsafe.As<IBaseMediatorSender>(args._serviceProvider.GetRequiredService(args._mediatorTypes[type])), (_serviceProvider, _mediatorTypes)));
         return handler.SendAsync(request, cancellationToken);
     }
 
-    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
-    [RequiresUnreferencedCode("If some of the generic arguments are annotated (either with DynamicallyAccessedMembersAttribute, or generic constraints), trimming can\'t validate that the requirements of those annotations are met.")]
     public Task PublishAsync(INotification notification, CancellationToken cancellationToken = default)
     {
-        var handler = (IMediatorPublisher) _publishers.GetOrAdd(notification.GetType(), static (type, serviceProvider) => (IBaseMediatorPublisher) serviceProvider.GetRequiredService(typeof(MediatorPublisher<>).MakeGenericType(type)), _serviceProvider);
+        var handler = Unsafe.As<IMediatorPublisher>(_publishers.GetOrAdd(notification.GetType(), static (type, args) => Unsafe.As<IBaseMediatorPublisher>(args._serviceProvider.GetRequiredService(args._mediatorTypes[type])), (_serviceProvider, _mediatorTypes)));
         return handler.PublishAsync(notification, cancellationToken);
     }
+    
+    private partial void Initialize();
 }

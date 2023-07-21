@@ -25,14 +25,47 @@ namespace TheDialgaTeam.Pokemon3D.Server.SourceGenerator;
 public sealed class MediatorGenerator : IIncrementalGenerator
 {
     private const string AddMediatorHandlersAttribute = "TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Attributes.AddMediatorHandlersAttribute";
+    private const string NotificationFullyQualifiedName = "global::TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.INotification";
+    private const string MediatorPublisherFullyQualifiedName = "global::TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations.MediatorPublisher";
     
     [SuppressMessage("MicrosoftCodeAnalysisCorrectness", "RS1024:Symbols should be compared for equality")]
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var getMediatorInterfaces = context.CompilationProvider.Select((compilation, token) => compilation.SyntaxTrees
+            .SelectMany(tree => tree.GetRoot(token).DescendantNodes())
+            .Where(node => node is ClassDeclarationSyntax or RecordDeclarationSyntax)
+            .Select(node => compilation.GetSemanticModel(node.SyntaxTree).GetDeclaredSymbol(node, token))
+            .Where(symbol => (symbol as ITypeSymbol)?.AllInterfaces.Any(typeSymbol => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Equals(NotificationFullyQualifiedName)) ?? false)
+            .ToImmutableArray()
+        );
+        
         var getAllMediatorHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(AddMediatorHandlersAttribute,
             (node, _) => node is MemberDeclarationSyntax,
             (syntaxContext, token) => syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.TargetNode, token));
 
+        context.RegisterSourceOutput(getMediatorInterfaces, (productionContext, symbols) =>
+        {
+            var sourceBuilder = new SourceBuilder();
+            sourceBuilder.WriteNamespace("TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Implementations").WriteBlock(builder =>
+            {
+                builder.WriteGeneratedCodeAttribute();
+                builder.WriteLine("partial class Mediator").WriteBlock(classBuilder =>
+                {
+                    classBuilder.WriteGeneratedCodeAttribute();
+                    classBuilder.WriteLine("private partial void Initialize()").WriteBlock(methodBuilder =>
+                    {
+                        foreach (var symbol in symbols)
+                        {
+                            if (symbol == null) continue;
+                            methodBuilder.WriteLine($"_mediatorTypes.Add(typeof({symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}), typeof({MediatorPublisherFullyQualifiedName}<{symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>));");
+                        }
+                    });
+                });
+            });
+            
+            productionContext.AddSource("Mediator.g.cs", sourceBuilder.ToString());
+        });
+        
         context.RegisterSourceOutput(getAllMediatorHandlers, (productionContext, symbol) =>
         {
             if (symbol is not IMethodSymbol methodSymbol) return;
@@ -69,7 +102,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                 .ToImmutableArray();
 
             var sourceBuilder = new SourceBuilder();
-            sourceBuilder.WriteUsing("global::Microsoft.Extensions.DependencyInjection", "global::Microsoft.Extensions.DependencyInjection.Extensions");
+            sourceBuilder.WriteUsingNamespace("global::Microsoft.Extensions.DependencyInjection", "global::Microsoft.Extensions.DependencyInjection.Extensions");
             sourceBuilder.WriteNamespace(methodSymbol.ContainingNamespace.ToDisplayString());
             sourceBuilder.WriteOpenBlock();
 

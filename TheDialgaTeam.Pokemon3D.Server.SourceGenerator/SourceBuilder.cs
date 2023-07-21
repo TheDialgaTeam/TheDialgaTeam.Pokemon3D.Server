@@ -28,11 +28,8 @@ public sealed class SourceBuilder
 
     private int _currentIndentation;
 
-    public SourceBuilder(char indentationChar = ' ', int indentationAmount = 4)
+    public SourceBuilder(char indentationChar = ' ', int indentationAmount = 4) : this(indentationChar, indentationAmount, 0)
     {
-        _indentationAmount = indentationAmount;
-        _indentationCache = new char[Math.Min(indentationAmount * 5, 1024 / sizeof(char))];
-        _indentationCache.AsSpan().Fill(indentationChar);
     }
     
     private SourceBuilder(char indentationChar = ' ', int indentationAmount = 4, int currentIndentation = 0)
@@ -56,7 +53,7 @@ public sealed class SourceBuilder
         return this;
     }
 
-    public SourceBuilder WriteUsing(params string[] namespaces)
+    public SourceBuilder WriteUsingNamespace(params string[] namespaces)
     {
         foreach (var @namespace in namespaces)
         {
