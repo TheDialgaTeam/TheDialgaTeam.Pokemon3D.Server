@@ -18,7 +18,7 @@ using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces;
+using TheDialgaTeam.Mediator.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;

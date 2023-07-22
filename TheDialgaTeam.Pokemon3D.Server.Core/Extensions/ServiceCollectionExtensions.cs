@@ -16,7 +16,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Extensions;
+using TheDialgaTeam.Mediator.Extensions;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Extensions;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Extensions;
 

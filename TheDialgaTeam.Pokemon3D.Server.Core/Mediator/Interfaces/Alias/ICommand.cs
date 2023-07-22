@@ -19,3 +19,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Mediator.Interfaces.Alias;
 public interface ICommand : IRequest
 {
 }
+
+public interface ICommand<out TResponse> : IRequest<TResponse>
+{
+}

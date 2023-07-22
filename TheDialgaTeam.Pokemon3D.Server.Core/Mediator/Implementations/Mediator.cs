@@ -31,7 +31,6 @@ internal sealed partial class Mediator : IMediator
     public Mediator(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        Initialize();
     }
 
     public Task SendAsync(IRequest request, CancellationToken cancellationToken = default)
@@ -51,6 +50,4 @@ internal sealed partial class Mediator : IMediator
         var handler = Unsafe.As<IMediatorPublisher>(_publishers.GetOrAdd(notification.GetType(), static (type, args) => Unsafe.As<IBaseMediatorPublisher>(args._serviceProvider.GetRequiredService(args._mediatorTypes[type])), (_serviceProvider, _mediatorTypes)));
         return handler.PublishAsync(notification, cancellationToken);
     }
-    
-    private partial void Initialize();
 }
