@@ -85,16 +85,24 @@ public sealed class SourceBuilder
 
         var sourceBuilder = new SourceBuilder(_indentationCache[0], _indentationAmount, _currentIndentation);
         action?.Invoke(sourceBuilder);
-        _stringBuilder.Append(sourceBuilder);
+
+        var result = sourceBuilder.ToString();
+
+        if (!string.IsNullOrEmpty(result))
+        {
+            _stringBuilder.AppendLine(result);
+        }
         
         WriteCloseBlock();
+        
+        WriteEmptyLine();
 
         return this;
     }
 
     public override string ToString()
     {
-        return _stringBuilder.ToString();
+        return _stringBuilder.ToString().TrimEnd(' ', '\r', '\n');
     }
 
     private void AddIndentation()

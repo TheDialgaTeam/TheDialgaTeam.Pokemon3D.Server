@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TheDialgaTeam.Mediator.Interfaces\TheDialgaTeam.Mediator.Interfaces.csproj" />
+      <ProjectReference Include="..\TheDialgaTeam.Mediator.Abstractions\TheDialgaTeam.Mediator.Abstractions.csproj" />
       <ProjectReference Include="..\TheDialgaTeam.Mediator.SourceGenerator\TheDialgaTeam.Mediator.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
     

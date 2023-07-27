@@ -1,4 +1,4 @@
-﻿namespace TheDialgaTeam.Mediator.Interfaces;
+﻿namespace TheDialgaTeam.Mediator.Abstractions;
 
 public interface ICommandHandler<in TRequest> : IRequestHandler<TRequest> where TRequest : ICommand
 {

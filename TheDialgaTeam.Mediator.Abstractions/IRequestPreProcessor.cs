@@ -1,4 +1,4 @@
-﻿namespace TheDialgaTeam.Mediator.Interfaces;
+﻿namespace TheDialgaTeam.Mediator.Abstractions;
 
 public interface IRequestPreProcessor<in TRequest> where TRequest : IBaseRequest
 {

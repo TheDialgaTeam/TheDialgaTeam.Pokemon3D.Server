@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPokemonServer(this IServiceCollection collection)
     {
         collection.AddMediator();
-
+        
         collection.AddPokemonServerNetwork();
         collection.AddPokemonServerOptions();
 

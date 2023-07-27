@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Mediator.SourceGenerator", "TheDialgaTeam.Mediator.SourceGenerator\TheDialgaTeam.Mediator.SourceGenerator.csproj", "{AB423470-C39E-4F2E-A594-F8076FD17CB5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Mediator.Interfaces", "TheDialgaTeam.Mediator.Interfaces\TheDialgaTeam.Mediator.Interfaces.csproj", "{79553E00-C401-4FE6-BD8C-1D3AAA9DC2BB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Mediator.Abstractions", "TheDialgaTeam.Mediator.Abstractions\TheDialgaTeam.Mediator.Abstractions.csproj", "{79553E00-C401-4FE6-BD8C-1D3AAA9DC2BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
