@@ -14,11 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-public sealed record PvPOptions
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets.Types;
+
+internal sealed record WorldDataPacket(Season Season, Weather Weather, TimeOnly Time) : Packet(PacketType.WorldData)
 {
-    public bool AllowPvP { get; init; } = true;
-
-    public bool AllowPvPValidation { get; init; } = true;
+    protected override string[] GetDataItems()
+    {
+        return new[]
+        {
+            ((int) Season).ToString(),
+            ((int) Weather).ToString(),
+            Time.ToString("H,m,s")
+        };
+    }
 }

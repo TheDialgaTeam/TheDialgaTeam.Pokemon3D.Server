@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
@@ -23,7 +23,7 @@ public interface IPokemonServerClient : IDisposable
 {
     IPAddress RemoteIpAddress { get; }
 
-    void SendPackage(Packet packet);
+    void SendPackage(IPacket packet);
     
     Task DisconnectAsync();
 }

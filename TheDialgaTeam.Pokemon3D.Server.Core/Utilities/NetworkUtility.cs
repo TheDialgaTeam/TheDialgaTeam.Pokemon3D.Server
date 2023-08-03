@@ -29,4 +29,10 @@ public static class NetworkUtility
     {
         return await Dns.GetHostAddressesAsync(Dns.GetHostName(), cancellationToken).ConfigureAwait(false);
     }
+    
+    public static async Task<IPAddress> GetPublicIpAddressAsync(HttpClient httpClient, CancellationToken cancellationToken = default)
+    {
+        var externalIpAddress = await httpClient.GetStringAsync("https://api.ipify.org", cancellationToken).ConfigureAwait(false);
+        return IPAddress.Parse(externalIpAddress);
+    }
 }

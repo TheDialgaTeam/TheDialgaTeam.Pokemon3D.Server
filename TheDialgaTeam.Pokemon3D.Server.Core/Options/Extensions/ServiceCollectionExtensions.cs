@@ -22,9 +22,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Converters;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Validations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Extensions;
 

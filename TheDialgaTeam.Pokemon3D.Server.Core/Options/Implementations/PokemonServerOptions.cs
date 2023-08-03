@@ -15,8 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations;
 

@@ -14,15 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
-
-public sealed record NetworkOptions
+public sealed record TradeOptions
 {
-    public IPEndPoint BindIpEndPoint { get; init; } = new(IPAddress.Any, 15124);
+    public bool AllowTrade { get; init; } = true;
 
-    public bool UseUpnp { get; init; }
-    
-    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(10);
+    public bool AllowTradeValidation { get; init; } = true;
 }

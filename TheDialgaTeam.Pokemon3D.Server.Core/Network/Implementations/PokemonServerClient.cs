@@ -22,6 +22,7 @@ using TheDialgaTeam.Mediator.Abstractions;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
@@ -43,7 +44,11 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
     private DateTime _lastValidPackage = DateTime.Now;
 
-    public PokemonServerClient(ILogger<PokemonServerClient> logger, IPokemonServerOptions options, IMediator mediator, TcpClient tcpClient)
+    public PokemonServerClient(
+        ILogger<PokemonServerClient> logger, 
+        IPokemonServerOptions options, 
+        IMediator mediator, 
+        TcpClient tcpClient)
     {
         _logger = logger;
         _options = options;
@@ -60,25 +65,23 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
         };
     }
 
-    public void SendPackage(Packet packet)
+    public void SendPackage(IPacket packet)
     {
         lock (_streamWriterLock)
         {
             try
             {
-                var packageData = packet.ToString();
+                var packageData = packet.ToRawPacket();
 
-                PrintSendRawPackage(RemoteIpAddress, packageData);
+                PrintSendRawPacket(RemoteIpAddress, packageData);
 
                 _streamWriter.WriteLine(packageData);
                 _streamWriter.Flush();
-
-                packet.TaskCompletionSource.SetResult();
             }
-            catch (IOException exception)
+            catch
             {
                 PrintWriteSocketIssue(RemoteIpAddress);
-                packet.TaskCompletionSource.SetException(exception);
+                throw;
             }
         }
     }
@@ -92,14 +95,14 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
     private async Task RunReadingTask()
     {
-        var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, true, _tcpClient.ReceiveBufferSize);
+        using var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, true, _tcpClient.ReceiveBufferSize, true);
 
         while (_tcpClient.Connected)
         {
             try
             {
                 var rawData = await streamReader.ReadLineAsync().ConfigureAwait(false);
-
+                
                 if (rawData == null)
                 {
                     await DisconnectAsync().ConfigureAwait(false);
@@ -147,7 +150,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
     private partial void PrintReceiveRawPackage(IPAddress ipAddress, string rawData);
 
     [LoggerMessage(Level = LogLevel.Trace, Message = "[{ipAddress}] Send raw package data: {rawData}")]
-    private partial void PrintSendRawPackage(IPAddress ipAddress, string rawData);
+    private partial void PrintSendRawPacket(IPAddress ipAddress, string rawData);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Unable to allocate buffer for the package data due to insufficient memory")]
     private partial void PrintOutOfMemory(IPAddress ipAddress);

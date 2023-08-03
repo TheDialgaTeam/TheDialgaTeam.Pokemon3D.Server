@@ -14,30 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Concurrent;
 using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-public readonly struct Position
+public readonly record struct Position(float X, float Y, float Z)
 {
-    public double X { get; }
-
-    public double Y { get; }
-
-    public double Z { get; }
-
-    public Position(string position, string decimalSeparator)
+    private static readonly ConcurrentDictionary<string, NumberFormatInfo> NumberFormatInfos = new();
+    
+    public static Position FromRawPacket(ReadOnlySpan<char> position, string decimalSeparator)
     {
-        var positionString = position.Split('|');
-        var numberFormatInfo = new NumberFormatInfo { NumberDecimalSeparator = decimalSeparator, NumberGroupSeparator = decimalSeparator == "." ? "," : "." };
-
-        X = double.Parse(positionString[0], NumberStyles.Number, numberFormatInfo);
-        Y = double.Parse(positionString[1], NumberStyles.Number, numberFormatInfo);
-        Z = double.Parse(positionString[2], NumberStyles.Number, numberFormatInfo);
+        var numberFormatInfo = NumberFormatInfos.GetOrAdd(decimalSeparator, static s => new NumberFormatInfo { NumberDecimalSeparator = s });
+        return new Position(float.Parse(position.SplitNext("|", out position), NumberStyles.Number, numberFormatInfo), float.Parse(position.SplitNext("|", out position), NumberStyles.Number, numberFormatInfo), float.Parse(position.SplitNext("|", out position), NumberStyles.Number, numberFormatInfo));
     }
 
-    public override string ToString()
+    public string ToRawPacket(string decimalSeparator)
     {
-        return $"{X}|{Y}|{Z}";
+        var numberFormatInfo = NumberFormatInfos.GetOrAdd(decimalSeparator, static s => new NumberFormatInfo { NumberDecimalSeparator = s });
+        return $"{X.ToString(numberFormatInfo)}|{Y.ToString(numberFormatInfo)}|{Z.ToString(numberFormatInfo)}";
     }
 }

@@ -17,18 +17,14 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets.Types;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
 
-public abstract record Packet(PacketType PacketType = PacketType.Unknown, int Origin = -1) : IPacket
+internal abstract record Packet(PacketType PacketType = PacketType.Unknown, int Origin = -1) : IPacket
 {
     private const string ProtocolVersion = "0.5";
-
-    [ThreadStatic]
-    private static StringBuilder? _stringBuilder;
-    
-    public TaskCompletionSource TaskCompletionSource { get; } = new();
 
     /*
     public Package(string package)
@@ -198,7 +194,7 @@ public abstract record Packet(PacketType PacketType = PacketType.Unknown, int Or
         {
             ArrayPool<int>.Shared.Return(dataIndexes);
         }
-        
+
         switch (packageType)
         {
             case PacketType.ServerDataRequest:
@@ -214,50 +210,43 @@ public abstract record Packet(PacketType PacketType = PacketType.Unknown, int Or
             }
         }
     }
-
-    /*
-    public bool IsFullPackageData()
-    {
-        return PackageType == PackageType.GameData && DataItems.Length == 15 && !string.IsNullOrWhiteSpace(DataItems[4]);
-    }
-    */
-
-    protected virtual string[] GetDataItems()
-    {
-        return Array.Empty<string>();
-    }
     
-    public override string ToString()
+    public string ToRawPacket()
     {
-        _stringBuilder ??= new StringBuilder();
+        var stringBuilder = new StringBuilder();
         
-        _stringBuilder.Append(ProtocolVersion);
-        _stringBuilder.Append('|');
-        _stringBuilder.Append((int) PacketType);
-        _stringBuilder.Append('|');
-        _stringBuilder.Append(Origin);
-        _stringBuilder.Append('|');
+        stringBuilder.Append(ProtocolVersion);
+        stringBuilder.Append('|');
+        stringBuilder.Append((int) PacketType);
+        stringBuilder.Append('|');
+        stringBuilder.Append(Origin);
+        stringBuilder.Append('|');
 
         var dataItems = GetDataItems();
-        _stringBuilder.Append(dataItems.Length);
+        stringBuilder.Append(dataItems.Length);
 
         var count = 0;
 
         foreach (var dataItem in GetDataItems())
         {
-            _stringBuilder.Append('|');
-            _stringBuilder.Append(count);
+            stringBuilder.Append('|');
+            stringBuilder.Append(count);
 
             count += dataItem.Length;
         }
         
-        _stringBuilder.Append('|');
+        stringBuilder.Append('|');
 
         foreach (var dataItem in dataItems)
         {
-            _stringBuilder.Append(dataItem);
+            stringBuilder.Append(dataItem);
         }
 
-        return _stringBuilder.ToString();
+        return stringBuilder.ToString();
+    }
+
+    protected virtual string[] GetDataItems()
+    {
+        return Array.Empty<string>();
     }
 }

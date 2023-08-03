@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
 
-public sealed record TradeOptions
+public sealed record ServerOptions
 {
-    public bool AllowTrade { get; init; } = true;
+    public string ServerName { get; init; } = "Pokemon 3D Server";
 
-    public bool AllowTradeValidation { get; init; } = true;
+    public string ServerDescription { get; init; } = string.Empty;
+
+    public string WelcomeMessage { get; init; } = string.Empty;
+
+    public string[] GameModes { get; init; } = Array.Empty<string>();
+
+    public int MaxPlayers { get; init; } = 20;
+
+    public bool OfflineMode { get; init; }
+
+    public TimeSpan AwayFromKeyboardKickTime { get; init; } = TimeSpan.FromMinutes(5);
 }

@@ -14,29 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
+using System.Net;
 
-public sealed record ServerInfoDataPacket(
-    int PlayerCount,
-    int MaxServerSize,
-    string ServerName,
-    string ServerDescription,
-    string[] Players) : Packet(PacketType.ServerInfoData)
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
+
+public sealed record NetworkOptions
 {
-    protected override string[] GetDataItems()
-    {
-        var result = new string[4 + Players.Length];
+    public IPEndPoint BindIpEndPoint { get; init; } = new(IPAddress.Any, 15124);
 
-        result[0] = PlayerCount.ToString();
-        result[1] = MaxServerSize.ToString();
-        result[2] = ServerName;
-        result[3] = ServerDescription;
-
-        for (var i = 0; i < Players.Length; i++)
-        {
-            result[4 + i] = Players[i];
-        }
-        
-        return result;
-    }
+    public bool UseUpnp { get; init; }
+    
+    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(10);
 }

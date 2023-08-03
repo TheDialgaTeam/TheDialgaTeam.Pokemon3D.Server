@@ -14,16 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets.Types;
 
-public enum Season
+internal sealed record PrivateMessagePacket(
+    int Origin, 
+    int TargetOrigin, 
+    string Message) : Packet(PacketType.PrivateMessage, Origin)
 {
-    Default = -1,
-    Random = -2,
-    SeasonMonth = -3,
-    
-    Winter = 0,
-    Spring = 1,
-    Summer = 2,
-    Fall = 3
+    protected override string[] GetDataItems()
+    {
+        if (Origin == -1) return new[] { Message };
+        
+        if (Origin == TargetOrigin)
+        {
+            return new[]
+            {
+                TargetOrigin.ToString(),
+                Message
+            };
+        }
+        
+        return new[] { Message };
+    }
 }

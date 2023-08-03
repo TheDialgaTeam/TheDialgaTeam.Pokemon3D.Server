@@ -48,17 +48,6 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                         methodBuilder.WriteLine("collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestPipeline<>), typeof(PostProcessorRequestPipeline<>)));");
                         methodBuilder.WriteLine("collection.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(IRequestPipeline<,>), typeof(PostProcessorRequestPipeline<,>)));");
 
-                        foreach (var symbol in symbols)
-                        {
-                            if (symbol.AllInterfaces.Any(typeSymbol => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Equals("global::TheDialgaTeam.Mediator.Abstractions.INotificationHandler")))
-                            {
-                                foreach (var namedTypeSymbol in symbol.AllInterfaces.Where(typeSymbol => typeSymbol.IsGenericType && typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).StartsWith("global::TheDialgaTeam.Mediator.Abstractions.INotificationHandler")))
-                                {
-                                    methodBuilder.WriteLine($"collection.Add(ServiceDescriptor.Singleton(typeof({namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}), provider => provider.GetRequiredService<{symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>()));");
-                                }
-                            }
-                        }
-                        
                         methodBuilder.WriteLine("return collection;");
                     });
                 });
@@ -130,7 +119,19 @@ public sealed class MediatorGenerator : IIncrementalGenerator
                         {
                             if (symbol.AllInterfaces.Any(namedTypeSymbol => namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Equals("global::TheDialgaTeam.Mediator.Abstractions.IBaseRequest")))
                             {
-                                //constructorBuilder.WriteLine($"_mediatorTypes.Add(typeof({symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}), typeof(MediatorSender<{symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>));");
+                                var requestType = symbol.AllInterfaces.SingleOrDefault(typeSymbol => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).StartsWith("global::TheDialgaTeam.Mediator.Abstractions.IRequest"));
+
+                                if (requestType is not null)
+                                {
+                                    if (requestType.IsGenericType)
+                                    {
+                                        constructorBuilder.WriteLine($"_mediatorTypes.Add(typeof({symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}), typeof(MediatorSender<{symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}, {string.Join(", ", requestType.TypeArguments.Select(typeSymbol => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))}>));");
+                                    }
+                                    else
+                                    {
+                                        constructorBuilder.WriteLine($"_mediatorTypes.Add(typeof({symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}), typeof(MediatorSender<{symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>));");
+                                    }
+                                }
                             }
                             
                             if (symbol.AllInterfaces.Any(namedTypeSymbol => namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Equals("global::TheDialgaTeam.Mediator.Abstractions.INotification")))

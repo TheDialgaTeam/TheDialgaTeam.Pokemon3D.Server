@@ -23,6 +23,6 @@ public interface IPacket
     PacketType PacketType { get; }
     
     int Origin { get; }
-    
-    string ToString();
+
+    string ToRawPacket();
 }

@@ -14,17 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets.Types;
 
-public sealed record WorldOptions
+internal sealed record IdPacket(int Id) : Packet(PacketType.Id)
 {
-    public int Season { get; init; } = -1;
-
-    public int Weather { get; init; } = -1;
-
-    public bool DoDayCycle { get; init; } = true;
-
-    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-
-    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
-}
+    protected override string[] GetDataItems()
+    {
+        return new[] { Id.ToString() };
+    }
+};

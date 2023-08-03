@@ -66,7 +66,7 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
             }
             
             stoppingToken.ThrowIfCancellationRequested();
-
+            
             _tcpListener = new TcpListener(networkOptions.BindIpEndPoint);
             _tcpListener.Start();
             
@@ -106,15 +106,6 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
         PrintServerStopped();
     }
 
-    private async Task<IPAddress> GetPublicIpAddressAsync(CancellationToken cancellationToken = default)
-    {
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, cancellationToken);
-
-        var externalIpAddress = await _httpClient.GetStringAsync("https://api.ipify.org", linkedCancellationTokenSource.Token).ConfigureAwait(false);
-        return IPAddress.Parse(externalIpAddress);
-    }
-
     private async Task RunServerPortCheckingTask()
     {
         var networkOptions = _options.NetworkOptions;
@@ -124,7 +115,7 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
 
         try
         {
-            var publicIpAddress = await GetPublicIpAddressAsync().ConfigureAwait(false);
+            var publicIpAddress = await NetworkUtility.GetPublicIpAddressAsync(_httpClient).ConfigureAwait(false);
 
             try
             {

@@ -16,7 +16,7 @@
 
 using System.Net;
 using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Validations;

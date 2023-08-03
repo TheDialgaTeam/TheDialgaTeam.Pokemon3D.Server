@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
 
-public enum Season
+public sealed record PvPOptions
 {
-    Default = -1,
-    Random = -2,
-    SeasonMonth = -3,
-    
-    Winter = 0,
-    Spring = 1,
-    Summer = 2,
-    Fall = 3
+    public bool AllowPvP { get; init; } = true;
+
+    public bool AllowPvPValidation { get; init; } = true;
 }

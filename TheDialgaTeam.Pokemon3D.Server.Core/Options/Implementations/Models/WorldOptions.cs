@@ -14,21 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Models;
+using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-public sealed record ServerOptions
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
+
+public sealed record WorldOptions
 {
-    public string ServerName { get; init; } = "Pokemon 3D Server";
+    public Season Season { get; init; } = Season.Default;
 
-    public string ServerDescription { get; init; } = string.Empty;
+    public Weather Weather { get; init; } = Weather.Default;
 
-    public string WelcomeMessage { get; init; } = string.Empty;
+    public bool DoDayCycle { get; init; } = true;
 
-    public string[] GameModes { get; init; } = Array.Empty<string>();
+    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
-    public int MaxPlayers { get; init; } = 20;
-
-    public bool OfflineMode { get; init; }
-
-    public TimeSpan AwayFromKeyboardKickTime { get; init; } = TimeSpan.FromMinutes(5);
+    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
 }

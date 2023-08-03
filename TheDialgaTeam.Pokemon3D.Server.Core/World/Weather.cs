@@ -18,6 +18,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
 public enum Weather
 {
+    Default = -1,
+    Random = -2,
+    WeatherSeason = -3,
+    
     Clear = 0,
     Rain = 1,
     Snow = 2,
