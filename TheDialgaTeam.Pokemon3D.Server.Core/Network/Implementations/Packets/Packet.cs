@@ -26,77 +26,8 @@ internal abstract record Packet(PacketType PacketType = PacketType.Unknown, int 
 {
     private const string ProtocolVersion = "0.5";
 
-    /*
-    public Package(string package)
-    {
-        var dataItemIndexes = Array.Empty<int>();
-
-        try
-        {
-            var currentPackageIndex = 0;
-            var maxPackageIndex = 3;
-            var currentStringIndex = 0;
-            var currentDataItemIndex = 0;
-
-            while (currentPackageIndex <= maxPackageIndex)
-            {
-                var nextStringIndex = package.IndexOf('|', currentStringIndex);
-                if (nextStringIndex == -1) break;
-
-                var length = nextStringIndex - currentStringIndex;
-                if (length == 0) break;
-
-                switch (currentPackageIndex)
-                {
-                    case 0:
-                        //ProtocolVersion = package.Substring(currentStringIndex, length);
-                        break;
-
-                    case 1:
-                        PackageType = Enum.Parse<PackageType>(package.Substring(currentStringIndex, length));
-                        break;
-
-                    case 2:
-                        Origin = int.Parse(package.Substring(currentStringIndex, length));
-                        break;
-
-                    case 3:
-                        var packetLength = int.Parse(package.Substring(currentStringIndex, length));
-                        maxPackageIndex = 3 + packetLength;
-                        dataItemIndexes = ArrayPool<int>.Shared.Rent(packetLength);
-                        break;
-
-                    default:
-                        dataItemIndexes[currentDataItemIndex++] = int.Parse(package.Substring(currentStringIndex, length));
-                        break;
-                }
-
-                currentStringIndex = nextStringIndex + 1;
-                currentPackageIndex++;
-            }
-
-            var dataItems = new string[dataItemIndexes.Length];
-
-            for (var i = 0; i < dataItemIndexes.Length; i++)
-            {
-                dataItems[i] = i + 1 < dataItemIndexes.Length ? package.Substring(currentStringIndex + dataItemIndexes[i], dataItemIndexes[i + 1] - dataItemIndexes[i]) : package[(currentStringIndex + dataItemIndexes[i])..];
-            }
-
-            DataItems = dataItems;
-
-            IsValid = true;
-        }
-        catch
-        {
-            IsValid = false;
-        }
-        finally
-        {
-            if (dataItemIndexes.Length > 0) ArrayPool<int>.Shared.Return(dataItemIndexes);
-            TaskCompletionSource.SetResult();
-        }
-    }
-    */
+    [ThreadStatic]
+    private static StringBuilder? _stringBuilder;
 
     public static bool TryParse(ReadOnlySpan<char> rawData, [MaybeNullWhen(false)] out IPacket packet)
     {
@@ -190,7 +121,7 @@ internal abstract record Packet(PacketType PacketType = PacketType.Unknown, int 
             rawData = rawData[(nextDataLength + 1)..];
         }
         
-        if (dataIndexLength == 0)
+        if (dataIndexLength > 0)
         {
             ArrayPool<int>.Shared.Return(dataIndexes);
         }
@@ -213,36 +144,37 @@ internal abstract record Packet(PacketType PacketType = PacketType.Unknown, int 
     
     public string ToRawPacket()
     {
-        var stringBuilder = new StringBuilder();
-        
-        stringBuilder.Append(ProtocolVersion);
-        stringBuilder.Append('|');
-        stringBuilder.Append((int) PacketType);
-        stringBuilder.Append('|');
-        stringBuilder.Append(Origin);
-        stringBuilder.Append('|');
+        _stringBuilder ??= new StringBuilder();
+        _stringBuilder.Clear();
+
+        _stringBuilder.Append(ProtocolVersion);
+        _stringBuilder.Append('|');
+        _stringBuilder.Append((int) PacketType);
+        _stringBuilder.Append('|');
+        _stringBuilder.Append(Origin);
+        _stringBuilder.Append('|');
 
         var dataItems = GetDataItems();
-        stringBuilder.Append(dataItems.Length);
-
+        _stringBuilder.Append(dataItems.Length);
+        
         var count = 0;
 
-        foreach (var dataItem in GetDataItems())
+        foreach (var dataItem in dataItems)
         {
-            stringBuilder.Append('|');
-            stringBuilder.Append(count);
+            _stringBuilder.Append('|');
+            _stringBuilder.Append(count);
 
             count += dataItem.Length;
         }
         
-        stringBuilder.Append('|');
+        _stringBuilder.Append('|');
 
         foreach (var dataItem in dataItems)
         {
-            stringBuilder.Append(dataItem);
+            _stringBuilder.Append(dataItem);
         }
 
-        return stringBuilder.ToString();
+        return _stringBuilder.ToString();
     }
 
     protected virtual string[] GetDataItems()

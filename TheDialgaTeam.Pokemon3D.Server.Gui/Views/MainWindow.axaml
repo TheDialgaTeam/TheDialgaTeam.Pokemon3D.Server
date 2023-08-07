@@ -10,10 +10,6 @@
         Icon="/Assets/Icon.ico"
         Padding="10">
     
-    <Design.DataContext>
-        <vm:MainWindowViewModel />
-    </Design.DataContext>
-
     <Window.Styles>
         <StyleInclude Source="/Assets/WindowStyles.xaml" />
     </Window.Styles>

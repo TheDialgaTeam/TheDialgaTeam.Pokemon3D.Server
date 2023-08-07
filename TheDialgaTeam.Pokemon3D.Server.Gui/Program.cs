@@ -28,7 +28,7 @@ public static class Program
                 ServiceProvider = host.Services;
                 host.Start();
                 
-                if (builder.Instance.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+                if (builder.Instance?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
                 {
                     lifetime.ShutdownRequested += (_, _) =>
                     {

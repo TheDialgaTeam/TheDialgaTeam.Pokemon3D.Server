@@ -24,7 +24,6 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 
@@ -118,7 +117,15 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
                 else
                 {
                     _lastValidPackage = DateTime.Now;
-                    _mediator.PublishAsync(new NewPackageReceivedEventArgs(this, package)).FireAndForget();
+
+                    try
+                    {
+                        await _mediator.PublishAsync(new NewPackageReceivedEventArgs(this, package));
+                    }
+                    catch (Exception ex)
+                    {
+                        PrintPacketHandlerError(ex, RemoteIpAddress, ex.Message);
+                    }
                 }
             }
             catch (OutOfMemoryException)
@@ -136,7 +143,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
     {
         while (_tcpClient.Connected)
         {
-            if ((DateTime.Now - _lastValidPackage).TotalSeconds > 10)
+            if ((DateTime.Now - _lastValidPackage).TotalSeconds > _options.NetworkOptions.NoPingKickTime.TotalSeconds)
             {
                 // Most likely disconnected, so let's destroy it.
                 await DisconnectAsync().ConfigureAwait(false);
@@ -166,6 +173,9 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Disconnected")]
     private partial void PrintDisconnected(IPAddress ipAddress);
+    
+    [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] {message}")]
+    private partial void PrintPacketHandlerError(Exception exception, IPAddress ipAddress, string message);
 
     public void Dispose()
     {

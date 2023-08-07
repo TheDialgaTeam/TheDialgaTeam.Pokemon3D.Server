@@ -88,7 +88,7 @@ public enum PacketType
     WorldData = 12,
 
     /// <summary>
-    ///     Ping (Get Only)
+    ///     Ping (Read Only)
     /// </summary>
     Ping = 13,
 
@@ -176,16 +176,16 @@ public enum PacketType
     BattlePokemonData = 57,
 
     /// <summary>
-    ///     Server Info Data
+    ///     Server Info Data (Write Only)
     ///     <para>
     ///         {Origin = -1 | DataItem[0] = Player Count, DataItem[1] = Max Player Count, DataItem[2] = Server Name,
-    ///         DataItem[3] = Server Description, DataItem[..] = Player Names | To listening client}
+    ///         DataItem[3] = Server Description, DataItem[3+N] = Player Names | To Client}
     ///     </para>
     /// </summary>
     ServerInfoData = 98,
 
     /// <summary>
-    ///     Server Data Request (Read only)
+    ///     Server Data Request (Read Only)
     /// </summary>
     ServerDataRequest = 99
 }

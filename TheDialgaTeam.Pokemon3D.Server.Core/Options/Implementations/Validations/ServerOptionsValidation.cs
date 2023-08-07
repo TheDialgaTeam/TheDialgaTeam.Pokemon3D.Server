@@ -14,30 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
-using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Validations;
 
-internal sealed class NetworkOptionsValidation : IValidateOptions<NetworkOptions>
+internal sealed class ServerOptionsValidation : IValidateOptions<ServerOptions>
 {
-    public ValidateOptionsResult Validate(string? name, NetworkOptions options)
+    public ValidateOptionsResult Validate(string? name, ServerOptions options)
     {
-        var validNetworkInterfaces = NetworkUtility.GetLocalIpAddress();
-
-        if (!validNetworkInterfaces
-                .Append(IPAddress.Any)
-                .Append(IPAddress.Loopback)
-                .Any(address => options.BindIpEndPoint.Address.Equals(address)))
+        if (string.IsNullOrEmpty(options.ServerName))
         {
-            return ValidateOptionsResult.Fail($"[Network:{nameof(options.BindIpEndPoint)}] Invalid IP Address given.");
+            return ValidateOptionsResult.Fail($"[Server:{nameof(options.ServerName)}] Server name cannot be empty.");
         }
-
-        if (options.NoPingKickTime.TotalSeconds <= 10)
+        
+        if (options.MaxPlayers <= 0)
         {
-            return ValidateOptionsResult.Fail($"[Network:{nameof(options.NoPingKickTime)}] NoPingKickTime must be more than 10 seconds.");
+            return ValidateOptionsResult.Fail($"[Server:{nameof(options.MaxPlayers)}] Max player limit must be more than 0.");
         }
         
         return ValidateOptionsResult.Success;

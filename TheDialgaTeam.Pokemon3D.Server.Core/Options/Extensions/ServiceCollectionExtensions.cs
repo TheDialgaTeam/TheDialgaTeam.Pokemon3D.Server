@@ -49,6 +49,9 @@ public static class ServiceCollectionExtensions
         collection.TryAddSingleton<NetworkOptionsValidation>();
         collection.TryAddSingleton<IValidateOptions<NetworkOptions>>(provider => provider.GetRequiredService<NetworkOptionsValidation>());
         
+        collection.TryAddSingleton<ServerOptionsValidation>();
+        collection.TryAddSingleton<IValidateOptions<ServerOptions>>(provider => provider.GetRequiredService<ServerOptionsValidation>());
+        
         return collection;
     }
 }

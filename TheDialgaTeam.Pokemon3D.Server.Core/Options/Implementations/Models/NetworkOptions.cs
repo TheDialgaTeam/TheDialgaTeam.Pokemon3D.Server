@@ -24,5 +24,5 @@ public sealed record NetworkOptions
 
     public bool UseUpnp { get; init; }
     
-    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(10);
+    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(11);
 }

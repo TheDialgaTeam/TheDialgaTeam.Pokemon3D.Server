@@ -39,11 +39,6 @@ internal sealed partial class NatDeviceUtility : INatDeviceUtility
     {
         var devices = new List<INatDevice>();
 
-        void NatUtilityOnDeviceFound(object? sender, DeviceEventArgs e)
-        {
-            devices.Add(e.Device);
-        }
-
         try
         {
             NatUtility.DeviceFound += NatUtilityOnDeviceFound;
@@ -61,6 +56,11 @@ internal sealed partial class NatDeviceUtility : INatDeviceUtility
         }
 
         return devices.ToArray();
+
+        void NatUtilityOnDeviceFound(object? sender, DeviceEventArgs e)
+        {
+            devices.Add(e.Device);
+        }
     }
 
     public async Task CreatePortMappingAsync(CancellationToken cancellationToken = default)
