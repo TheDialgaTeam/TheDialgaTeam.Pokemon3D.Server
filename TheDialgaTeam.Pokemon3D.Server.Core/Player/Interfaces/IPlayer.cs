@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Mediator.Abstractions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
-
-public sealed record ConnectedEventArgs(IPokemonServerClient PokemonServerClient) : IEvent;
+public interface IPlayer
+{
+}

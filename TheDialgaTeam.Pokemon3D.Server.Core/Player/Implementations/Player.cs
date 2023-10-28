@@ -15,10 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets.Types;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Implementations;
 
-internal sealed class Player
+internal sealed class Player : IPlayer
 {
     public int Id { get; }
 

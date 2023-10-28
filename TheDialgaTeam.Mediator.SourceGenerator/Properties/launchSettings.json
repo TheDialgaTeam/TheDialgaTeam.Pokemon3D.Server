@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Debug Generator": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\TheDialgaTeam.Pokemon3D.Server.Core\\TheDialgaTeam.Pokemon3D.Server.Core.csproj"
-    }
-  }
-}

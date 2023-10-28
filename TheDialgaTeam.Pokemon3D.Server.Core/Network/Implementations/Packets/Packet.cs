@@ -41,107 +41,115 @@ internal abstract record Packet(PacketType PacketType = PacketType.Unknown, int 
         var dataIndexes = Array.Empty<int>();
         var currentDataIndex = 0;
 
-        while (currentPackageIndex <= maxPackageIndex)
+        try
         {
-            var nextDataLength = rawData.IndexOf('|');
-
-            if (nextDataLength == -1)
+            while (currentPackageIndex <= maxPackageIndex)
             {
-                packet = null;
-                return false;
+                var nextDataLength = rawData.IndexOf('|');
+
+                if (nextDataLength == -1)
+                {
+                    packet = null;
+                    return false;
+                }
+
+                var data = rawData[..nextDataLength];
+
+                switch (currentPackageIndex)
+                {
+                    // Protocol Version
+                    case 0:
+                    {
+                        if (!data.SequenceEqual(ProtocolVersion.AsSpan()))
+                        {
+                            packet = null;
+                            return false;
+                        }
+
+                        break;
+                    }
+
+                    // Package Type
+                    case 1:
+                    {
+                        if (!Enum.TryParse(data, out packageType))
+                        {
+                            packet = null;
+                            return false;
+                        }
+
+                        break;
+                    }
+
+                    // Origin
+                    case 2:
+                    {
+                        if (!int.TryParse(data, out origin))
+                        {
+                            packet = null;
+                            return false;
+                        }
+
+                        break;
+                    }
+
+                    // Package Index Length
+                    case 3:
+                    {
+                        if (!int.TryParse(data, out dataIndexLength))
+                        {
+                            packet = null;
+                            return false;
+                        }
+
+                        if (dataIndexLength == 0) break;
+
+                        maxPackageIndex += dataIndexLength;
+                        dataIndexes = ArrayPool<int>.Shared.Rent(dataIndexLength);
+                        break;
+                    }
+
+                    default:
+                    {
+                        if (!int.TryParse(data, out var dataIndex))
+                        {
+                            packet = null;
+                            return false;
+                        }
+
+                        dataIndexes[currentDataIndex++] = dataIndex;
+                        break;
+                    }
+                }
+
+                currentPackageIndex++;
+                rawData = rawData[(nextDataLength + 1)..];
             }
-            
-            var data = rawData[..nextDataLength];
 
-            switch (currentPackageIndex)
+            switch (packageType)
             {
-                // Protocol Version
-                case 0:
+                case PacketType.ServerDataRequest:
                 {
-                    if (!data.SequenceEqual(ProtocolVersion.AsSpan()))
-                    {
-                        packet = null;
-                        return false;
-                    }
-                    break;
+                    packet = new ServerDataRequestPacket();
+                    return true;
                 }
-                
-                // Package Type
-                case 1:
-                {
-                    if (!Enum.TryParse(data, out packageType))
-                    {
-                        packet = null;
-                        return false;
-                    }
-                    break;
-                }
-                
-                // Origin
-                case 2:
-                {
-                    if (!int.TryParse(data, out origin))
-                    {
-                        packet = null;
-                        return false;
-                    }
-                    break;
-                }
-                
-                // Package Index Length
-                case 3:
-                {
-                    if (!int.TryParse(data, out dataIndexLength))
-                    {
-                        packet = null;
-                        return false;
-                    }
 
-                    if (dataIndexLength == 0) break;
-
-                    maxPackageIndex += dataIndexLength;
-                    dataIndexes = ArrayPool<int>.Shared.Rent(dataIndexLength);
-                    break;
-                }
-                
                 default:
                 {
-                    if (!int.TryParse(data, out var dataIndex))
-                    {
-                        packet = null;
-                        return false;
-                    }
-
-                    dataIndexes[currentDataIndex++] = dataIndex;
-                    break;
+                    packet = null;
+                    return false;
                 }
             }
-            
-            currentPackageIndex++;
-            rawData = rawData[(nextDataLength + 1)..];
         }
-        
-        if (dataIndexLength > 0)
+        finally
         {
-            ArrayPool<int>.Shared.Return(dataIndexes);
-        }
-
-        switch (packageType)
-        {
-            case PacketType.ServerDataRequest:
+            if (dataIndexLength > 0)
             {
-                packet = new ServerDataRequestPacket();
-                return true;
-            }
-
-            default:
-            {
-                packet = null;
-                return false;
+                ArrayPool<int>.Shared.Return(dataIndexes);
             }
         }
     }
-    
+
     public string ToRawPacket()
     {
         _stringBuilder ??= new StringBuilder();
@@ -156,7 +164,7 @@ internal abstract record Packet(PacketType PacketType = PacketType.Unknown, int 
 
         var dataItems = GetDataItems();
         _stringBuilder.Append(dataItems.Length);
-        
+
         var count = 0;
 
         foreach (var dataItem in dataItems)
@@ -166,7 +174,7 @@ internal abstract record Packet(PacketType PacketType = PacketType.Unknown, int 
 
             count += dataItem.Length;
         }
-        
+
         _stringBuilder.Append('|');
 
         foreach (var dataItem in dataItems)

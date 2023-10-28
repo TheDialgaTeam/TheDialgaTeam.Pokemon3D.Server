@@ -1,0 +1,22 @@
+<Project>
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+		
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <Version>1.0.0</Version>
+        <Authors>Yong Jian Ming</Authors>
+		<Company>The Dialga Team</Company>
+        <PackageProjectUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DebugType>none</DebugType>
+    </PropertyGroup>
+
+</Project>

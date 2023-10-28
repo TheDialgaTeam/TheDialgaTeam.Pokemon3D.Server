@@ -16,8 +16,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Mediator.Abstractions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
@@ -30,10 +28,6 @@ public static class ServiceCollectionExtensions
         collection.TryAddSingleton<IPokemonServerListener, PokemonServerListener>();
         collection.TryAddSingleton<INatDeviceUtility, NatDeviceUtility>();
         collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
-        
-        collection.TryAddSingleton<PlayerContainer>();
-        collection.AddSingleton<INotificationHandler<ConnectedEventArgs>>(provider => provider.GetRequiredService<PlayerContainer>());
-        collection.AddSingleton<INotificationHandler<DisconnectedEventArgs>>(provider => provider.GetRequiredService<PlayerContainer>());
 
         return collection;
     }

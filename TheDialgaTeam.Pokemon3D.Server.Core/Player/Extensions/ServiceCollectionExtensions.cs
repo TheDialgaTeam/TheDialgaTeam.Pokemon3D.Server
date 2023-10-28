@@ -14,26 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Implementations;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
-    [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
-    public static IServiceCollection AddPokemonServer(this IServiceCollection collection)
+    public static IServiceCollection AddPokemonServerPlayer(this IServiceCollection collection)
     {
-        collection.AddMediator();
-        
-        collection.AddPokemonServerNetwork();
-        collection.AddPokemonServerOptions();
-        collection.AddPokemonServerPlayer();
-
+        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
         return collection;
     }
 }

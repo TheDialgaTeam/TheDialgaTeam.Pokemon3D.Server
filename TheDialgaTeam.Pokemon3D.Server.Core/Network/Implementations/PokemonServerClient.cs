@@ -17,8 +17,8 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Mediator;
 using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Mediator.Abstractions;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
@@ -85,11 +85,11 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
         }
     }
 
-    public Task DisconnectAsync()
+    public ValueTask DisconnectAsync()
     {
         _tcpClient.Close();
         PrintDisconnected(RemoteIpAddress);
-        return _mediator.PublishAsync(new DisconnectedEventArgs(this));
+        return _mediator.Publish(new Disconnected(this));
     }
 
     private async Task RunReadingTask()
@@ -120,7 +120,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
                     try
                     {
-                        await _mediator.PublishAsync(new NewPackageReceivedEventArgs(this, package));
+                        await _mediator.Publish(new NewPacketReceived(this, package));
                     }
                     catch (Exception ex)
                     {

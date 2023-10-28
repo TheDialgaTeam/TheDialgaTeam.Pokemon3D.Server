@@ -30,7 +30,7 @@ internal static class Program
             .RunConsoleAsync(options => options.SuppressStatusMessages = true);
     }
     
-    private static void OnCurrentDomainOnUnhandledException(object _, UnhandledExceptionEventArgs eventArgs)
+    private static void OnCurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs eventArgs)
     {
         if (!eventArgs.IsTerminating) return;
 

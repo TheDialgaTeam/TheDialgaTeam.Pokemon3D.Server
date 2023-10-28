@@ -14,20 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 
-public static class NetworkUtility
-{
-    public static IPAddress[] GetLocalIpAddress()
-    {
-        return Dns.GetHostAddresses(Dns.GetHostName());
-    }
-    
-    public static async Task<IPAddress> GetPublicIpAddressAsync(HttpClient httpClient, CancellationToken cancellationToken = default)
-    {
-        var externalIpAddress = await httpClient.GetStringAsync("https://api.ipify.org", cancellationToken).ConfigureAwait(false);
-        return IPAddress.Parse(externalIpAddress);
-    }
-}
+public sealed record NewPacketReceived(IPokemonServerClient Network, IPacket Packet) : INotification;

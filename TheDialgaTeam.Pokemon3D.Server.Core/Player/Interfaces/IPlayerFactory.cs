@@ -14,20 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
-
-public static class NetworkUtility
+public interface IPlayerFactory
 {
-    public static IPAddress[] GetLocalIpAddress()
-    {
-        return Dns.GetHostAddresses(Dns.GetHostName());
-    }
-    
-    public static async Task<IPAddress> GetPublicIpAddressAsync(HttpClient httpClient, CancellationToken cancellationToken = default)
-    {
-        var externalIpAddress = await httpClient.GetStringAsync("https://api.ipify.org", cancellationToken).ConfigureAwait(false);
-        return IPAddress.Parse(externalIpAddress);
-    }
+    IPlayer CreatePlayer(int id);
 }

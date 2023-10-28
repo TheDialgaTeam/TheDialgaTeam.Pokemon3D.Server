@@ -16,9 +16,9 @@
 
 using System.Net;
 using System.Net.Sockets;
+using Mediator;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Mediator.Abstractions;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
@@ -77,15 +77,14 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
                 PrintServerOfflineMode();
             }
             
-            var localIpAddress = await NetworkUtility.GetLocalIpAddressAsync(stoppingToken).ConfigureAwait(false);
-            PrintServerPlayerCanJoinVia(string.Join(", ", localIpAddress.Where(address => address.AddressFamily == AddressFamily.InterNetwork).Select(address => address.ToString())), string.Join(", ", serverOptions.GameModes));
+            PrintServerPlayerCanJoinVia(string.Join(", ", serverOptions.GameModes));
             
             Task.Run(RunServerPortCheckingTask, stoppingToken).FireAndForget();
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 var tcpClient = await _tcpListener.AcceptTcpClientAsync(stoppingToken).ConfigureAwait(false);
-                await _mediator.PublishAsync(new ConnectedEventArgs(_pokemonServerClientFactory.CreateTcpClientNetwork(tcpClient)), stoppingToken).ConfigureAwait(false);
+                await _mediator.Publish(new Connected(_pokemonServerClientFactory.CreateTcpClientNetwork(tcpClient)), stoppingToken).ConfigureAwait(false);
             }
         }
         catch (SocketException exception)
@@ -145,8 +144,8 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
     [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Players with offline profile can join the server.")]
     private partial void PrintServerOfflineMode();
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Players can join using the following addresses: {localIpAddress} (Local) with the following GameModes: {gameModes}.")]
-    private partial void PrintServerPlayerCanJoinVia(string localIpAddress, string gameModes);
+    [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Players can join with the following GameModes: {gameModes}.")]
+    private partial void PrintServerPlayerCanJoinVia(string gameModes);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "[Server] Checking port {port} is open...")]
     private partial void PrintRunningPortCheck(int port);

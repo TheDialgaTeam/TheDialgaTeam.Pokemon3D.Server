@@ -18,9 +18,9 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Implementations;
 
-public readonly record struct Position(float X, float Y, float Z)
+internal readonly record struct Position(float X, float Y, float Z)
 {
     private static readonly ConcurrentDictionary<string, NumberFormatInfo> NumberFormatInfos = new();
     

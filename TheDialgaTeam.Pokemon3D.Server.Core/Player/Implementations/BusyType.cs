@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Implementations;
 
-public enum BusyType
+internal enum BusyType
 {
     NotBusy = 0,
     Battling = 1,

@@ -25,5 +25,5 @@ public interface IPokemonServerClient : IDisposable
 
     void SendPackage(IPacket packet);
     
-    Task DisconnectAsync();
+    ValueTask DisconnectAsync();
 }

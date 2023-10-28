@@ -14,10 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Mediator.Abstractions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+using Microsoft.Extensions.DependencyInjection;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Implementations;
 
-public sealed record NewPackageReceivedEventArgs(IPokemonServerClient Network, IPacket Packet) : IEvent;
+internal sealed class PlayerFactory : IPlayerFactory
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public PlayerFactory(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public IPlayer CreatePlayer(int id)
+    {
+        return ActivatorUtilities.CreateInstance<Player>(_serviceProvider, id);
+    }
+}

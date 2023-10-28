@@ -1,20 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\TheDialgaTeam.Pokemon3D.Server.prop"/>
+    
     <PropertyGroup>
         <AssemblyName>Pokemon3D.Server.Gui</AssemblyName>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net7.0</TargetFramework>
         <ApplicationIcon>Assets\Icon.ico</ApplicationIcon>
 
         <PackageId>TheDialgaTeam.Pokemon3D.Server.Gui</PackageId>
-        <Version>1.0.0</Version>
-        <Authors>Yong Jian Ming</Authors>
-        <Company>The Dialga Team</Company>
         <Product>Pokemon3D.Server.Gui</Product>
         <Description>Pokemon 3D Server in graphical mode.</Description>
-        <PackageProjectUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/TheDialgaTeam/TheDialgaTeam.Pokemon3D.Server</RepositoryUrl>
         
-        <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -34,14 +30,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.0.2" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.0.2" />
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.0.2" Condition="'$(Configuration)' == 'Debug'" />
-        <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.2" />
-        <PackageReference Include="Avalonia.Svg.Skia" Version="11.0.0" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.2" />
+        <PackageReference Include="Avalonia" Version="11.0.5" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.0.5" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.0.5" Condition="'$(Configuration)' == 'Debug'" />
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.5" />
+        <PackageReference Include="Avalonia.Svg.Skia" Version="11.0.0.3" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.5" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-        <PackageReference Include="ReactiveUI.Fody" Version="19.4.1" />
+        <PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
         <PackageReference Include="TheDialgaTeam.Microsoft.Extensions.Logging" Version="1.12.0" />
     </ItemGroup>
 
