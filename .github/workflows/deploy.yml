@@ -1,9 +1,9 @@
-name: Publish FFTool
+name: Publish
 
 on:
   push:
     tags:
-      - *
+      - '*'
 
 env:
   PROJECT_PROPERTIES: TheDialgaTeam.Pokemon3D.Server.prop

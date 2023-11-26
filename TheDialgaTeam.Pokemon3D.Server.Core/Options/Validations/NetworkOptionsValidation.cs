@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using System.Net;
+using Microsoft.Extensions.Options;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
 
-public static class ServiceCollectionExtensions
+internal sealed class NetworkOptionsValidation : IValidateOptions<NetworkOptions>
 {
-    public static IServiceCollection AddPokemonServerPlayer(this IServiceCollection collection)
+    public ValidateOptionsResult Validate(string? name, NetworkOptions options)
     {
-        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
-        return collection;
+        if (!Dns.GetHostAddresses(Dns.GetHostName())
+                .Append(IPAddress.Any)
+                .Append(IPAddress.Loopback)
+                .Any(address => options.BindIpEndPoint.Address.Equals(address)))
+        {
+            return ValidateOptionsResult.Fail($"[Network:{nameof(options.BindIpEndPoint)}] Invalid IP Address given.");
+        }
+
+        return ValidateOptionsResult.Success;
     }
 }

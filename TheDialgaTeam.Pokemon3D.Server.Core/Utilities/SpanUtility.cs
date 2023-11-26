@@ -16,13 +16,56 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
+public ref struct SpanSeparatorEnumerator
+{
+    public ReadOnlySpan<char> Current { get; private set; }
+
+    public SpanSeparatorEnumerator GetEnumerator()
+    {
+        return this;
+    }
+
+    private readonly string _separator;
+
+    private ReadOnlySpan<char> _remaining;
+    private bool _isDone;
+
+    public SpanSeparatorEnumerator(ReadOnlySpan<char> buffer, string separator)
+    {
+        _remaining = buffer;
+        _separator = separator;
+        Current = default;
+    }
+
+    public bool MoveNext()
+    {
+        if (_isDone) return false;
+
+        var nextIndex = _remaining.IndexOf(_separator);
+
+        if (nextIndex == -1)
+        {
+            Current = _remaining;
+            _remaining = ReadOnlySpan<char>.Empty;
+            _isDone = true;
+        }
+        else
+        {
+            Current = _remaining[..nextIndex];
+            _remaining = _remaining[(nextIndex + _separator.Length)..];
+        }
+
+        return true;
+    }
+}
+
 public static class SpanUtility
 {
     public static SpanSeparatorEnumerator Split(this ReadOnlySpan<char> span, string separator)
     {
         return new SpanSeparatorEnumerator(span, separator);
     }
-    
+
     public static ReadOnlySpan<char> SplitNext(this ReadOnlySpan<char> span, string separator, out ReadOnlySpan<char> next)
     {
         var nextIndex = span.IndexOf(separator);
@@ -35,46 +78,5 @@ public static class SpanUtility
 
         next = span[(nextIndex + separator.Length)..];
         return span[..nextIndex];
-    }
-}
-
-public ref struct SpanSeparatorEnumerator
-{
-    public ReadOnlySpan<char> Current => _current;
-    
-    public SpanSeparatorEnumerator GetEnumerator() => this;
-    
-    private readonly string _separator;
-    
-    private ReadOnlySpan<char> _remaining;
-    private ReadOnlySpan<char> _current;
-    private bool _isDone;
-
-    public SpanSeparatorEnumerator(ReadOnlySpan<char> buffer, string separator)
-    {
-        _remaining = buffer;
-        _separator = separator;
-        _current = default;
-    }
-
-    public bool MoveNext()
-    {
-        if (_isDone) return false;
-
-        var nextIndex = _remaining.IndexOf(_separator);
-        
-        if (nextIndex == -1)
-        {
-            _current = _remaining;
-            _remaining = ReadOnlySpan<char>.Empty;
-            _isDone = true;
-        }
-        else
-        {
-            _current = _remaining[..nextIndex];
-            _remaining = _remaining[(nextIndex + _separator.Length)..];
-        }
-
-        return true;
     }
 }

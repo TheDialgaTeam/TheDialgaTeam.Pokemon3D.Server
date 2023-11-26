@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-public static class ServiceCollectionExtensions
+public sealed record WorldOptions
 {
-    public static IServiceCollection AddPokemonServerPlayer(this IServiceCollection collection)
-    {
-        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
-        return collection;
-    }
+    public Season Season { get; init; } = Season.Default;
+
+    public Weather Weather { get; init; } = Weather.Default;
+
+    public bool DoDayCycle { get; init; } = true;
+
+    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+
+    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
 }

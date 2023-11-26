@@ -20,11 +20,10 @@ using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Converters;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Models;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Implementations.Validations;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Converters;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Providers;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Extensions;
 
@@ -36,15 +35,15 @@ public static class ServiceCollectionExtensions
     {
         TypeDescriptor.AddAttributes(typeof(IPEndPoint), new TypeConverterAttribute(typeof(IPEndPointConverter)));
         
-        collection.AddOptions<NetworkOptions>().BindConfiguration("Network");
         collection.AddOptions<ServerOptions>().BindConfiguration("Server");
+        collection.AddOptions<NetworkOptions>().BindConfiguration("Server:Network");
         collection.AddOptions<WorldOptions>().BindConfiguration("Server:World");
         collection.AddOptions<ChatOptions>().BindConfiguration("Server:Chat");
         collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
         collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
         
-        collection.TryAddSingleton<PokemonServerOptions>();
-        collection.TryAddSingleton<IPokemonServerOptions>(provider => provider.GetRequiredService<PokemonServerOptions>());
+        collection.TryAddSingleton<MicrosoftOptionsProvider>();
+        collection.TryAddSingleton<IPokemonServerOptions>(provider => provider.GetRequiredService<MicrosoftOptionsProvider>());
         
         collection.TryAddSingleton<NetworkOptionsValidation>();
         collection.TryAddSingleton<IValidateOptions<NetworkOptions>>(provider => provider.GetRequiredService<NetworkOptionsValidation>());

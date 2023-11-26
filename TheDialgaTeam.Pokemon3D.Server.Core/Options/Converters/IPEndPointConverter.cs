@@ -14,17 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Net;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Converters;
 
-public static class ServiceCollectionExtensions
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+internal sealed class IPEndPointConverter : TypeConverter
 {
-    public static IServiceCollection AddPokemonServerPlayer(this IServiceCollection collection)
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
     {
-        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
-        return collection;
+        return sourceType == typeof(string);
+    }
+
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+    {
+        if (value is string valueString && IPEndPoint.TryParse(valueString, out var result))
+        {
+            return result;
+        }
+        
+        return default;
     }
 }

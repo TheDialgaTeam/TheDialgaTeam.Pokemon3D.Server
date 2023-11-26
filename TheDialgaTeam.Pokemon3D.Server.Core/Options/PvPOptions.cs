@@ -14,17 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
-
-public static class ServiceCollectionExtensions
+public sealed record PvPOptions
 {
-    public static IServiceCollection AddPokemonServerPlayer(this IServiceCollection collection)
-    {
-        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
-        return collection;
-    }
+    public bool AllowPvP { get; init; } = true;
+
+    public bool AllowPvPValidation { get; init; } = true;
 }

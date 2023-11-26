@@ -14,17 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using System.Net;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-public static class ServiceCollectionExtensions
+public sealed record NetworkOptions
 {
-    public static IServiceCollection AddPokemonServerPlayer(this IServiceCollection collection)
-    {
-        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
-        return collection;
-    }
+    public IPEndPoint BindIpEndPoint { get; init; } = new(IPAddress.Any, 15124);
+
+    public bool UseUpnp { get; init; }
 }

@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Net.Sockets;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public static class ServiceCollectionExtensions
+internal sealed class PokemonServerClientFactory : IPokemonServerClientFactory
 {
-    public static IServiceCollection AddPokemonServerPlayer(this IServiceCollection collection)
+    private readonly IServiceProvider _serviceProvider;
+
+    public PokemonServerClientFactory(IServiceProvider serviceProvider)
     {
-        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
-        return collection;
+        _serviceProvider = serviceProvider;
+    }
+
+    public IPokemonServerClient CreateTcpClientNetwork(TcpClient client)
+    {
+        return ActivatorUtilities.CreateInstance<PokemonServerClient>(_serviceProvider, client);
     }
 }

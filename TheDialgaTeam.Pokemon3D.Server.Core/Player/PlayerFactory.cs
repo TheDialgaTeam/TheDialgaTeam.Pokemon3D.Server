@@ -15,16 +15,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-public static class ServiceCollectionExtensions
+internal sealed class PlayerFactory(IServiceProvider serviceProvider) : IPlayerFactory
 {
-    public static IServiceCollection AddPokemonServerPlayer(this IServiceCollection collection)
+    public IPlayer CreatePlayer(int id)
     {
-        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
-        return collection;
+        return ActivatorUtilities.CreateInstance<Player>(serviceProvider, id);
     }
 }

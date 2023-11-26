@@ -16,7 +16,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Implementations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Extensions;
