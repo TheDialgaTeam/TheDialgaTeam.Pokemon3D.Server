@@ -17,10 +17,11 @@
 using System.Globalization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct GameDataRawPacket(
+public readonly record struct GameDataPacket(
     int Origin,
     string GameMode,
     bool IsGameJoltPlayer,
@@ -38,7 +39,7 @@ public readonly record struct GameDataRawPacket(
     string PokemonSkin,
     int PokemonFacing) : IPacket
 {
-    public GameDataRawPacket(RawPacket rawPacket) : this(
+    public GameDataPacket(RawPacket rawPacket) : this(
         rawPacket.Origin,
         rawPacket.DataItems[0],
         int.Parse(rawPacket.DataItems[1], CultureInfo.InvariantCulture) == 1,
@@ -56,6 +57,31 @@ public readonly record struct GameDataRawPacket(
         rawPacket.DataItems[13],
         int.Parse(rawPacket.DataItems[14], CultureInfo.InvariantCulture))
     {
+    }
+
+    public GameDataPacket(IPlayer player, RawPacket rawPacket) : this(
+        rawPacket.Origin,
+        string.IsNullOrEmpty(rawPacket.DataItems[0]) ? player.GameMode : rawPacket.DataItems[0],
+        string.IsNullOrEmpty(rawPacket.DataItems[1]) ? player.IsGameJoltPlayer : int.Parse(rawPacket.DataItems[1], CultureInfo.InvariantCulture) == 1,
+        string.IsNullOrEmpty(rawPacket.DataItems[2]) ? player.GameJoltId : rawPacket.DataItems[2],
+        string.IsNullOrEmpty(rawPacket.DataItems[3]) ? player.NumberDecimalSeparator : rawPacket.DataItems[3],
+        string.IsNullOrEmpty(rawPacket.DataItems[4]) ? player.Name : rawPacket.DataItems[4],
+        string.IsNullOrEmpty(rawPacket.DataItems[5]) ? player.MapFile : rawPacket.DataItems[5],
+        string.IsNullOrEmpty(rawPacket.DataItems[6]) ? player.PlayerPosition : Position.FromRawPacket(rawPacket.DataItems[6], string.IsNullOrEmpty(rawPacket.DataItems[3]) ? player.NumberDecimalSeparator : rawPacket.DataItems[3]),
+        string.IsNullOrEmpty(rawPacket.DataItems[7]) ? player.PlayerFacing : int.Parse(rawPacket.DataItems[7], CultureInfo.InvariantCulture),
+        string.IsNullOrEmpty(rawPacket.DataItems[8]) ? player.IsMoving : int.Parse(rawPacket.DataItems[8], CultureInfo.InvariantCulture) == 1,
+        string.IsNullOrEmpty(rawPacket.DataItems[9]) ? player.PlayerSkin : rawPacket.DataItems[9],
+        string.IsNullOrEmpty(rawPacket.DataItems[10]) ? player.BusyType : Enum.Parse<BusyType>(rawPacket.DataItems[10]),
+        string.IsNullOrEmpty(rawPacket.DataItems[11]) ? player.PokemonVisible : int.Parse(rawPacket.DataItems[11], CultureInfo.InvariantCulture) == 1,
+        string.IsNullOrEmpty(rawPacket.DataItems[12]) ? player.PokemonPosition : Position.FromRawPacket(rawPacket.DataItems[12], string.IsNullOrEmpty(rawPacket.DataItems[3]) ? player.NumberDecimalSeparator : rawPacket.DataItems[3]),
+        string.IsNullOrEmpty(rawPacket.DataItems[13]) ? player.PokemonSkin : rawPacket.DataItems[13],
+        string.IsNullOrEmpty(rawPacket.DataItems[14]) ? player.PokemonFacing : int.Parse(rawPacket.DataItems[14], CultureInfo.InvariantCulture))
+    {
+    }
+
+    public static bool IsFullGameData(RawPacket rawPacket)
+    {
+        return rawPacket.Origin == 0;
     }
 
     public RawPacket ToRawPacket()

@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.World;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
-
-public sealed record WorldOptions
+public sealed class Blacklist
 {
-    public Season Season { get; init; } = Season.Default;
-
-    public Weather Weather { get; init; } = Weather.Default;
-
-    public TimeSpan TimeOffset { get; init; } = DateTimeOffset.Now.Offset;
-
-    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-
-    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
+    public string GameJoltId { get; set; } = string.Empty;
+    
+    public string Reason { get; set; } = string.Empty;
+    
+    public DateTimeOffset StartTime { get; set; }
+    
+    public TimeSpan Duration { get; set; }
 }

@@ -14,34 +14,89 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-internal sealed class World
+internal sealed partial class LocalWorld : ILocalWorld
 {
-    private static int WeekOfYear => (DateTime.Now.DayOfYear - (DateTime.Now.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
+    public Season CurrentSeason { get; private set; } = Season.Spring;
 
+    public Weather CurrentWeather { get; private set; } = Weather.Clear;
+
+    public DateTimeOffset CurrentTime => DateTimeOffset.UtcNow.Add(_targetOffset);
+    
+    private int WeekOfYear => (CurrentTime.DayOfYear - (CurrentTime.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
+
+    private readonly ILogger? _logger;
     private readonly IPokemonServerOptions _options;
 
+    private readonly bool _isGlobalWorld = true;
+    
     private Season _targetSeason;
     private Weather _targetWeather;
+    private TimeSpan _targetOffset;
 
-    private Season _currentSeason = Season.Spring;
-    private Weather _currentWeather = Weather.Clear;
+    private DateTimeOffset _lastWorldUpdate = DateTimeOffset.MinValue;
 
-    public World(IPokemonServerOptions options)
+    private readonly Timer _timer;
+
+    public LocalWorld(ILogger<LocalWorld>? logger, IPokemonServerOptions options)
     {
+        _logger = logger;
         _options = options;
-        _targetSeason = options.WorldOptions.Season;
-        _targetWeather = options.WorldOptions.Weather;
+
+        _targetSeason = _options.WorldOptions.Season;
+        _targetWeather = _options.WorldOptions.Weather;
+        _targetOffset = _options.WorldOptions.TimeOffset;
+
+        _timer = new Timer(TimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
-    public World(IPokemonServerOptions options, Season season, Weather weather)
+    public LocalWorld(IPokemonServerOptions options, Season season, Weather weather, TimeSpan offset) : this(null, options)
     {
-        _options = options;
+        _isGlobalWorld = false;
+        
         _targetSeason = season;
         _targetWeather = weather;
+        _targetOffset = offset;
+    }
+
+    public WorldDataPacket GetRawPacket()
+    {
+        return new WorldDataPacket(CurrentSeason, CurrentWeather, TimeOnly.FromDateTime(CurrentTime.DateTime));
+    }
+
+    private void TimerCallback(object? state)
+    {
+        if (_isGlobalWorld)
+        {
+            _targetSeason = _options.WorldOptions.Season;
+            _targetWeather = _options.WorldOptions.Weather;
+            _targetOffset = _options.WorldOptions.TimeOffset;
+        }
+        
+        var currentTime = CurrentTime;
+
+        if (_lastWorldUpdate.Day != currentTime.Day)
+        {
+            GenerateNewSeason(_targetSeason);
+        }
+
+        if (_lastWorldUpdate.Hour != currentTime.Hour)
+        {
+            GenerateNewWeather(_targetWeather);
+
+            if (_isGlobalWorld)
+            {
+                PrintCurrentWorld(Enum.GetName(CurrentSeason) ?? string.Empty, Enum.GetName(CurrentWeather) ?? string.Empty, CurrentTime.DateTime);
+            }
+        }
+
+        _lastWorldUpdate = currentTime;
     }
 
     private void GenerateNewSeason(Season targetSeason)
@@ -50,32 +105,32 @@ internal sealed class World
         {
             case Season.Default:
             {
-                _currentSeason = (WeekOfYear % 4) switch
+                CurrentSeason = (WeekOfYear % 4) switch
                 {
                     0 => Season.Fall,
                     1 => Season.Winter,
                     2 => Season.Spring,
                     3 => Season.Summer,
-                    var _ => _currentSeason
+                    var _ => CurrentSeason
                 };
                 break;
             }
 
             case Season.Random:
             {
-                _currentSeason = (Season) Random.Shared.Next(0, 4);
+                CurrentSeason = (Season) Random.Shared.Next(0, 4);
                 break;
             }
 
             case Season.SeasonMonth:
             {
-                GenerateNewSeason((Season) _options.WorldOptions.SeasonMonth[DateTime.Now.Month]);
+                GenerateNewSeason((Season) _options.WorldOptions.SeasonMonth[CurrentTime.Month]);
                 break;
             }
 
             default:
             {
-                _currentSeason = targetSeason;
+                CurrentSeason = targetSeason;
                 break;
             }
         }
@@ -89,7 +144,7 @@ internal sealed class World
             {
                 var random = Random.Shared.Next(0, 100);
 
-                _currentWeather = _currentSeason switch
+                CurrentWeather = CurrentSeason switch
                 {
                     Season.Winter => random switch
                     {
@@ -106,7 +161,7 @@ internal sealed class World
                     Season.Summer => random switch
                     {
                         < 60 => Weather.Clear,
-                        < 95 => DateTime.Now.Hour switch
+                        < 95 => CurrentTime.Hour switch
                         {
                             < 9 => Weather.Clear,
                             < 19 => Weather.Sunny,
@@ -120,28 +175,36 @@ internal sealed class World
                         < 90 => Weather.Rain,
                         var _ => Weather.Snow
                     },
-                    var _ => _currentWeather
+                    var _ => CurrentWeather
                 };
                 break;
             }
 
             case Weather.Random:
             {
-                _currentWeather = (Weather) Random.Shared.Next(0, 10);
+                CurrentWeather = (Weather) Random.Shared.Next(0, 10);
                 break;
             }
 
             case Weather.WeatherSeason:
             {
-                GenerateNewWeather((Weather) _options.WorldOptions.WeatherSeason[(int) _currentSeason]);
+                GenerateNewWeather((Weather) _options.WorldOptions.WeatherSeason[(int) CurrentSeason]);
                 break;
             }
 
             default:
             {
-                _currentWeather = targetWeather;
+                CurrentWeather = targetWeather;
                 break;
             }
         }
+    }
+
+    [LoggerMessage(LogLevel.Information, "[World] Current Season: {season} | Current Weather: {weather} | Current Time: {time}")]
+    private partial void PrintCurrentWorld(string season, string weather, DateTime time);
+
+    public void Dispose()
+    {
+        _timer.Dispose();
     }
 }

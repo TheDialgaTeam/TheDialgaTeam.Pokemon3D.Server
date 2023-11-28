@@ -14,19 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.World;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
-
-public sealed record WorldOptions
+public interface ILocalWorldFactory
 {
-    public Season Season { get; init; } = Season.Default;
-
-    public Weather Weather { get; init; } = Weather.Default;
-
-    public TimeSpan TimeOffset { get; init; } = DateTimeOffset.Now.Offset;
-
-    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-
-    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
+    ILocalWorld CreateLocalWorld(Season season, Weather weather, TimeSpan offset);
 }

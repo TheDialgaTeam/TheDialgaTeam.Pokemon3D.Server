@@ -14,28 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Globalization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-internal readonly record struct WorldDataRawPacket(Season Season, Weather Weather, TimeOnly Time) : IPacket
+public readonly record struct KickPacket(string Reason) : IPacket
 {
-    public WorldDataRawPacket(RawPacket rawPacket) : this(
-        Enum.Parse<Season>(rawPacket.DataItems[0]), 
-        Enum.Parse<Weather>(rawPacket.DataItems[1]), 
-        TimeOnly.ParseExact(rawPacket.DataItems[2], "H,m,s"))
+    public KickPacket(RawPacket rawPacket) : this(rawPacket.DataItems[0])
     {
     }
-
+    
     public RawPacket ToRawPacket()
     {
-        return new RawPacket(PacketType.WorldData, -1, new[]
-        {
-            ((int) Season).ToString(CultureInfo.InvariantCulture),
-            ((int) Weather).ToString(CultureInfo.InvariantCulture),
-            Time.ToString("H,m,s")
-        });
+        return new RawPacket(PacketType.Kicked, -1, new[] { Reason });
     }
 }

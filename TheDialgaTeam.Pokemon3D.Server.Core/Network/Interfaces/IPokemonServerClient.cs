@@ -23,7 +23,9 @@ public interface IPokemonServerClient : IDisposable
 {
     IPAddress RemoteIpAddress { get; }
 
-    void SendPackage(RawPacket rawPacket);
-    
+    void SendPacket(RawPacket rawPacket);
+
+    ValueTask KickAsync(string reason);
+
     ValueTask DisconnectAsync();
 }

@@ -29,4 +29,6 @@ public interface IPokemonServerOptions
     PvPOptions PvpOptions { get; }
     
     TradeOptions TradeOptions { get; }
+    
+    LocalizationOptions LocalizationOptions { get; }
 }

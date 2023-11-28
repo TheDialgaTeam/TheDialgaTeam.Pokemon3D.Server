@@ -14,8 +14,45 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 public interface IPlayer
 {
+    int Id { get; }
+    
+    string GameMode { get; }
+    
+    bool IsGameJoltPlayer { get; }
+    
+    string GameJoltId { get; }
+    
+    string NumberDecimalSeparator { get; }
+    
+    string Name { get; }
+    
+    string MapFile { get; }
+    
+    Position PlayerPosition { get; }
+    
+    int PlayerFacing { get; }
+    
+    bool IsMoving { get; }
+    
+    string PlayerSkin { get; }
+    
+    BusyType BusyType { get; }
+    
+    bool PokemonVisible { get; }
+    
+    Position PokemonPosition { get; }
+    
+    string PokemonSkin { get; }
+    
+    int PokemonFacing { get; }
+
+    void ApplyGameData(GameDataPacket gameDataPacket);
+
+    GameDataPacket ToGameDataPacket();
 }

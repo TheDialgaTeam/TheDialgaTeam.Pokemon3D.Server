@@ -4,13 +4,20 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
-internal sealed class ConsoleService(IPokemonServerListener pokemonServerListener) : BackgroundService
+internal sealed class ConsoleService : BackgroundService
 {
+    private readonly IPokemonServerListener _pokemonServerListener;
+
+    public ConsoleService(IPokemonServerListener pokemonServerListener)
+    {
+        _pokemonServerListener = pokemonServerListener;
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Console.Title = $"{ApplicationUtility.Name} v{ApplicationUtility.Version} ({ApplicationUtility.FrameworkVersion})";
         
-        await pokemonServerListener.StartAsync(stoppingToken);
+        await _pokemonServerListener.StartAsync(stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -26,6 +33,6 @@ internal sealed class ConsoleService(IPokemonServerListener pokemonServerListene
             // TODO: Handle command
         }
 
-        await pokemonServerListener.StopAsync(stoppingToken);
+        await _pokemonServerListener.StopAsync(stoppingToken);
     }
 }

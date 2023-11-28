@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -21,7 +22,6 @@ using Mediator;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
@@ -38,10 +38,10 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
     private readonly StreamWriter _streamWriter;
     private readonly object _streamWriterLock = new();
-    
-    private readonly IDisposable[] _disposables;
 
     private DateTime _lastValidPackage = DateTime.Now;
+
+    private readonly BlockingCollection<RawPacket> _gameDataPacketQueue = new();
 
     public PokemonServerClient(
         ILogger<PokemonServerClient> logger, 
@@ -53,18 +53,18 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
         _options = options;
         _mediator = mediator;
         _tcpClient = tcpClient;
+        
         _streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize);
+        _streamWriter.AutoFlush = true;
 
         RemoteIpAddress = (_tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
 
-        _disposables = new IDisposable[]
-        {
-            Task.Factory.StartNew(RunReadingTask, TaskCreationOptions.LongRunning).Unwrap(),
-            Task.Factory.StartNew(RunConnectionCheckTask, TaskCreationOptions.LongRunning).Unwrap()
-        };
+        Task.Run(RunReadingTask);
+        Task.Run(RunConnectionCheckTask);
+        Task.Run(HandleGameDataPacketTask);
     }
 
-    public void SendPackage(RawPacket rawPacket)
+    public void SendPacket(RawPacket rawPacket)
     {
         lock (_streamWriterLock)
         {
@@ -75,7 +75,6 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
                 PrintSendRawPacket(RemoteIpAddress, packageData);
 
                 _streamWriter.WriteLine(packageData);
-                _streamWriter.Flush();
             }
             catch
             {
@@ -85,11 +84,45 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
         }
     }
 
+    public ValueTask KickAsync(string reason)
+    {
+        SendPacket(new KickPacket(reason).ToRawPacket());
+        return DisconnectAsync();
+    }
+
     public ValueTask DisconnectAsync()
     {
         _tcpClient.Close();
         PrintDisconnected(RemoteIpAddress);
         return _mediator.Publish(new Disconnected(this));
+    }
+
+    public void HandleIncomingPacket(RawPacket rawPacket)
+    {
+        _lastValidPackage = DateTime.Now;
+
+        switch (rawPacket.PacketType)
+        {
+            case PacketType.GameData:
+            {
+                _gameDataPacketQueue.Add(rawPacket);
+                break;
+            }
+
+            default:
+            {
+                try
+                {
+                    Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket)));
+                }
+                catch (Exception ex)
+                {
+                    PrintPacketHandlerError(ex, RemoteIpAddress, ex.Message);
+                }
+                
+                break;
+            }
+        }
     }
 
     private async Task RunReadingTask()
@@ -110,32 +143,26 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
                 PrintReceiveRawPacket(RemoteIpAddress, rawData);
 
-                if (!RawPacket.TryParse(rawData, out var package))
+                if (!RawPacket.TryParse(rawData, out var rawPacket))
                 {
                     PrintInvalidPacketReceive(RemoteIpAddress);
                 }
                 else
                 {
-                    _lastValidPackage = DateTime.Now;
-
-                    try
-                    {
-                        await _mediator.Publish(new NewPacketReceived(this, package));
-                    }
-                    catch (Exception ex)
-                    {
-                        PrintPacketHandlerError(ex, RemoteIpAddress, ex.Message);
-                    }
+                    HandleIncomingPacket(rawPacket);
                 }
             }
             catch (OutOfMemoryException)
             {
                 PrintOutOfMemory(RemoteIpAddress);
+                await DisconnectAsync().ConfigureAwait(false);
+                return;
             }
             catch (IOException)
             {
                 PrintReadSocketIssue(RemoteIpAddress);
-                await DisconnectAsync();
+                await DisconnectAsync().ConfigureAwait(false);
+                return;
             }
         }
     }
@@ -147,13 +174,36 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
             if ((DateTime.Now - _lastValidPackage).TotalSeconds > _options.ServerOptions.NoPingKickTime.TotalSeconds)
             {
                 // Most likely disconnected, so let's destroy it.
-                await DisconnectAsync();
+                await DisconnectAsync().ConfigureAwait(false);
+                return;
             }
 
-            await Task.Delay(1000);
+            await Task.Delay(1000).ConfigureAwait(false);
         }
     }
 
+    private async Task HandleGameDataPacketTask()
+    {
+        while (_tcpClient.Connected)
+        {
+            if (_gameDataPacketQueue.TryTake(out var rawPacket))
+            {
+                try
+                {
+                    await _mediator.Publish(new NewPacketReceived(this, rawPacket)).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    PrintPacketHandlerError(ex, RemoteIpAddress, ex.Message);
+                }
+            }
+            else
+            {
+                await Task.Delay(1).ConfigureAwait(false);
+            }
+        }
+    }
+    
     [LoggerMessage(LogLevel.Trace, "[{ipAddress}] Receive raw packet data: {rawData}")]
     private partial void PrintReceiveRawPacket(IPAddress ipAddress, string rawData);
 
@@ -181,10 +231,6 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
     public void Dispose()
     {
         _tcpClient.Dispose();
-
-        foreach (var disposable in _disposables)
-        {
-            disposable.Dispose();
-        }
+        _gameDataPacketQueue.Dispose();
     }
 }

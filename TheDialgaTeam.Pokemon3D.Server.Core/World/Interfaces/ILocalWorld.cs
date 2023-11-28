@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Globalization;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
-internal readonly record struct IdRawPacket(int Id) : IPacket
+public interface ILocalWorld : IDisposable
 {
-    public IdRawPacket(RawPacket rawPacket) : this(int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
-    {
-    }
+    Season CurrentSeason { get; }
+    
+    Weather CurrentWeather { get; }
+    
+    DateTimeOffset CurrentTime { get; }
 
-    public RawPacket ToRawPacket()
-    {
-        return new RawPacket(PacketType.Id, -1, new[] { Id.ToString(CultureInfo.InvariantCulture) });
-    }
+    WorldDataPacket GetRawPacket();
 }

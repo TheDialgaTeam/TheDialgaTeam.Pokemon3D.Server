@@ -19,14 +19,14 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct ServerInfoDataRawPacket(
+public readonly record struct ServerInfoDataPacket(
     int PlayerCount, 
     int MaxServerSize, 
     string ServerName, 
     string ServerDescription, 
     string[] PlayerNames) : IPacket
 {
-    public ServerInfoDataRawPacket(RawPacket rawPacket) : this(
+    public ServerInfoDataPacket(RawPacket rawPacket) : this(
         int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture),
         int.Parse(rawPacket.DataItems[1], CultureInfo.InvariantCulture),
         rawPacket.DataItems[2],

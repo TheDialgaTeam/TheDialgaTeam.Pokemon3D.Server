@@ -15,21 +15,34 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
+using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
+using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public sealed class NetworkContainer(IMediator mediator, IPokemonServerOptions options) :
+public sealed partial class NetworkContainer :
     INotificationHandler<Connected>,
     INotificationHandler<Disconnected>,
     INotificationHandler<NewPacketReceived>
 {
+    private readonly ILogger _logger;
+    private readonly IMediator _mediator;
+    private readonly IPokemonServerOptions _options;
+    
     private readonly List<IPokemonServerClient> _tcpClientNetworks = new();
     private readonly object _clientLock = new();
+    
+    public NetworkContainer(ILogger<NetworkContainer> logger, IMediator mediator, IPokemonServerOptions options)
+    {
+        _logger = logger;
+        _mediator = mediator;
+        _options = options;
+    }
 
     private void AddClient(IPokemonServerClient network)
     {
@@ -64,13 +77,46 @@ public sealed class NetworkContainer(IMediator mediator, IPokemonServerOptions o
     {
         switch (notification.RawPacket.PacketType)
         {
+            case PacketType.GameData:
+            {
+                await HandleGameDataPacket(notification, cancellationToken).ConfigureAwait(false);
+                break;
+            }
+            
             case PacketType.ServerDataRequest:
             {
-                var playerCount = await mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
-                var packet = new ServerInfoDataRawPacket(playerCount, options.ServerOptions.MaxPlayers, options.ServerOptions.ServerName, options.ServerOptions.ServerDescription, Array.Empty<string>());
-                notification.Network.SendPackage(packet.ToRawPacket());
+                var playerCount = await _mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
+                var packet = new ServerInfoDataPacket(playerCount, _options.ServerOptions.MaxPlayers, _options.ServerOptions.ServerName, _options.ServerOptions.ServerDescription, Array.Empty<string>());
+                notification.Network.SendPacket(packet.ToRawPacket());
                 break;
             }
         }
     }
+
+    private async ValueTask HandleGameDataPacket(NewPacketReceived notification, CancellationToken cancellationToken)
+    {
+        if (GameDataPacket.IsFullGameData(notification.RawPacket))
+        {
+            // This is a new player joining.
+            var gameDataPacket = new GameDataPacket(notification.RawPacket);
+                    
+            // Check Server Space Limit.
+            var playerCount = await _mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
+
+            if (playerCount >= _options.ServerOptions.MaxPlayers)
+            {
+                var reason = _options.GetLocalizedString("SERVER_IS_FULL");
+                await notification.Network.KickAsync(reason).ConfigureAwait(false);
+                PrintServerMessage(_options.GetLocalizedString("SERVER_UNABLE_TO_JOIN", gameDataPacket, reason));
+                return;
+            }
+        }
+        else
+        {
+            // This is updating existing player.
+        }
+    }
+
+    [LoggerMessage(LogLevel.Information, "[Server] {message}")]
+    private partial void PrintServerMessage(string message);
 }

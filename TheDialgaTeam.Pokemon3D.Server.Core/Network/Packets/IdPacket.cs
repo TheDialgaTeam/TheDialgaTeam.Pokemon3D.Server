@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.World;
+using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public sealed record WorldOptions
+public readonly record struct IdPacket(int Id) : IPacket
 {
-    public Season Season { get; init; } = Season.Default;
+    public IdPacket(RawPacket rawPacket) : this(int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
+    {
+    }
 
-    public Weather Weather { get; init; } = Weather.Default;
-
-    public TimeSpan TimeOffset { get; init; } = DateTimeOffset.Now.Offset;
-
-    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-
-    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
+    public RawPacket ToRawPacket()
+    {
+        return new RawPacket(PacketType.Id, -1, new[] { Id.ToString(CultureInfo.InvariantCulture) });
+    }
 }

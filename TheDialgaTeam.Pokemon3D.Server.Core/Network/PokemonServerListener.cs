@@ -23,6 +23,7 @@ using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
@@ -81,7 +82,7 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
 
             PrintServerPlayerCanJoinVia(string.Join(", ", serverOptions.GameModes));
 
-            _ = Task.Run(() => RunServerPortCheckingTask(stoppingToken).GetAwaiter().GetResult(), stoppingToken);
+            _ = Task.Run(() => RunServerPortCheckingTask(networkOptions, serverOptions, stoppingToken), stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -107,9 +108,9 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
         PrintServerStopped();
     }
 
-    private async Task RunServerPortCheckingTask(CancellationToken cancellationToken)
+    private async Task RunServerPortCheckingTask(NetworkOptions networkOptions, ServerOptions serverOptions, CancellationToken cancellationToken)
     {
-        var portToCheck = _options.NetworkOptions.BindIpEndPoint.Port;
+        var portToCheck = networkOptions.BindIpEndPoint.Port;
 
         PrintRunningPortCheck(portToCheck);
 
@@ -119,7 +120,7 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
 
             try
             {
-                using var noPingCancellationTokenSource = new CancellationTokenSource(_options.ServerOptions.NoPingKickTime);
+                using var noPingCancellationTokenSource = new CancellationTokenSource(serverOptions.NoPingKickTime);
                 using var globalCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(noPingCancellationTokenSource.Token, cancellationToken);
 
                 using var tcpClient = new TcpClient();
@@ -161,7 +162,7 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
     [LoggerMessage(LogLevel.Information, "[Server] Players with offline profile can join the server.")]
     private partial void PrintServerOfflineMode();
 
-    [LoggerMessage(LogLevel.Information, "[Server] Players can join with the following GameModes: {gameModes}.")]
+    [LoggerMessage(LogLevel.Information, "[Server] Players can join with the following GameModes: {gameModes}")]
     private partial void PrintServerPlayerCanJoinVia(string gameModes);
 
     [LoggerMessage(LogLevel.Information, "[Server] Checking port {port} is open...")]
@@ -179,11 +180,12 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
     [LoggerMessage(LogLevel.Error, "[Server] Error ({socketError}): {message}")]
     private partial void PrintServerError(Exception exception, SocketError socketError, string message);
 
-    [LoggerMessage(LogLevel.Information, "[Server] Stopped listening for new players")]
+    [LoggerMessage(LogLevel.Information, "[Server] Stopped listening for new players.")]
     private partial void PrintServerStopped();
 
     public override void Dispose()
     {
+        _tcpListener?.Dispose();
         _httpClient.Dispose();
         base.Dispose();
     }

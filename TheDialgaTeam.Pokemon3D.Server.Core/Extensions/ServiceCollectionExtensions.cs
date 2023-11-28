@@ -29,6 +29,8 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Options.Providers;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 
@@ -50,6 +52,7 @@ public static class ServiceCollectionExtensions
         collection.AddOptions<ChatOptions>().BindConfiguration("Server:Chat");
         collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
         collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
+        collection.AddOptions<LocalizationOptions>().BindConfiguration("Server:Localization");
         
         collection.TryAddSingleton<MicrosoftOptionsProvider>();
         collection.TryAddSingleton<IPokemonServerOptions>(provider => provider.GetRequiredService<MicrosoftOptionsProvider>());
@@ -61,6 +64,9 @@ public static class ServiceCollectionExtensions
         collection.TryAddSingleton<IValidateOptions<ServerOptions>>(provider => provider.GetRequiredService<ServerOptionsValidation>());
         
         collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
+        
+        collection.TryAddSingleton<ILocalWorld, LocalWorld>();
+        collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();
 
         return collection;
     }

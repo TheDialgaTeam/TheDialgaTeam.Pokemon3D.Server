@@ -14,19 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.World;
+using Microsoft.Extensions.DependencyInjection;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-public sealed record WorldOptions
+internal sealed class LocalWorldFactory : ILocalWorldFactory
 {
-    public Season Season { get; init; } = Season.Default;
+    private readonly IServiceProvider _serviceProvider;
 
-    public Weather Weather { get; init; } = Weather.Default;
-
-    public TimeSpan TimeOffset { get; init; } = DateTimeOffset.Now.Offset;
-
-    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-
-    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
+    public LocalWorldFactory(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+    
+    public ILocalWorld CreateLocalWorld(Season season, Weather weather, TimeSpan offset)
+    {
+        return ActivatorUtilities.CreateInstance<LocalWorld>(_serviceProvider, season, weather, offset);
+    }
 }

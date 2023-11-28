@@ -23,104 +23,39 @@ internal sealed class Player : IPlayer
 {
     public int Id { get; }
 
-    /// <summary>
-    ///     Get Player DataItem[0]
-    /// </summary>
-    public string GameMode { get; private set; } = string.Empty;
+    public string GameMode => _gameDataPacket.GameMode;
+    public bool IsGameJoltPlayer => _gameDataPacket.IsGameJoltPlayer;
+    public string GameJoltId => _gameDataPacket.GameJoltId;
+    public string NumberDecimalSeparator => _gameDataPacket.NumberDecimalSeparator;
+    public string Name => _gameDataPacket.Name;
+    public string MapFile => _gameDataPacket.MapFile;
+    public Position PlayerPosition => _gameDataPacket.PlayerPosition;
+    public int PlayerFacing => _gameDataPacket.PlayerFacing;
+    public bool IsMoving => _gameDataPacket.IsMoving;
+    public string PlayerSkin => _gameDataPacket.PlayerSkin;
+    public BusyType BusyType => _gameDataPacket.BusyType;
+    public bool PokemonVisible => _gameDataPacket.PokemonVisible;
+    public Position PokemonPosition => _gameDataPacket.PokemonPosition;
+    public string PokemonSkin => _gameDataPacket.PokemonSkin;
+    public int PokemonFacing => _gameDataPacket.PokemonFacing;
 
-    /// <summary>
-    ///     Get Player DataItem[1]
-    /// </summary>
-    public bool IsGameJoltPlayer { get; private set; }
+    public string DisplayStatus => _gameDataPacket.IsGameJoltPlayer ? $"{Id}: {_gameDataPacket.Name} ({_gameDataPacket.GameJoltId}) - {_gameDataPacket.BusyType}" : $"{Id}: {_gameDataPacket.Name} - {_gameDataPacket.BusyType}";
 
-    /// <summary>
-    ///     Get Player DataItem[2]
-    /// </summary>
-    public string GameJoltId { get; private set; } = string.Empty;
+    private GameDataPacket _gameDataPacket;
 
-    /// <summary>
-    ///     Get Player DataItem[3]
-    /// </summary>
-    public string NumberDecimalSeparator { get; private set; } = string.Empty;
-
-    /// <summary>
-    ///     Get Player DataItem[4]
-    /// </summary>
-    public string Name { get; private set; } = string.Empty;
-
-    /// <summary>
-    ///     Get Player DataItem[5]
-    /// </summary>
-    public string MapFile { get; private set; } = string.Empty;
-
-    /// <summary>
-    ///     Get Player DataItem[6]
-    /// </summary>
-    public Position Position { get; private set; }
-
-    /// <summary>
-    ///     Get Player DataItem[7]
-    /// </summary>
-    public int Facing { get; private set; }
-
-    /// <summary>
-    ///     Get Player DataItem[8]
-    /// </summary>
-    public bool IsMoving { get; private set; }
-
-    /// <summary>
-    ///     Get Player DataItem[9]
-    /// </summary>
-    public string Skin { get; private set; } = string.Empty;
-
-    /// <summary>
-    ///     Get Player DataItem[10]
-    /// </summary>
-    public BusyType BusyType { get; private set; }
-
-    /// <summary>
-    ///     Get Player DataItem[11]
-    /// </summary>
-    public bool PokemonVisible { get; private set; }
-
-    /// <summary>
-    ///     Get Player DataItem[12]
-    /// </summary>
-    public Position PokemonPosition { get; private set; }
-
-    /// <summary>
-    ///     Get/Set Player DataItem[13]
-    /// </summary>
-    public string PokemonSkin { get; private set; } = string.Empty;
-
-    /// <summary>
-    ///     Get/Set Player DataItem[14]
-    /// </summary>
-    public int PokemonFacing { get; private set; }
-
-    public string DisplayStatus => IsGameJoltPlayer ? $"{Id}: {Name} ({GameJoltId}) - {BusyType}" : $"{Id}: {Name} - {BusyType}";
-
-    public Player(int id)
+    public Player(int id, GameDataPacket gameDataPacket)
     {
         Id = id;
+        _gameDataPacket = gameDataPacket with { Origin = id };
     }
-    
-    public void ApplyGameData(GameDataRawPacket gameDataRawPacket)
+
+    public void ApplyGameData(GameDataPacket gameDataPacket)
     {
-        GameMode = gameDataRawPacket.GameMode;
-        IsGameJoltPlayer = gameDataRawPacket.IsGameJoltPlayer;
-        GameJoltId = gameDataRawPacket.GameJoltId;
-        NumberDecimalSeparator = gameDataRawPacket.NumberDecimalSeparator;
-        Name = gameDataRawPacket.Name;
-        MapFile = gameDataRawPacket.MapFile;
-        Position = gameDataRawPacket.PlayerPosition;
-        Facing = gameDataRawPacket.PlayerFacing;
-        IsMoving = gameDataRawPacket.IsMoving;
-        Skin = gameDataRawPacket.PlayerSkin;
-        BusyType = gameDataRawPacket.BusyType;
-        PokemonVisible = gameDataRawPacket.PokemonVisible;
-        PokemonPosition = gameDataRawPacket.PokemonPosition;
-        PokemonSkin = gameDataRawPacket.PokemonSkin;
-        PokemonFacing = gameDataRawPacket.PokemonFacing;
+        _gameDataPacket = gameDataPacket;
+    }
+
+    public GameDataPacket ToGameDataPacket()
+    {
+        return _gameDataPacket;
     }
 }
