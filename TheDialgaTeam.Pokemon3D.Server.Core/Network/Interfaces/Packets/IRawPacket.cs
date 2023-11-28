@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets.Types;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-/*
-internal sealed record ChatMessagePacket(int Origin, string Message) : Packet(PacketType.ChatMessage, Origin)
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+
+public interface IRawPacket
 {
-    protected override string[] GetDataItems()
-    {
-        return new[] { Message };
-    }
+    PacketType PacketType { get; }
+    
+    int Origin { get; }
+    
+    string[] DataItems { get; }
+    
+    string ToRawPacketString();
 }
-*/

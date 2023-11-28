@@ -18,29 +18,19 @@ using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets.Types;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed class NetworkContainer : 
-    INotificationHandler<Connected>, 
+public sealed class NetworkContainer(IMediator mediator, IPokemonServerOptions options) :
+    INotificationHandler<Connected>,
     INotificationHandler<Disconnected>,
     INotificationHandler<NewPacketReceived>
 {
-    private readonly IMediator _mediator;
-    private readonly IPokemonServerOptions _options;
-    
     private readonly List<IPokemonServerClient> _tcpClientNetworks = new();
     private readonly object _clientLock = new();
 
-    public NetworkContainer(IMediator mediator, IPokemonServerOptions options)
-    {
-        _mediator = mediator;
-        _options = options;
-    }
-    
     private void AddClient(IPokemonServerClient network)
     {
         lock (_clientLock)
@@ -72,13 +62,13 @@ internal sealed class NetworkContainer :
 
     public async ValueTask Handle(NewPacketReceived notification, CancellationToken cancellationToken)
     {
-        switch (notification.Packet.PacketType)
+        switch (notification.RawPacket.PacketType)
         {
             case PacketType.ServerDataRequest:
             {
-                var playerCount = await _mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
-                var packet = new ServerInfoDataPacket(playerCount, _options.ServerOptions.MaxPlayers, _options.ServerOptions.ServerName, _options.ServerOptions.ServerDescription, Array.Empty<string>());
-                notification.Network.SendPackage(packet);
+                var playerCount = await mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
+                var packet = new ServerInfoDataRawPacket(playerCount, options.ServerOptions.MaxPlayers, options.ServerOptions.ServerName, options.ServerOptions.ServerDescription, Array.Empty<string>());
+                notification.Network.SendPackage(packet.ToRawPacket());
                 break;
             }
         }

@@ -31,6 +31,11 @@ internal sealed class NetworkOptionsValidation : IValidateOptions<NetworkOptions
             return ValidateOptionsResult.Fail($"[Network:{nameof(options.BindIpEndPoint)}] Invalid IP Address given.");
         }
 
+        if (options.UpnpDiscoveryTime.TotalSeconds < 1)
+        {
+            return ValidateOptionsResult.Fail($"[Network:{nameof(options.UpnpDiscoveryTime)}] Upnp Discovery Time require at least 1 second.");
+        }
+
         return ValidateOptionsResult.Success;
     }
 }

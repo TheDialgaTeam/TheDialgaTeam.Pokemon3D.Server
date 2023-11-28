@@ -27,10 +27,10 @@ public readonly record struct Position(float X, float Y, float Z)
     public static Position FromRawPacket(ReadOnlySpan<char> position, string decimalSeparator)
     {
         var numberFormatInfo = NumberFormatInfos.GetOrAdd(decimalSeparator, static s => new NumberFormatInfo { NumberDecimalSeparator = s });
-        return new Position(float.Parse(position.SplitNext("|", out position), NumberStyles.Number, numberFormatInfo), float.Parse(position.SplitNext("|", out position), NumberStyles.Number, numberFormatInfo), float.Parse(position.SplitNext("|", out position), NumberStyles.Number, numberFormatInfo));
+        return new Position(float.Parse(position.SplitNext("|", out position), numberFormatInfo), float.Parse(position.SplitNext("|", out position), numberFormatInfo), float.Parse(position.SplitNext("|", out position), numberFormatInfo));
     }
 
-    public string ToRawPacket(string decimalSeparator)
+    public string ToRawPacketString(string decimalSeparator)
     {
         var numberFormatInfo = NumberFormatInfos.GetOrAdd(decimalSeparator, static s => new NumberFormatInfo { NumberDecimalSeparator = s });
         return $"{X.ToString(numberFormatInfo)}|{Y.ToString(numberFormatInfo)}|{Z.ToString(numberFormatInfo)}";

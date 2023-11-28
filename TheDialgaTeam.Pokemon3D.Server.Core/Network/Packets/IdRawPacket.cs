@@ -15,25 +15,18 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets.Types;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-internal sealed record IdPacket : Packet
+internal readonly record struct IdRawPacket(int Id) : IPacket
 {
-    public int Id
+    public IdRawPacket(RawPacket rawPacket) : this(int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
     {
-        get => int.Parse(DataItems[0], CultureInfo.InvariantCulture);
-        set => DataItems[0] = value.ToString(CultureInfo.InvariantCulture);
     }
 
-    public IdPacket(string[] dataItems) : base(PacketType.Id)
+    public RawPacket ToRawPacket()
     {
-        DataItems = dataItems;
-    }
-
-    public IdPacket(int id) : base(PacketType.Id)
-    {
-        DataItems = new string[1];
-        Id = id;
+        return new RawPacket(PacketType.Id, -1, new[] { Id.ToString(CultureInfo.InvariantCulture) });
     }
 }

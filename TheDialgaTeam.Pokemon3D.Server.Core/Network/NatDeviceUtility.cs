@@ -24,17 +24,17 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
 internal sealed partial class NatDeviceUtility : INatDeviceUtility
 {
-    private readonly ILogger<NatDeviceUtility> _logger;
+    private readonly ILogger _logger;
     private readonly IPokemonServerOptions _options;
-
+    
     private INatDevice[] _natDevices = Array.Empty<INatDevice>();
     private IPEndPoint _targetEndPoint;
-
+    
     public NatDeviceUtility(ILogger<NatDeviceUtility> logger, IPokemonServerOptions options)
     {
         _logger = logger;
         _options = options;
-        _targetEndPoint = _options.NetworkOptions.BindIpEndPoint;
+        _targetEndPoint = options.NetworkOptions.BindIpEndPoint;
     }
 
     private static async Task<INatDevice[]> DiscoverNatDevicesAsync(CancellationToken cancellationToken)
@@ -45,11 +45,8 @@ internal sealed partial class NatDeviceUtility : INatDeviceUtility
         {
             NatUtility.DeviceFound += NatUtilityOnDeviceFound;
             NatUtility.StartDiscovery(NatProtocol.Upnp);
-
-            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancellationTokenSource.Token);
-
-            await Task.Delay(-1, linkedCancellationTokenSource.Token).ConfigureAwait(false);
+            
+            await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
         }
         catch (TaskCanceledException)
         {
@@ -67,9 +64,12 @@ internal sealed partial class NatDeviceUtility : INatDeviceUtility
 
     public async Task CreatePortMappingAsync(CancellationToken cancellationToken = default)
     {
-        PrintNatSearchForUpnpDevices();
+        PrintNatSearchForUpnpDevices(_options.NetworkOptions.UpnpDiscoveryTime.TotalSeconds);
         
-        _natDevices = await DiscoverNatDevicesAsync(cancellationToken).ConfigureAwait(false);
+        using var upnpCancellationTokenSource = new CancellationTokenSource(_options.NetworkOptions.UpnpDiscoveryTime);
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, upnpCancellationTokenSource.Token);
+
+        _natDevices = await DiscoverNatDevicesAsync(linkedCancellationTokenSource.Token).ConfigureAwait(false);
         
         PrintNatFoundUpnpDevices(_natDevices.Length);
 
@@ -124,11 +124,11 @@ internal sealed partial class NatDeviceUtility : INatDeviceUtility
         }
     }
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "[NAT] Searching for UPnP devices. This will take 5 seconds.")]
-    private partial void PrintNatSearchForUpnpDevices();
+    [LoggerMessage(Level = LogLevel.Information, Message = "[NAT] Searching for UPnP devices. This will take {searchTime:F0} seconds.")]
+    private partial void PrintNatSearchForUpnpDevices(double searchTime);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "[NAT] Found {amount} UPnP devices.")]
-    private partial void PrintNatFoundUpnpDevices(int amount);
+    [LoggerMessage(Level = LogLevel.Information, Message = "[NAT] Found {foundDeviceCount} UPnP devices.")]
+    private partial void PrintNatFoundUpnpDevices(int foundDeviceCount);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "[NAT] Created new UPnP port mapping for interface {ipAddress}.")]
     private partial void PrintNatCreatedUpnpDeviceMapping(IPAddress ipAddress);

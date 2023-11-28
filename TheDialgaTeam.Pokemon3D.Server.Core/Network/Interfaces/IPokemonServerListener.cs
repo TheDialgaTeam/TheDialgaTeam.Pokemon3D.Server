@@ -18,6 +18,4 @@ using Microsoft.Extensions.Hosting;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-public interface IPokemonServerListener : IHostedService
-{
-}
+public interface IPokemonServerListener : IHostedService;

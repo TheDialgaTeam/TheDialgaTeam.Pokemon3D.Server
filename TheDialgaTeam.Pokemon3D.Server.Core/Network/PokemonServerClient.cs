@@ -64,13 +64,13 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
         };
     }
 
-    public void SendPackage(IPacket packet)
+    public void SendPackage(RawPacket rawPacket)
     {
         lock (_streamWriterLock)
         {
             try
             {
-                var packageData = packet.ToRawPacket();
+                var packageData = rawPacket.ToRawPacketString();
 
                 PrintSendRawPacket(RemoteIpAddress, packageData);
 
@@ -94,7 +94,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
     private async Task RunReadingTask()
     {
-        using var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, true, _tcpClient.ReceiveBufferSize, true);
+        using var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, false, _tcpClient.ReceiveBufferSize, true);
 
         while (_tcpClient.Connected)
         {
@@ -108,11 +108,11 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
                     return;
                 }
 
-                PrintReceiveRawPackage(RemoteIpAddress, rawData);
+                PrintReceiveRawPacket(RemoteIpAddress, rawData);
 
-                if (!Packet.TryParse(rawData, out var package))
+                if (!RawPacket.TryParse(rawData, out var package))
                 {
-                    PrintInvalidPackageReceive(RemoteIpAddress);
+                    PrintInvalidPacketReceive(RemoteIpAddress);
                 }
                 else
                 {
@@ -154,28 +154,28 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
         }
     }
 
-    [LoggerMessage(Level = LogLevel.Trace, Message = "[{ipAddress}] Receive raw package data: {rawData}")]
-    private partial void PrintReceiveRawPackage(IPAddress ipAddress, string rawData);
+    [LoggerMessage(LogLevel.Trace, "[{ipAddress}] Receive raw packet data: {rawData}")]
+    private partial void PrintReceiveRawPacket(IPAddress ipAddress, string rawData);
 
-    [LoggerMessage(Level = LogLevel.Trace, Message = "[{ipAddress}] Send raw package data: {rawData}")]
+    [LoggerMessage(LogLevel.Trace, "[{ipAddress}] Send raw packet data: {rawData}")]
     private partial void PrintSendRawPacket(IPAddress ipAddress, string rawData);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Unable to allocate buffer for the package data due to insufficient memory")]
+    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Unable to allocate buffer for the packet data due to insufficient memory")]
     private partial void PrintOutOfMemory(IPAddress ipAddress);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Unable to read data from this network")]
+    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Unable to read data from this network")]
     private partial void PrintReadSocketIssue(IPAddress ipAddress);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Unable to write data from this network")]
+    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Unable to write data from this network")]
     private partial void PrintWriteSocketIssue(IPAddress ipAddress);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Invalid package received")]
-    private partial void PrintInvalidPackageReceive(IPAddress ipAddress);
+    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Invalid packet received")]
+    private partial void PrintInvalidPacketReceive(IPAddress ipAddress);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] Disconnected")]
+    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Disconnected")]
     private partial void PrintDisconnected(IPAddress ipAddress);
     
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[{ipAddress}] {message}")]
+    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] {message}")]
     private partial void PrintPacketHandlerError(Exception exception, IPAddress ipAddress, string message);
 
     public void Dispose()

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets.Types;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
@@ -105,22 +105,22 @@ internal sealed class Player : IPlayer
         Id = id;
     }
     
-    public void ApplyGameData(GameDataPacket gameDataPacket)
+    public void ApplyGameData(GameDataRawPacket gameDataRawPacket)
     {
-        GameMode = gameDataPacket.GameMode;
-        IsGameJoltPlayer = gameDataPacket.IsGameJoltPlayer;
-        GameJoltId = gameDataPacket.GameJoltId;
-        NumberDecimalSeparator = gameDataPacket.NumberDecimalSeparator;
-        Name = gameDataPacket.Name;
-        MapFile = gameDataPacket.MapFile;
-        Position = gameDataPacket.PlayerPosition;
-        Facing = gameDataPacket.PlayerFacing;
-        IsMoving = gameDataPacket.IsMoving;
-        Skin = gameDataPacket.PlayerSkin;
-        BusyType = gameDataPacket.BusyType;
-        PokemonVisible = gameDataPacket.PokemonVisible;
-        PokemonPosition = gameDataPacket.PokemonPosition;
-        PokemonSkin = gameDataPacket.PokemonSkin;
-        PokemonFacing = gameDataPacket.PokemonFacing;
+        GameMode = gameDataRawPacket.GameMode;
+        IsGameJoltPlayer = gameDataRawPacket.IsGameJoltPlayer;
+        GameJoltId = gameDataRawPacket.GameJoltId;
+        NumberDecimalSeparator = gameDataRawPacket.NumberDecimalSeparator;
+        Name = gameDataRawPacket.Name;
+        MapFile = gameDataRawPacket.MapFile;
+        Position = gameDataRawPacket.PlayerPosition;
+        Facing = gameDataRawPacket.PlayerFacing;
+        IsMoving = gameDataRawPacket.IsMoving;
+        Skin = gameDataRawPacket.PlayerSkin;
+        BusyType = gameDataRawPacket.BusyType;
+        PokemonVisible = gameDataRawPacket.PokemonVisible;
+        PokemonPosition = gameDataRawPacket.PokemonPosition;
+        PokemonSkin = gameDataRawPacket.PokemonSkin;
+        PokemonFacing = gameDataRawPacket.PokemonFacing;
     }
 }

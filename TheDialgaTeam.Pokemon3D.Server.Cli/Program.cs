@@ -9,7 +9,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
 internal static class Program
 {
-    [SuppressMessage("Trimming", "IL2026:Members annotated with \'RequiresUnreferencedCodeAttribute\' require dynamic access otherwise can break functionality when trimming application code")]
+    [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
+    [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
     public static Task Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainOnUnhandledException;
@@ -18,6 +19,7 @@ internal static class Program
             .ConfigureServices(collection =>
             {
                 collection.AddPokemonServer();
+                collection.AddMediator();
                 collection.AddHostedService<ConsoleService>();
             })
             .ConfigureLogging(builder =>

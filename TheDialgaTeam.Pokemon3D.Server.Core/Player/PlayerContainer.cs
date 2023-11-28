@@ -22,7 +22,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-internal sealed class PlayerContainer : 
+public sealed class PlayerContainer : 
     IQueryHandler<GetPlayerCount, int>,
     ICommandHandler<CreateNewPlayer>
 {

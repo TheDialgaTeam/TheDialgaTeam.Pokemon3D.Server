@@ -20,9 +20,5 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 public interface IPacket
 {
-    PacketType PacketType { get; }
-    
-    int Origin { get; }
-
-    string ToRawPacket();
+    RawPacket ToRawPacket();
 }

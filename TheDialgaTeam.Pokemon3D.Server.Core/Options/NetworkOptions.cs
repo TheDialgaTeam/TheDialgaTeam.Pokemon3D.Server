@@ -23,4 +23,6 @@ public sealed record NetworkOptions
     public IPEndPoint BindIpEndPoint { get; init; } = new(IPAddress.Any, 15124);
 
     public bool UseUpnp { get; init; }
+    
+    public TimeSpan UpnpDiscoveryTime { get; init; } = TimeSpan.FromSeconds(5);
 }

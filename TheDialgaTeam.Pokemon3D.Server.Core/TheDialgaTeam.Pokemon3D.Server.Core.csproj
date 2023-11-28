@@ -3,16 +3,11 @@
     <Import Project="..\TheDialgaTeam.Pokemon3D.Server.prop"/>
     
     <PropertyGroup>
-        <NoWarn>$(NoWarn);SYSLIB1006</NoWarn>
         <IsPublishable>false</IsPublishable>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
-        <PackageReference Include="Mediator.SourceGenerator" Version="2.1.7">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
         <PackageReference Include="Mono.Nat" Version="3.0.4" />

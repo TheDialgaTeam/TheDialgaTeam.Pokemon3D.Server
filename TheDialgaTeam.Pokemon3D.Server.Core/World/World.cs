@@ -20,7 +20,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
 internal sealed class World
 {
-    private static int WeekOfYear => (int) ((DateTime.Now.DayOfYear - (DateTime.Now.DayOfWeek - DayOfWeek.Monday)) / 7.0 + 1.0);
+    private static int WeekOfYear => (DateTime.Now.DayOfYear - (DateTime.Now.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
 
     private readonly IPokemonServerOptions _options;
 
@@ -106,7 +106,12 @@ internal sealed class World
                     Season.Summer => random switch
                     {
                         < 60 => Weather.Clear,
-                        < 95 => Weather.Sunny,
+                        < 95 => DateTime.Now.Hour switch
+                        {
+                            < 9 => Weather.Clear,
+                            < 19 => Weather.Sunny,
+                            var _ => Weather.Clear
+                        },
                         var _ => Weather.Rain
                     },
                     Season.Fall => random switch

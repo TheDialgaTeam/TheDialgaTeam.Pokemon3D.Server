@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Extensions;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Converters;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Providers;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 
@@ -28,11 +38,29 @@ public static class ServiceCollectionExtensions
     [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
     public static IServiceCollection AddPokemonServer(this IServiceCollection collection)
     {
-        collection.AddMediator();
+        collection.TryAddSingleton<IPokemonServerListener, PokemonServerListener>();
+        collection.TryAddSingleton<INatDeviceUtility, NatDeviceUtility>();
+        collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
         
-        collection.AddPokemonServerNetwork();
-        collection.AddPokemonServerOptions();
-        collection.AddPokemonServerPlayer();
+        TypeDescriptor.AddAttributes(typeof(IPEndPoint), new TypeConverterAttribute(typeof(IPEndPointConverter)));
+        
+        collection.AddOptions<ServerOptions>().BindConfiguration("Server");
+        collection.AddOptions<NetworkOptions>().BindConfiguration("Server:Network");
+        collection.AddOptions<WorldOptions>().BindConfiguration("Server:World");
+        collection.AddOptions<ChatOptions>().BindConfiguration("Server:Chat");
+        collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
+        collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
+        
+        collection.TryAddSingleton<MicrosoftOptionsProvider>();
+        collection.TryAddSingleton<IPokemonServerOptions>(provider => provider.GetRequiredService<MicrosoftOptionsProvider>());
+        
+        collection.TryAddSingleton<NetworkOptionsValidation>();
+        collection.TryAddSingleton<IValidateOptions<NetworkOptions>>(provider => provider.GetRequiredService<NetworkOptionsValidation>());
+        
+        collection.TryAddSingleton<ServerOptionsValidation>();
+        collection.TryAddSingleton<IValidateOptions<ServerOptions>>(provider => provider.GetRequiredService<ServerOptionsValidation>());
+        
+        collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
 
         return collection;
     }
