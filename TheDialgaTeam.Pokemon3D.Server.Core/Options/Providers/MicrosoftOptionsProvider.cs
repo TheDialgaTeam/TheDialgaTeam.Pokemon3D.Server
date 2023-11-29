@@ -33,7 +33,7 @@ internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposa
 
     public TradeOptions TradeOptions { get; private set; }
     
-    public LocalizationOptions LocalizationOptions { get; private set; }
+    public LocalizationOptions LocalizationOptions { get; }
 
     private readonly IDisposable?[] _disposables;
 
@@ -44,7 +44,7 @@ internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposa
         IOptionsMonitor<ChatOptions> chatOptions,
         IOptionsMonitor<PvPOptions> pvpOptions,
         IOptionsMonitor<TradeOptions> tradeOptions,
-        IOptionsMonitor<LocalizationOptions> localizationOptions)
+        LocalizationOptions localizationOptions)
     {
         NetworkOptions = networkOptions.CurrentValue;
         ServerOptions = serverOptions.CurrentValue;
@@ -52,7 +52,7 @@ internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposa
         ChatOptions = chatOptions.CurrentValue;
         PvpOptions = pvpOptions.CurrentValue;
         TradeOptions = tradeOptions.CurrentValue;
-        LocalizationOptions = localizationOptions.CurrentValue;
+        LocalizationOptions = localizationOptions;
 
         _disposables = new[]
         {
@@ -61,8 +61,7 @@ internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposa
             worldOptions.OnChange(options => WorldOptions = options),
             chatOptions.OnChange(options => ChatOptions = options),
             pvpOptions.OnChange(options => PvpOptions = options),
-            tradeOptions.OnChange(options => TradeOptions = options),
-            localizationOptions.OnChange(options => LocalizationOptions = options),
+            tradeOptions.OnChange(options => TradeOptions = options)
         };
     }
 

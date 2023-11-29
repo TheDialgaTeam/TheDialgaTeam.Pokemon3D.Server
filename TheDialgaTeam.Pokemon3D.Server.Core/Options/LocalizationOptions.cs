@@ -14,13 +14,43 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Microsoft.Extensions.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
+
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-public sealed class LocalizationOptions
+public sealed class LocalizationOptions : IDisposable
 {
-    public Dictionary<string, string> Global { get; init; } = new();
+    public PlayerNameDisplayFormat PlayerNameDisplayFormat { get; private set; }
     
-    public Dictionary<string, string> ServerMessage { get; init; } = new();
+    public ServerMessageFormat ServerMessageFormat { get; private set; }
     
-    public Dictionary<string, string> GameMessage { get; init; } = new();
+    public GameMessageFormat GameMessageFormat { get; private set; }
+    
+    private readonly IDisposable?[] _disposables;
+
+    public LocalizationOptions(
+        IOptionsMonitor<PlayerNameDisplayFormat> playerNameDisplayFormat,
+        IOptionsMonitor<ServerMessageFormat> serverMessageFormat,
+        IOptionsMonitor<GameMessageFormat> gameMessageFormat)
+    {
+        PlayerNameDisplayFormat = playerNameDisplayFormat.CurrentValue;
+        ServerMessageFormat = serverMessageFormat.CurrentValue;
+        GameMessageFormat = gameMessageFormat.CurrentValue;
+
+        _disposables = new[]
+        {
+            playerNameDisplayFormat.OnChange(format => PlayerNameDisplayFormat = format),
+            serverMessageFormat.OnChange(format => ServerMessageFormat = format),
+            gameMessageFormat.OnChange(format => GameMessageFormat = format)
+        };
+    }
+
+    public void Dispose()
+    {
+        foreach (var disposable in _disposables)
+        {
+            disposable?.Dispose();
+        }
+    }
 }

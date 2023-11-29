@@ -20,6 +20,7 @@ using System.Text;
 using Mediator;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
@@ -28,7 +29,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed partial class PokemonServerListener : BackgroundService, IPokemonServerListener
+public sealed partial class PokemonServerListener : BackgroundService, ICommandHandler<StartServer>, ICommandHandler<StopServer>
 {
     private readonly ILogger<PokemonServerListener> _logger;
     private readonly IMediator _mediator;
@@ -52,6 +53,18 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
         _options = options;
         _natDeviceUtility = natDeviceUtility;
         _pokemonServerClientFactory = pokemonServerClientFactory;
+    }
+
+    public async ValueTask<Unit> Handle(StartServer command, CancellationToken cancellationToken)
+    {
+        await StartAsync(cancellationToken).ConfigureAwait(false);
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(StopServer command, CancellationToken cancellationToken)
+    {
+        await StopAsync(cancellationToken).ConfigureAwait(false);
+        return Unit.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -80,7 +93,20 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
                 PrintServerOfflineMode();
             }
 
-            PrintServerPlayerCanJoinVia(string.Join(", ", serverOptions.GameModes));
+            if (serverOptions is { AllowAnyGameModes: true, BlacklistedGameModes.Length: 0 })
+            {
+                PrintServerPlayerCanJoinWithAny();
+            }
+
+            if (serverOptions is { AllowAnyGameModes: true, BlacklistedGameModes.Length: > 0 })
+            {
+                PrintServerPlayerCanJoinWithAnyExcept(string.Join(", ", serverOptions.BlacklistedGameModes));
+            }
+
+            if (!serverOptions.AllowAnyGameModes)
+            {
+                PrintServerPlayerCanJoinWith(string.Join(", ", serverOptions.WhitelistedGameModes));
+            }
 
             _ = Task.Run(() => RunServerPortCheckingTask(networkOptions, serverOptions, stoppingToken), stoppingToken);
 
@@ -162,8 +188,14 @@ internal sealed partial class PokemonServerListener : BackgroundService, IPokemo
     [LoggerMessage(LogLevel.Information, "[Server] Players with offline profile can join the server.")]
     private partial void PrintServerOfflineMode();
 
-    [LoggerMessage(LogLevel.Information, "[Server] Players can join with the following GameModes: {gameModes}")]
-    private partial void PrintServerPlayerCanJoinVia(string gameModes);
+    [LoggerMessage(LogLevel.Information, "[Server] Players can join with any GameMode(s).")]
+    private partial void PrintServerPlayerCanJoinWithAny();
+
+    [LoggerMessage(LogLevel.Information, "[Server] Players can join with any GameModes except the following GameMode(s): {gameModes}")]
+    private partial void PrintServerPlayerCanJoinWithAnyExcept(string gameModes);
+
+    [LoggerMessage(LogLevel.Information, "[Server] Players can join with the following GameMode(s): {gameModes}")]
+    private partial void PrintServerPlayerCanJoinWith(string gameModes);
 
     [LoggerMessage(LogLevel.Information, "[Server] Checking port {port} is open...")]
     private partial void PrintRunningPortCheck(int port);

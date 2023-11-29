@@ -36,6 +36,10 @@
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.5" />
         <PackageReference Include="Avalonia.Svg.Skia" Version="11.0.0.6" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.5" />
+        <PackageReference Include="Mediator.SourceGenerator" Version="2.1.7">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
         <PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
         <PackageReference Include="TheDialgaTeam.Microsoft.Extensions.Logging" Version="1.12.0" />

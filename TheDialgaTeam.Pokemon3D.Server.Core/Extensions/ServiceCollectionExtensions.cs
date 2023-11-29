@@ -20,11 +20,13 @@ using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Converters;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Providers;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player;
@@ -40,7 +42,6 @@ public static class ServiceCollectionExtensions
     [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
     public static IServiceCollection AddPokemonServer(this IServiceCollection collection)
     {
-        collection.TryAddSingleton<IPokemonServerListener, PokemonServerListener>();
         collection.TryAddSingleton<INatDeviceUtility, NatDeviceUtility>();
         collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
         
@@ -52,10 +53,14 @@ public static class ServiceCollectionExtensions
         collection.AddOptions<ChatOptions>().BindConfiguration("Server:Chat");
         collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
         collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
-        collection.AddOptions<LocalizationOptions>().BindConfiguration("Server:Localization");
-        
+        collection.AddOptions<PlayerNameDisplayFormat>().BindConfiguration("Server:Localization:PlayerNameDisplayFormat");
+        collection.AddOptions<ServerMessageFormat>().BindConfiguration("Server:Localization:ServerMessageFormat");
+        collection.AddOptions<GameMessageFormat>().BindConfiguration("Server:Localization:GameMessageFormat");
+
         collection.TryAddSingleton<MicrosoftOptionsProvider>();
         collection.TryAddSingleton<IPokemonServerOptions>(provider => provider.GetRequiredService<MicrosoftOptionsProvider>());
+        
+        collection.TryAddSingleton<LocalizationOptions>();
         
         collection.TryAddSingleton<NetworkOptionsValidation>();
         collection.TryAddSingleton<IValidateOptions<NetworkOptions>>(provider => provider.GetRequiredService<NetworkOptionsValidation>());
@@ -65,8 +70,9 @@ public static class ServiceCollectionExtensions
         
         collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
         
-        collection.TryAddSingleton<ILocalWorld, LocalWorld>();
         collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();
+
+        collection.AddDbContextFactory<SqliteDatabaseContext>();
 
         return collection;
     }

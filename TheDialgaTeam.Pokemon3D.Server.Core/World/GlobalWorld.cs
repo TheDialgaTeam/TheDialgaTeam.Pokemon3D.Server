@@ -14,27 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
+using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-internal sealed class LocalWorldFactory : ILocalWorldFactory
+public sealed class GlobalWorld : IQueryHandler<GetGlobalWorld, ILocalWorld>
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ILocalWorld _world;
 
-    public LocalWorldFactory(IServiceProvider serviceProvider)
+    public GlobalWorld(ILocalWorldFactory factory)
     {
-        _serviceProvider = serviceProvider;
+        _world = factory.CreateLocalWorld();
     }
 
-    public ILocalWorld CreateLocalWorld()
+    public ValueTask<ILocalWorld> Handle(GetGlobalWorld query, CancellationToken cancellationToken)
     {
-        return ActivatorUtilities.CreateInstance<LocalWorld>(_serviceProvider);
-    }
-
-    public ILocalWorld CreateLocalWorld(ILocalWorld world, Season season, Weather weather, TimeSpan offset)
-    {
-        return ActivatorUtilities.CreateInstance<LocalWorld>(_serviceProvider, world, season, weather, offset);
+        return ValueTask.FromResult(_world);
     }
 }

@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
+using Mediator;
 
-public interface ILocalWorldFactory
-{
-    ILocalWorld CreateLocalWorld();
-    
-    ILocalWorld CreateLocalWorld(ILocalWorld world, Season season, Weather weather, TimeSpan offset);
-}
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
+
+public sealed record StopServer : ICommand;

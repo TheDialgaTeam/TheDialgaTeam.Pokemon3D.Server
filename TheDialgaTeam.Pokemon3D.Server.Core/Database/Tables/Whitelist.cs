@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Hosting;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-
-public interface IPokemonServerListener : IHostedService;
+public class Whitelist
+{
+    public string GameJoltId { get; set; } = string.Empty;
+}

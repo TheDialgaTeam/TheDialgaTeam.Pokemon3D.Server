@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Mediator;
+using Microsoft.Extensions.Hosting;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
@@ -6,18 +8,18 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
 internal sealed class ConsoleService : BackgroundService
 {
-    private readonly IPokemonServerListener _pokemonServerListener;
+    private readonly IMediator _mediator;
 
-    public ConsoleService(IPokemonServerListener pokemonServerListener)
+    public ConsoleService(IMediator mediator)
     {
-        _pokemonServerListener = pokemonServerListener;
+        _mediator = mediator;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         Console.Title = $"{ApplicationUtility.Name} v{ApplicationUtility.Version} ({ApplicationUtility.FrameworkVersion})";
-        
-        await _pokemonServerListener.StartAsync(stoppingToken);
+
+        await _mediator.Send(new StartServer(), stoppingToken).ConfigureAwait(false);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -33,6 +35,6 @@ internal sealed class ConsoleService : BackgroundService
             // TODO: Handle command
         }
 
-        await _pokemonServerListener.StopAsync(stoppingToken);
+        await _mediator.Send(new StopServer(), stoppingToken).ConfigureAwait(false);
     }
 }

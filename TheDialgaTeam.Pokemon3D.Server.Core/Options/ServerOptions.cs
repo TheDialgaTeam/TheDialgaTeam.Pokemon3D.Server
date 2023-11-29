@@ -22,9 +22,13 @@ public sealed record ServerOptions
 
     public string ServerDescription { get; init; } = string.Empty;
 
-    public string WelcomeMessage { get; init; } = string.Empty;
+    public string[] WelcomeMessage { get; init; } = Array.Empty<string>();
 
-    public string[] GameModes { get; init; } = Array.Empty<string>();
+    public bool AllowAnyGameModes { get; init; }
+
+    public string[] WhitelistedGameModes { get; init; } = Array.Empty<string>();
+
+    public string[] BlacklistedGameModes { get; init; } = Array.Empty<string>();
 
     public int MaxPlayers { get; init; } = 20;
 
@@ -32,5 +36,5 @@ public sealed record ServerOptions
 
     public TimeSpan AwayFromKeyboardKickTime { get; init; } = TimeSpan.FromMinutes(5);
     
-    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(10);
+    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(30);
 }

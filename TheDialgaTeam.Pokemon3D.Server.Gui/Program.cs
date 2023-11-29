@@ -1,9 +1,9 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TheDialgaTeam.Microsoft.Extensions.Logging;
 using TheDialgaTeam.Microsoft.Extensions.Logging.Action;
@@ -54,6 +54,7 @@ public static class Program
             .ConfigureServices(static collection =>
             {
                 collection.AddPokemonServer();
+                collection.AddMediator();
             })
             .ConfigureLogging(static builder =>
             {

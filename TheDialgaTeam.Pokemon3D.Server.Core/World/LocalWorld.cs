@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Logging;
+using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-internal sealed partial class LocalWorld : ILocalWorld
+internal sealed class LocalWorld : ILocalWorld
 {
     public Season CurrentSeason { get; private set; } = Season.Spring;
 
@@ -30,11 +31,9 @@ internal sealed partial class LocalWorld : ILocalWorld
     public DateTimeOffset CurrentTime => DateTimeOffset.UtcNow.Add(_targetOffset);
     
     private int WeekOfYear => (CurrentTime.DayOfYear - (CurrentTime.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
-
-    private readonly ILogger? _logger;
+    
     private readonly IPokemonServerOptions _options;
-
-    private readonly bool _isGlobalWorld = true;
+    private readonly ILocalWorld? _world;
     
     private Season _targetSeason;
     private Weather _targetWeather;
@@ -44,25 +43,20 @@ internal sealed partial class LocalWorld : ILocalWorld
 
     private readonly Timer _timer;
 
-    public LocalWorld(ILogger<LocalWorld>? logger, IPokemonServerOptions options)
+    public LocalWorld(IPokemonServerOptions options) : this(options, null, options.WorldOptions.Season, options.WorldOptions.Weather, options.WorldOptions.TimeOffset)
     {
-        _logger = logger;
-        _options = options;
-
-        _targetSeason = _options.WorldOptions.Season;
-        _targetWeather = _options.WorldOptions.Weather;
-        _targetOffset = _options.WorldOptions.TimeOffset;
-
-        _timer = new Timer(TimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
-
-    public LocalWorld(IPokemonServerOptions options, Season season, Weather weather, TimeSpan offset) : this(null, options)
+    
+    public LocalWorld(IPokemonServerOptions options, ILocalWorld? world, Season season, Weather weather, TimeSpan offset)
     {
-        _isGlobalWorld = false;
+        _options = options;
+        _world = world;
         
         _targetSeason = season;
         _targetWeather = weather;
         _targetOffset = offset;
+        
+        _timer = new Timer(TimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
     public WorldDataPacket GetRawPacket()
@@ -72,7 +66,7 @@ internal sealed partial class LocalWorld : ILocalWorld
 
     private void TimerCallback(object? state)
     {
-        if (_isGlobalWorld)
+        if (_world == null)
         {
             _targetSeason = _options.WorldOptions.Season;
             _targetWeather = _options.WorldOptions.Weather;
@@ -89,11 +83,6 @@ internal sealed partial class LocalWorld : ILocalWorld
         if (_lastWorldUpdate.Hour != currentTime.Hour)
         {
             GenerateNewWeather(_targetWeather);
-
-            if (_isGlobalWorld)
-            {
-                PrintCurrentWorld(Enum.GetName(CurrentSeason) ?? string.Empty, Enum.GetName(CurrentWeather) ?? string.Empty, CurrentTime.DateTime);
-            }
         }
 
         _lastWorldUpdate = currentTime;
@@ -105,6 +94,12 @@ internal sealed partial class LocalWorld : ILocalWorld
         {
             case Season.Default:
             {
+                if (_world != null)
+                {
+                    CurrentSeason = _world.CurrentSeason;
+                    return;
+                }
+                
                 CurrentSeason = (WeekOfYear % 4) switch
                 {
                     0 => Season.Fall,
@@ -142,6 +137,12 @@ internal sealed partial class LocalWorld : ILocalWorld
         {
             case Weather.Default:
             {
+                if (_world != null)
+                {
+                    CurrentWeather = _world.CurrentWeather;
+                    return;
+                }
+                
                 var random = Random.Shared.Next(0, 100);
 
                 CurrentWeather = CurrentSeason switch
@@ -199,10 +200,7 @@ internal sealed partial class LocalWorld : ILocalWorld
             }
         }
     }
-
-    [LoggerMessage(LogLevel.Information, "[World] Current Season: {season} | Current Weather: {weather} | Current Time: {time}")]
-    private partial void PrintCurrentWorld(string season, string weather, DateTime time);
-
+    
     public void Dispose()
     {
         _timer.Dispose();

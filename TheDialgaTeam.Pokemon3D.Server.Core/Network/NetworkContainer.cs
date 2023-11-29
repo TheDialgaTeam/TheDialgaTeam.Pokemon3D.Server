@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
@@ -102,14 +103,42 @@ public sealed partial class NetworkContainer :
                     
             // Check Server Space Limit.
             var playerCount = await _mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
-
+            
             if (playerCount >= _options.ServerOptions.MaxPlayers)
             {
-                var reason = _options.GetLocalizedString("SERVER_IS_FULL");
+                var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerIsFull);
                 await notification.Network.KickAsync(reason).ConfigureAwait(false);
-                PrintServerMessage(_options.GetLocalizedString("SERVER_UNABLE_TO_JOIN", gameDataPacket, reason));
+                PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
                 return;
             }
+            
+            // Check Profile Type.
+            if (!_options.ServerOptions.OfflineMode && !gameDataPacket.IsGameJoltPlayer)
+            {
+                var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerOnlyAllowGameJoltProfile);
+                await notification.Network.KickAsync(reason).ConfigureAwait(false);
+                PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
+                return;
+            }
+            
+            // Check GameMode
+            if (_options.ServerOptions.AllowAnyGameModes && _options.ServerOptions.BlacklistedGameModes.Contains(gameDataPacket.GameMode, new CaseInsensitiveValueComparer()))
+            {
+                var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerBlacklistedGameModes);
+                await notification.Network.KickAsync(reason).ConfigureAwait(false);
+                PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
+                return;
+            }
+
+            if (!_options.ServerOptions.AllowAnyGameModes && !_options.ServerOptions.WhitelistedGameModes.Contains(gameDataPacket.GameMode, new CaseInsensitiveValueComparer()))
+            {
+                var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerWhitelistedGameModes, string.Join(", ", _options.ServerOptions.WhitelistedGameModes));
+                await notification.Network.KickAsync(reason).ConfigureAwait(false);
+                PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
+                return;
+            }
+            
+            // If all okay, let the player join in by generating an id and providing the world.
         }
         else
         {

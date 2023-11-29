@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
 
-public interface ILocalWorldFactory
+public sealed class GameMessageFormat
 {
-    ILocalWorld CreateLocalWorld();
-    
-    ILocalWorld CreateLocalWorld(ILocalWorld world, Season season, Weather weather, TimeSpan offset);
+    public string ServerChatMessage { get; init; } = "<{0}>: {1}";
+
+    public string ServerIsFull { get; init; } = "This server is currently full of players.";
+    public string ServerOnlyAllowGameJoltProfile { get; init; } = "This server do not allow offline profile.";
+    public string ServerWhitelistedGameModes { get; init; } = "This server require you to play the following GameMode(s): {0}";
+    public string ServerBlacklistedGameModes { get; init; } = "This server do not allow this GameMode to join.";
 }

@@ -1,15 +1,17 @@
-﻿using System.Reactive;
-using System.Reactive.Linq;
+﻿using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TheDialgaTeam.Microsoft.Extensions.Logging.Action;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using Unit = System.Reactive.Unit;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Gui.ViewModels;
 
@@ -30,14 +32,14 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     [Reactive]
     private bool IsActive { get; set; }
     
-    private readonly IPokemonServerListener _pokemonServerListener;
+    private readonly IMediator _mediator;
 
     private readonly object _logToConsoleLock = new();
     private readonly StringBuilder _logEntries = new();
 
     public MainWindowViewModel()
     {
-        _pokemonServerListener = Program.ServiceProvider.GetRequiredService<IPokemonServerListener>();
+        _mediator = Program.ServiceProvider.GetRequiredService<IMediator>();
 
         var actionLoggerConfiguration = Program.ServiceProvider.GetRequiredService<ActionLoggerConfiguration>();
         actionLoggerConfiguration.RegisteredActionLogger = LogToConsole;
@@ -55,13 +57,13 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     private Task StartServer()
     {
         IsActive = true;
-        return _pokemonServerListener.StartAsync(default);
+        return _mediator.Send(new StartServer()).AsTask();
     }
 
     private Task StopServer()
     {
         IsActive = false;
-        return _pokemonServerListener.StopAsync(default);
+        return _mediator.Send(new StopServer()).AsTask();
     }
 
     private async Task Exit()

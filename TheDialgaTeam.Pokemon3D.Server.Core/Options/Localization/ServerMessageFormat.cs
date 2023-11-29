@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
 
-public interface ILocalWorldFactory
+public sealed class ServerMessageFormat
 {
-    ILocalWorld CreateLocalWorld();
-    
-    ILocalWorld CreateLocalWorld(ILocalWorld world, Season season, Weather weather, TimeSpan offset);
+    public string PlayerUnableToJoin { get; init; } = "{0} is unable to join the server with the following reason: {1}";
 }
