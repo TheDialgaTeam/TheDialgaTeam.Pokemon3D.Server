@@ -16,20 +16,20 @@ internal static class Program
         AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainOnUnhandledException;
 
         return Host.CreateDefaultBuilder(args)
-            .ConfigureServices(collection =>
+            .ConfigureServices(static collection =>
             {
                 collection.AddPokemonServer();
                 collection.AddMediator();
                 collection.AddHostedService<ConsoleService>();
             })
-            .ConfigureLogging(builder =>
+            .ConfigureLogging(static builder =>
             {
-                builder.AddAnsiConsole(options =>
+                builder.AddAnsiConsole(static options =>
                 {
-                    options.SetDefaultTemplate(formattingBuilder => formattingBuilder.SetGlobal(messageFormattingBuilder => messageFormattingBuilder.SetPrefix((in LoggingTemplateEntry _) => $"{AnsiEscapeCodeConstants.DarkGrayForegroundColor}{DateTime.Now:yyyy-MM-dd HH:mm:ss}{AnsiEscapeCodeConstants.Reset} ")));
+                    options.SetDefaultTemplate(static formattingBuilder => formattingBuilder.SetGlobal(static messageFormattingBuilder => messageFormattingBuilder.SetPrefix(static (in LoggingTemplateEntry _) => $"{AnsiEscapeCodeConstants.DarkGrayForegroundColor}{DateTime.Now:yyyy-MM-dd HH:mm:ss}{AnsiEscapeCodeConstants.Reset} ")));
                 });
             })
-            .RunConsoleAsync(options => options.SuppressStatusMessages = true);
+            .RunConsoleAsync(static options => options.SuppressStatusMessages = true);
     }
     
     private static void OnCurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs eventArgs)

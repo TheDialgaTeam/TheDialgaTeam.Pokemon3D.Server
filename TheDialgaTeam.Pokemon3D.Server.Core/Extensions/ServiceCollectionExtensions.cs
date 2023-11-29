@@ -53,9 +53,7 @@ public static class ServiceCollectionExtensions
         collection.AddOptions<ChatOptions>().BindConfiguration("Server:Chat");
         collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
         collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
-        collection.AddOptions<PlayerNameDisplayFormat>().BindConfiguration("Server:Localization:PlayerNameDisplayFormat");
-        collection.AddOptions<ServerMessageFormat>().BindConfiguration("Server:Localization:ServerMessageFormat");
-        collection.AddOptions<GameMessageFormat>().BindConfiguration("Server:Localization:GameMessageFormat");
+        collection.AddOptions<LocalizationOptions>().BindConfiguration("Localization");
 
         collection.TryAddSingleton<MicrosoftOptionsProvider>();
         collection.TryAddSingleton<IPokemonServerOptions>(provider => provider.GetRequiredService<MicrosoftOptionsProvider>());

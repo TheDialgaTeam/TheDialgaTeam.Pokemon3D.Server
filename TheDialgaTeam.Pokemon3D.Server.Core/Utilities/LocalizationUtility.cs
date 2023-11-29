@@ -14,29 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Globalization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 public static class LocalizationUtility
 {
-    public static string GetLocalizedString(this IPokemonServerOptions options, Func<LocalizationOptions, string> format, params object?[] values)
+    public static string GetLocalizedString(this IPokemonServerOptions options, Func<Token, string> format, params object?[] args)
     {
-        return string.Format(format(options.LocalizationOptions), values);
+        var currentCulture = Thread.CurrentThread.CurrentCulture;
+
+        do
+        {
+            if (options.LocalizationOptions.CultureInfo.TryGetValue(currentCulture.Name, out var token))
+            {
+                return string.Format(format(token), args);
+            }
+
+            currentCulture = currentCulture.Parent;
+        } while (!currentCulture.Equals(CultureInfo.InvariantCulture));
+        
+        return string.Empty;
     }
 
-    public static string GetLocalizedString(this IPokemonServerOptions options, Func<LocalizationOptions, string> format, IPlayer player, params object?[] values)
+    public static string GetLocalizedString(this IPokemonServerOptions options, Func<Token, string> format, IPlayer player, params object?[] values)
     {
-        var playerName = player.IsGameJoltPlayer ? GetLocalizedString(options, localizationOptions => localizationOptions.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, player.Name, player.GameJoltId) : GetLocalizedString(options, localizationOptions => localizationOptions.PlayerNameDisplayFormat.OfflineNameDisplayFormat, player.Name);
+        var playerName = player.IsGameJoltPlayer ? GetLocalizedString(options, token => token.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, player.Name, player.GameJoltId) : GetLocalizedString(options, token => token.PlayerNameDisplayFormat.OfflineNameDisplayFormat, player.Name);
         return GetLocalizedString(options, format, [playerName, ..values]);
     }
     
-    public static string GetLocalizedString(this IPokemonServerOptions options, Func<LocalizationOptions, string> format, GameDataPacket packet, params object?[] values)
+    public static string GetLocalizedString(this IPokemonServerOptions options, Func<Token, string> format, GameDataPacket packet, params object?[] values)
     {
-        var playerName = packet.IsGameJoltPlayer ? GetLocalizedString(options, localizationOptions => localizationOptions.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, packet.Name, packet.GameJoltId) : GetLocalizedString(options, localizationOptions => localizationOptions.PlayerNameDisplayFormat.OfflineNameDisplayFormat, packet.Name);
+        var playerName = packet.IsGameJoltPlayer ? GetLocalizedString(options, token => token.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, packet.Name, packet.GameJoltId) : GetLocalizedString(options, token => token.PlayerNameDisplayFormat.OfflineNameDisplayFormat, packet.Name);
         return GetLocalizedString(options, format, [playerName, ..values]);
     }
 }

@@ -104,6 +104,7 @@ public sealed partial class NetworkContainer :
             // Check Server Space Limit.
             var playerCount = await _mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
             
+            /*
             if (playerCount >= _options.ServerOptions.MaxPlayers)
             {
                 var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerIsFull);
@@ -137,6 +138,7 @@ public sealed partial class NetworkContainer :
                 PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
                 return;
             }
+            */
             
             // If all okay, let the player join in by generating an id and providing the world.
         }

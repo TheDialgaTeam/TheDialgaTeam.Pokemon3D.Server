@@ -20,6 +20,7 @@ using System.Text;
 using Mediator;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
@@ -29,9 +30,9 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public sealed partial class PokemonServerListener : BackgroundService, ICommandHandler<StartServer>, ICommandHandler<StopServer>
+public sealed class PokemonServerListener : BackgroundService, ICommandHandler<StartServer>, ICommandHandler<StopServer>
 {
-    private readonly ILogger<PokemonServerListener> _logger;
+    private readonly ILogger _logger;
     private readonly IMediator _mediator;
     private readonly IPokemonServerOptions _options;
     private readonly INatDeviceUtility _natDeviceUtility;
@@ -71,10 +72,10 @@ public sealed partial class PokemonServerListener : BackgroundService, ICommandH
     {
         var networkOptions = _options.NetworkOptions;
         var serverOptions = _options.ServerOptions;
-
+        
         try
         {
-            PrintServerStarting();
+            Logger.PrintServerStarting(_logger);
 
             if (networkOptions.UseUpnp)
             {
@@ -86,26 +87,26 @@ public sealed partial class PokemonServerListener : BackgroundService, ICommandH
             _tcpListener = new TcpListener(networkOptions.BindIpEndPoint);
             _tcpListener.Start();
 
-            PrintServerStarted(networkOptions.BindIpEndPoint);
+            Logger.PrintServerStarted(_logger, networkOptions.BindIpEndPoint);
 
             if (serverOptions.OfflineMode)
             {
-                PrintServerOfflineMode();
+                Logger.PrintServerOfflineMode(_logger);
             }
 
             if (serverOptions is { AllowAnyGameModes: true, BlacklistedGameModes.Length: 0 })
             {
-                PrintServerPlayerCanJoinWithAny();
+                Logger.PrintServerPlayerCanJoinWithAny(_logger);
             }
 
             if (serverOptions is { AllowAnyGameModes: true, BlacklistedGameModes.Length: > 0 })
             {
-                PrintServerPlayerCanJoinWithAnyExcept(string.Join(", ", serverOptions.BlacklistedGameModes));
+                Logger.PrintServerPlayerCanJoinWithAnyExcept(_logger, string.Join(", ", serverOptions.BlacklistedGameModes));
             }
 
             if (!serverOptions.AllowAnyGameModes)
             {
-                PrintServerPlayerCanJoinWith(string.Join(", ", serverOptions.WhitelistedGameModes));
+                Logger.PrintServerPlayerCanJoinWith(_logger, string.Join(", ", serverOptions.WhitelistedGameModes));
             }
 
             _ = Task.Run(() => RunServerPortCheckingTask(networkOptions, serverOptions, stoppingToken), stoppingToken);
@@ -118,9 +119,9 @@ public sealed partial class PokemonServerListener : BackgroundService, ICommandH
         }
         catch (SocketException exception)
         {
-            PrintServerError(exception, exception.SocketErrorCode, exception.Message);
+            Logger.PrintServerError(_logger, exception, exception.SocketErrorCode, exception.Message);
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
         }
 
@@ -131,14 +132,14 @@ public sealed partial class PokemonServerListener : BackgroundService, ICommandH
             await _natDeviceUtility.DestroyPortMappingAsync().ConfigureAwait(false);
         }
 
-        PrintServerStopped();
+        Logger.PrintServerStopped(_logger);
     }
 
     private async Task RunServerPortCheckingTask(NetworkOptions networkOptions, ServerOptions serverOptions, CancellationToken cancellationToken)
     {
         var portToCheck = networkOptions.BindIpEndPoint.Port;
 
-        PrintRunningPortCheck(portToCheck);
+        Logger.PrintRunningPortCheck(_logger, portToCheck);
 
         try
         {
@@ -154,66 +155,30 @@ public sealed partial class PokemonServerListener : BackgroundService, ICommandH
 
                 await using var streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize);
                 streamWriter.AutoFlush = true;
-                await streamWriter.WriteLineAsync(new ServerRequestPacket().ToRawPacket().ToRawPacketString().AsMemory(), globalCancellationTokenSource.Token).ConfigureAwait(false);
+                await streamWriter.WriteLineAsync(new ServerRequestPacket("r").ToRawPacket().ToRawPacketString().AsMemory(), globalCancellationTokenSource.Token).ConfigureAwait(false);
 
                 using var streamReader = new StreamReader(tcpClient.GetStream(), Encoding.UTF8, false, tcpClient.ReceiveBufferSize);
                 var data = await streamReader.ReadLineAsync(globalCancellationTokenSource.Token).ConfigureAwait(false);
 
                 if (RawPacket.TryParse(data, out var _))
                 {
-                    PrintPublicPortIsAvailable(portToCheck, new IPEndPoint(publicIpAddress, portToCheck));
+                    Logger.PrintPublicPortIsAvailable(_logger, portToCheck, new IPEndPoint(publicIpAddress, portToCheck));
                 }
                 else
                 {
-                    PrintPublicPortIsNotAvailable(portToCheck);
+                    Logger.PrintPublicPortIsNotAvailable(_logger, portToCheck);
                 }
             }
             catch
             {
-                PrintPublicPortIsNotAvailable(portToCheck);
+                Logger.PrintPublicPortIsNotAvailable(_logger, portToCheck);
             }
         }
         catch
         {
-            PrintUnableToGetPublicIpAddress(portToCheck);
+            Logger.PrintUnableToGetPublicIpAddress(_logger, portToCheck);
         }
     }
-
-    [LoggerMessage(LogLevel.Information, "[Server] Starting Pokemon 3D Server.")]
-    private partial void PrintServerStarting();
-
-    [LoggerMessage(LogLevel.Information, "[Server] Server started listening on {ipEndpoint}.")]
-    private partial void PrintServerStarted(IPEndPoint ipEndPoint);
-
-    [LoggerMessage(LogLevel.Information, "[Server] Players with offline profile can join the server.")]
-    private partial void PrintServerOfflineMode();
-
-    [LoggerMessage(LogLevel.Information, "[Server] Players can join with any GameMode(s).")]
-    private partial void PrintServerPlayerCanJoinWithAny();
-
-    [LoggerMessage(LogLevel.Information, "[Server] Players can join with any GameModes except the following GameMode(s): {gameModes}")]
-    private partial void PrintServerPlayerCanJoinWithAnyExcept(string gameModes);
-
-    [LoggerMessage(LogLevel.Information, "[Server] Players can join with the following GameMode(s): {gameModes}")]
-    private partial void PrintServerPlayerCanJoinWith(string gameModes);
-
-    [LoggerMessage(LogLevel.Information, "[Server] Checking port {port} is open...")]
-    private partial void PrintRunningPortCheck(int port);
-
-    [LoggerMessage(LogLevel.Warning, "[Server] Unable to get public IP Address. Ensure that you have open the port {port} for players to join.")]
-    private partial void PrintUnableToGetPublicIpAddress(int port);
-
-    [LoggerMessage(LogLevel.Information, "[Server] Port {port} is opened. Players will be able to join via {ipEndpoint} (Public).")]
-    private partial void PrintPublicPortIsAvailable(int port, IPEndPoint ipEndPoint);
-
-    [LoggerMessage(LogLevel.Information, "[Server] Port {port} is not opened. Players will not be able to join.")]
-    private partial void PrintPublicPortIsNotAvailable(int port);
-
-    [LoggerMessage(LogLevel.Error, "[Server] Error ({socketError}): {message}")]
-    private partial void PrintServerError(Exception exception, SocketError socketError, string message);
-
-    [LoggerMessage(LogLevel.Information, "[Server] Stopped listening for new players.")]
-    private partial void PrintServerStopped();
 
     public override void Dispose()
     {

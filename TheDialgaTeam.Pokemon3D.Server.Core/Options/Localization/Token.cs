@@ -15,14 +15,23 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Diagnostics.CodeAnalysis;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
 
-public sealed class LocalizationOptions
+public sealed class Token
 {
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType = typeof(Token);
+    private static Type s_keepType = typeof(PlayerNameDisplayFormat);
+    
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+    private static Type s_keepType2 = typeof(ServerMessageFormat);
+    
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+    private static Type s_keepType3 = typeof(GameMessageFormat);
 
-    public Dictionary<string, Token> CultureInfo { get; init; } = new() { { "en", new Token() } };
+    public PlayerNameDisplayFormat PlayerNameDisplayFormat { get; init; } = new();
+    
+    public ServerMessageFormat ServerMessageFormat { get; init; } = new();
+    
+    public GameMessageFormat GameMessageFormat { get; init; } = new();
 }

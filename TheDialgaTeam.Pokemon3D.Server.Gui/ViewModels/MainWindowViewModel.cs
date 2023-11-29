@@ -1,7 +1,6 @@
 ﻿using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Mediator;
@@ -10,7 +9,6 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TheDialgaTeam.Microsoft.Extensions.Logging.Action;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using Unit = System.Reactive.Unit;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Gui.ViewModels;

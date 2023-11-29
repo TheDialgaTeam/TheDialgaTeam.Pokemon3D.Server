@@ -18,7 +18,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct ServerRequestPacket(string Data = "r") : IPacket
+public readonly record struct ServerRequestPacket(string Data) : IPacket
 {
     public ServerRequestPacket(RawPacket rawPacket) : this(rawPacket.DataItems[0])
     {
