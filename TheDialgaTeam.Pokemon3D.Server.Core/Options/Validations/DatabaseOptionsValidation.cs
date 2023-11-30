@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.EntityFrameworkCore;
-using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using Microsoft.Extensions.Options;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
 
-public sealed class SqliteDatabaseContext : DbContext
+internal sealed class DatabaseOptionsValidation : IValidateOptions<DatabaseOptions>
 {
-    public DbSet<Blacklist> BlacklistAccounts { get; set; } = null!;
-    
-    public DbSet<Whitelist> WhitelistAccounts { get; set; } = null!;
-    
-    public SqliteDatabaseContext(DbContextOptions options) : base(options)
+    public ValidateOptionsResult Validate(string? name, DatabaseOptions options)
     {
+        if (!DatabaseOptions.SupportedProviders.Any(s => string.Equals(s, options.UseProvider, StringComparison.OrdinalIgnoreCase)))
+        {
+            return ValidateOptionsResult.Fail($"[Server:Database:{nameof(options.UseProvider)}] Unsupported database provider.");
+        }
+        
+        return ValidateOptionsResult.Success;
     }
 }

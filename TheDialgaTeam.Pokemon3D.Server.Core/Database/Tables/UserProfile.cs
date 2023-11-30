@@ -16,15 +16,9 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
-public sealed class Blacklist : BaseTable
+public sealed class UserProfile : BaseTable
 {
-    public UserProfile User { get; init; }
-    
-    public string Reason { get; set; } = string.Empty;
-    
-    public required DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
-    
-    public required TimeSpan Duration { get; set; } = TimeSpan.MaxValue;
+    public string GameJoltId { get; set; } = string.Empty;
 
-    public bool IsExpired => DateTimeOffset.Now > StartTime.Add(Duration);
+    public string Name { get; set; } = string.Empty;
 }

@@ -16,7 +16,7 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
-public class Whitelist
+public class Whitelist : BaseTable
 {
-    public string GameJoltId { get; set; } = string.Empty;
+    public UserProfile User { get; init; }
 }

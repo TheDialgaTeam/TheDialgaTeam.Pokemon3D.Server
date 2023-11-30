@@ -18,20 +18,20 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
 
-public sealed class Token
+public sealed class LocalizedToken
 {
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     private static Type s_keepType = typeof(PlayerNameDisplayFormat);
     
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType2 = typeof(ServerMessageFormat);
+    private static Type s_keepType2 = typeof(ConsoleMessageFormat);
     
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     private static Type s_keepType3 = typeof(GameMessageFormat);
 
     public PlayerNameDisplayFormat PlayerNameDisplayFormat { get; init; } = new();
     
-    public ServerMessageFormat ServerMessageFormat { get; init; } = new();
+    public ConsoleMessageFormat ConsoleMessageFormat { get; init; } = new();
     
     public GameMessageFormat GameMessageFormat { get; init; } = new();
 }

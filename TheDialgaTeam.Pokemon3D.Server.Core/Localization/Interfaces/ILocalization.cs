@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
 
-public sealed class Blacklist : BaseTable
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+
+public interface ILocalization
 {
-    public UserProfile User { get; init; }
-    
-    public string Reason { get; set; } = string.Empty;
-    
-    public required DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
-    
-    public required TimeSpan Duration { get; set; } = TimeSpan.MaxValue;
+    string GetLocalizedString(Func<LocalizedToken, string> token, params object?[] args);
 
-    public bool IsExpired => DateTimeOffset.Now > StartTime.Add(Duration);
+    string GetLocalizedString(Func<LocalizedToken, string> token, GameDataPacket packet, params object?[] args);
 }

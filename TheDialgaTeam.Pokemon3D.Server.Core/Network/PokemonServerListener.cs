@@ -20,6 +20,7 @@ using System.Text;
 using Mediator;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
@@ -35,6 +36,7 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
     private readonly ILogger _logger;
     private readonly IMediator _mediator;
     private readonly IPokemonServerOptions _options;
+    private readonly ILocalization _localization;
     private readonly INatDeviceUtility _natDeviceUtility;
     private readonly IPokemonServerClientFactory _pokemonServerClientFactory;
 
@@ -46,12 +48,14 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
         ILogger<PokemonServerListener> logger,
         IMediator mediator,
         IPokemonServerOptions options,
+        ILocalization localization,
         INatDeviceUtility natDeviceUtility,
         IPokemonServerClientFactory pokemonServerClientFactory)
     {
         _logger = logger;
         _mediator = mediator;
         _options = options;
+        _localization = localization;
         _natDeviceUtility = natDeviceUtility;
         _pokemonServerClientFactory = pokemonServerClientFactory;
     }
@@ -75,7 +79,7 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
         
         try
         {
-            Logger.PrintServerStarting(_logger);
+            _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerIsStarting));
 
             if (networkOptions.UseUpnp)
             {
@@ -86,27 +90,27 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
 
             _tcpListener = new TcpListener(networkOptions.BindIpEndPoint);
             _tcpListener.Start();
-
-            Logger.PrintServerStarted(_logger, networkOptions.BindIpEndPoint);
-
+            
+            _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerStartedListening, networkOptions.BindIpEndPoint));
+            
             if (serverOptions.OfflineMode)
             {
-                Logger.PrintServerOfflineMode(_logger);
+                _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerAllowOfflineProfile));
             }
 
             if (serverOptions is { AllowAnyGameModes: true, BlacklistedGameModes.Length: 0 })
             {
-                Logger.PrintServerPlayerCanJoinWithAny(_logger);
+                _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerAllowAnyGameModes));
             }
 
             if (serverOptions is { AllowAnyGameModes: true, BlacklistedGameModes.Length: > 0 })
             {
-                Logger.PrintServerPlayerCanJoinWithAnyExcept(_logger, string.Join(", ", serverOptions.BlacklistedGameModes));
+                _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerAllowAnyGameModesExcept, string.Join(", ", serverOptions.BlacklistedGameModes)));
             }
 
             if (!serverOptions.AllowAnyGameModes)
             {
-                Logger.PrintServerPlayerCanJoinWith(_logger, string.Join(", ", serverOptions.WhitelistedGameModes));
+                _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerAllowOnlyGameModes, string.Join(", ", serverOptions.WhitelistedGameModes)));
             }
 
             _ = Task.Run(() => RunServerPortCheckingTask(networkOptions, serverOptions, stoppingToken), stoppingToken);
@@ -119,7 +123,7 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
         }
         catch (SocketException exception)
         {
-            Logger.PrintServerError(_logger, exception, exception.SocketErrorCode, exception.Message);
+            _logger.PrintError(exception, _localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerError, exception.Message));
         }
         catch (OperationCanceledException)
         {
@@ -132,15 +136,15 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
             await _natDeviceUtility.DestroyPortMappingAsync().ConfigureAwait(false);
         }
 
-        Logger.PrintServerStopped(_logger);
+        _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerStoppedListening));
     }
 
     private async Task RunServerPortCheckingTask(NetworkOptions networkOptions, ServerOptions serverOptions, CancellationToken cancellationToken)
     {
         var portToCheck = networkOptions.BindIpEndPoint.Port;
 
-        Logger.PrintRunningPortCheck(_logger, portToCheck);
-
+        _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerRunningPortCheck, portToCheck));
+        
         try
         {
             var publicIpAddress = IPAddress.Parse(await _httpClient.GetStringAsync("https://api.ipify.org", cancellationToken).ConfigureAwait(false));
@@ -162,21 +166,21 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
 
                 if (RawPacket.TryParse(data, out var _))
                 {
-                    Logger.PrintPublicPortIsAvailable(_logger, portToCheck, new IPEndPoint(publicIpAddress, portToCheck));
+                    _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerPortIsOpened, portToCheck, new IPEndPoint(publicIpAddress, portToCheck)));
                 }
                 else
                 {
-                    Logger.PrintPublicPortIsNotAvailable(_logger, portToCheck);
+                    _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerPortIsClosed, portToCheck));
                 }
             }
             catch
             {
-                Logger.PrintPublicPortIsNotAvailable(_logger, portToCheck);
+                _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerPortIsClosed, portToCheck));
             }
         }
         catch
         {
-            Logger.PrintUnableToGetPublicIpAddress(_logger, portToCheck);
+            _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.ServerPortCheckFailed, portToCheck));
         }
     }
 

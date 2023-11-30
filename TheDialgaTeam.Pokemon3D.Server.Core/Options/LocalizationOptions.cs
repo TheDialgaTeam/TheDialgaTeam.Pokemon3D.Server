@@ -22,7 +22,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 public sealed class LocalizationOptions
 {
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType = typeof(Token);
+    private static Type s_keepType = typeof(LocalizedToken);
 
-    public Dictionary<string, Token> CultureInfo { get; init; } = new() { { "en", new Token() } };
+    public Dictionary<string, LocalizedToken> CultureInfo { get; init; } = new() { { "en", new LocalizedToken() } };
 }

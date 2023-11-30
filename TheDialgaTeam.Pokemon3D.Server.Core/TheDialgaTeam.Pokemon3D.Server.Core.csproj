@@ -4,6 +4,7 @@
     
     <PropertyGroup>
         <IsPublishable>false</IsPublishable>
+        <IsTrimmable>true</IsTrimmable>
     </PropertyGroup>
 
     <ItemGroup>

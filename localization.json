@@ -1,0 +1,18 @@
+﻿{
+  "Localization": {
+    "CultureInfo": {
+      "en": {
+        "PlayerNameDisplayFormat": {
+          "GameJoltNameDisplayFormat": "{0} ({1})",
+          "OfflineNameDisplayFormat": "{0}"
+        },
+        
+        "ConsoleMessageFormat": {
+        },
+        
+        "GameMessageFormat": {
+        }
+      }
+    }
+  }
+}

@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using System.Diagnostics.CodeAnalysis;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Database;
 
-public sealed class Blacklist : BaseTable
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
+
+public sealed class DatabaseOptions
 {
-    public UserProfile User { get; init; }
-    
-    public string Reason { get; set; } = string.Empty;
-    
-    public required DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
-    
-    public required TimeSpan Duration { get; set; } = TimeSpan.MaxValue;
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+    private static Type s_keepType = typeof(SqliteOptions);
 
-    public bool IsExpired => DateTimeOffset.Now > StartTime.Add(Duration);
+    public static readonly string[] SupportedProviders = { nameof(Sqlite) };
+    
+    public string UseProvider { get; init; } = "Sqlite";
+
+    public SqliteOptions Sqlite { get; init; } = new();
 }

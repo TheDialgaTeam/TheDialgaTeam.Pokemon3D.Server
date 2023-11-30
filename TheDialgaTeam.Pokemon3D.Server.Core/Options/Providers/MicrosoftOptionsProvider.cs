@@ -21,9 +21,11 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Providers;
 
 internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposable
 {
-    public NetworkOptions NetworkOptions { get; private set; }
-
     public ServerOptions ServerOptions { get; private set; }
+    
+    public NetworkOptions NetworkOptions { get; private set; }
+    
+    public DatabaseOptions DatabaseOptions { get; private set; }
 
     public WorldOptions WorldOptions { get; private set; }
 
@@ -38,16 +40,18 @@ internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposa
     private readonly IDisposable?[] _disposables;
 
     public MicrosoftOptionsProvider(
-        IOptionsMonitor<NetworkOptions> networkOptions,
         IOptionsMonitor<ServerOptions> serverOptions,
+        IOptionsMonitor<NetworkOptions> networkOptions,
+        IOptionsMonitor<DatabaseOptions> dataBaseOptions,
         IOptionsMonitor<WorldOptions> worldOptions,
         IOptionsMonitor<ChatOptions> chatOptions,
         IOptionsMonitor<PvPOptions> pvpOptions,
         IOptionsMonitor<TradeOptions> tradeOptions,
         IOptionsMonitor<LocalizationOptions> localizationOptions)
     {
-        NetworkOptions = networkOptions.CurrentValue;
         ServerOptions = serverOptions.CurrentValue;
+        NetworkOptions = networkOptions.CurrentValue;
+        DatabaseOptions = dataBaseOptions.CurrentValue;
         WorldOptions = worldOptions.CurrentValue;
         ChatOptions = chatOptions.CurrentValue;
         PvpOptions = pvpOptions.CurrentValue;
@@ -56,8 +60,9 @@ internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposa
 
         _disposables = new[]
         {
-            networkOptions.OnChange(options => NetworkOptions = options),
             serverOptions.OnChange(options => ServerOptions = options),
+            networkOptions.OnChange(options => NetworkOptions = options),
+            dataBaseOptions.OnChange(options => DatabaseOptions = options),
             worldOptions.OnChange(options => WorldOptions = options),
             chatOptions.OnChange(options => ChatOptions = options),
             pvpOptions.OnChange(options => PvpOptions = options),

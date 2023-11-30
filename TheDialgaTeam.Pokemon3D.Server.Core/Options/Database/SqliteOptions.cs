@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
+using Microsoft.Data.Sqlite;
 
-public sealed class ServerMessageFormat
-{
-    public string PlayerUnableToJoin { get; init; } = "{0} is unable to join the server with the following reason: {1}";
-}
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Database;
+
+public sealed class SqliteOptions : SqliteConnectionStringBuilder;

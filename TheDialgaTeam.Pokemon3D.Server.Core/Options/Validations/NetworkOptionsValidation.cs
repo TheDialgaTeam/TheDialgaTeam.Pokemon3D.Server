@@ -28,12 +28,12 @@ internal sealed class NetworkOptionsValidation : IValidateOptions<NetworkOptions
                 .Append(IPAddress.Loopback)
                 .Any(address => options.BindIpEndPoint.Address.Equals(address)))
         {
-            return ValidateOptionsResult.Fail($"[Network:{nameof(options.BindIpEndPoint)}] Invalid IP Address given.");
+            return ValidateOptionsResult.Fail($"[Server:Network:{nameof(options.BindIpEndPoint)}] Invalid IP Address given.");
         }
 
         if (options.UpnpDiscoveryTime.TotalSeconds < 1)
         {
-            return ValidateOptionsResult.Fail($"[Network:{nameof(options.UpnpDiscoveryTime)}] Upnp Discovery Time require at least 1 second.");
+            return ValidateOptionsResult.Fail($"[Server:Network:{nameof(options.UpnpDiscoveryTime)}] Upnp Discovery Time require at least 1 second.");
         }
 
         return ValidateOptionsResult.Success;

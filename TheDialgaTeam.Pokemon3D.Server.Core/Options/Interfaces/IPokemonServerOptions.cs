@@ -18,9 +18,11 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 public interface IPokemonServerOptions
 {
+    ServerOptions ServerOptions { get; }
+    
     NetworkOptions NetworkOptions { get; }
     
-    ServerOptions ServerOptions { get; }
+    DatabaseOptions DatabaseOptions { get; }
     
     WorldOptions WorldOptions { get; }
     

@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
-public sealed class Blacklist : BaseTable
+public abstract class BaseTable
 {
-    public UserProfile User { get; init; }
-    
-    public string Reason { get; set; } = string.Empty;
-    
-    public required DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
-    
-    public required TimeSpan Duration { get; set; } = TimeSpan.MaxValue;
-
-    public bool IsExpired => DateTimeOffset.Now > StartTime.Add(Duration);
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; private set; }
 }
