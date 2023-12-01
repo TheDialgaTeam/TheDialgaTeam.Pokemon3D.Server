@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
+using System.Diagnostics.CodeAnalysis;
+
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 public sealed class ConsoleMessageFormat
 {
@@ -47,7 +49,7 @@ public sealed class ConsoleMessageFormat
     #endregion
     
     #region NatDeviceUtility
-
+    
     public string NatSearchForUpnpDevices { get; init; } = "[NAT] Searching for UPnP devices. This will take {0:F0} seconds.";
 
     public string NatFoundUpnpDevices { get; init; } = "[NAT] Found {0} UPnP devices.";
@@ -56,9 +58,15 @@ public sealed class ConsoleMessageFormat
 
     #endregion
 
-    #region NoCategory
+    #region NetworkContainer
 
     public string PlayerUnableToJoin { get; init; } = "[Server] {0} is unable to join the server with the following reason: {1}";
+
+    #endregion
+
+    #region World
+
+    public string GlobalWorldStatus { get; init; } = "[World] Current Season: {0} | Current Weather: {1} | Current Time: {2}";
 
     #endregion
 }

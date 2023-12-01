@@ -23,7 +23,7 @@ This is an application which allows players to host a [Pokemon 3D](https://pokem
 
 ### Built With
 
-* [dotnet 7.0](https://dotnet.microsoft.com/download/dotnet/7.0)
+* [dotnet 8.0 - SDK 8.0.*](https://dotnet.microsoft.com/download/dotnet/8.0)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

@@ -15,14 +15,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Diagnostics.CodeAnalysis;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed class LocalizationOptions
 {
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType = typeof(LocalizedToken);
+    private static Type s_keepType = typeof(LocalizedString);
 
-    public Dictionary<string, LocalizedToken> CultureInfo { get; init; } = new() { { "en", new LocalizedToken() } };
+    public Dictionary<string, LocalizedString> CultureInfo { get; init; } = new() { { "en", new LocalizedString() } };
 }

@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public sealed class PlayerNameDisplayFormat
-{
-    public string GameJoltNameDisplayFormat { get; init; } = "{0} ({1})";
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
 
-    public string OfflineNameDisplayFormat { get; init; } = "{0}";
-}
+public record GetServerInfoData : IQuery<ServerInfoDataPacket>;

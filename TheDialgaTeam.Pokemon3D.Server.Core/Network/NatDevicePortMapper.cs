@@ -18,27 +18,26 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using Mono.Nat;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed class NatDeviceUtility : INatDeviceUtility
+internal sealed class NatDevicePortMapper : INatDevicePortMapper
 {
-    private readonly ILogger _logger;
     private readonly IPokemonServerOptions _options;
-    private readonly ILocalization _localization;
+    private readonly ILogger _logger;
+    private readonly IStringLocalizer _stringLocalizer;
 
     private INatDevice[] _natDevices = Array.Empty<INatDevice>();
     private IPEndPoint _targetEndPoint;
     
-    public NatDeviceUtility(ILogger<NatDeviceUtility> logger, IPokemonServerOptions options, ILocalization localization)
+    public NatDevicePortMapper(IPokemonServerOptions options, ILogger<NatDevicePortMapper> logger, IStringLocalizer stringLocalizer)
     {
-        _logger = logger;
         _options = options;
-        _localization = localization;
-        _targetEndPoint = options.NetworkOptions.BindIpEndPoint;
+        _logger = logger;
+        _stringLocalizer = stringLocalizer;
+        _targetEndPoint = IPEndPoint.Parse(options.NetworkOptions.BindingInformation);
     }
 
     private static async Task<INatDevice[]> DiscoverNatDevicesAsync(CancellationToken cancellationToken)
@@ -68,16 +67,16 @@ internal sealed class NatDeviceUtility : INatDeviceUtility
 
     public async Task CreatePortMappingAsync(CancellationToken cancellationToken = default)
     {
-        _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.NatSearchForUpnpDevices, _options.NetworkOptions.UpnpDiscoveryTime.TotalSeconds));
+        _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.NatSearchForUpnpDevices, _options.NetworkOptions.UpnpDiscoveryTime.TotalSeconds]);
         
         using var upnpCancellationTokenSource = new CancellationTokenSource(_options.NetworkOptions.UpnpDiscoveryTime);
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, upnpCancellationTokenSource.Token);
 
         _natDevices = await DiscoverNatDevicesAsync(linkedCancellationTokenSource.Token).ConfigureAwait(false);
         
-        _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.NatFoundUpnpDevices, _natDevices.Length));
+        _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.NatFoundUpnpDevices, _natDevices.Length]);
 
-        _targetEndPoint = _options.NetworkOptions.BindIpEndPoint;
+        _targetEndPoint = IPEndPoint.Parse(_options.NetworkOptions.BindingInformation);
 
         foreach (var natDevice in _natDevices)
         {
@@ -107,7 +106,7 @@ internal sealed class NatDeviceUtility : INatDeviceUtility
 
             await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, _targetEndPoint.Port, _targetEndPoint.Port)).ConfigureAwait(false);
             
-            _logger.Print(_localization.GetLocalizedString(token => token.ConsoleMessageFormat.NatNatCreatedUpnpDeviceMapping, natDevice.DeviceEndpoint.Address));
+            _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.NatNatCreatedUpnpDeviceMapping, natDevice.DeviceEndpoint.Address]);
         }
     }
 

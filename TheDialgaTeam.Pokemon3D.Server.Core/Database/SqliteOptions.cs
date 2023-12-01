@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using Microsoft.Data.Sqlite;
 
-public interface INatDeviceUtility
-{
-    Task CreatePortMappingAsync(CancellationToken cancellationToken = default);
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
-    Task DestroyPortMappingAsync();
-}
+public sealed class SqliteOptions : SqliteConnectionStringBuilder;

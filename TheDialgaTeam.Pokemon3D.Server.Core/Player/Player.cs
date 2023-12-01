@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
@@ -39,12 +40,21 @@ internal sealed class Player : IPlayer
     public string PokemonSkin => _gameDataPacket.PokemonSkin;
     public int PokemonFacing => _gameDataPacket.PokemonFacing;
 
-    public string DisplayStatus => _gameDataPacket.IsGameJoltPlayer ? $"{Id}: {_gameDataPacket.Name} ({_gameDataPacket.GameJoltId}) - {_gameDataPacket.BusyType}" : $"{Id}: {_gameDataPacket.Name} - {_gameDataPacket.BusyType}";
+    public string DisplayName => _gameDataPacket.IsGameJoltPlayer ? 
+        _stringLocalizer[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, Name, GameJoltId] : 
+        _stringLocalizer[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, Name];
+    
+    public string DisplayStatus => _gameDataPacket.IsGameJoltPlayer ? 
+        $"{Id}: {_gameDataPacket.Name} ({_gameDataPacket.GameJoltId}) - {_gameDataPacket.BusyType}" : 
+        $"{Id}: {_gameDataPacket.Name} - {_gameDataPacket.BusyType}";
 
+    private readonly IStringLocalizer _stringLocalizer;
     private GameDataPacket _gameDataPacket;
 
-    public Player(int id, GameDataPacket gameDataPacket)
+    public Player(IStringLocalizer stringLocalizer, int id, GameDataPacket gameDataPacket)
     {
+        _stringLocalizer = stringLocalizer;
+        
         Id = id;
         _gameDataPacket = gameDataPacket with { Origin = id };
     }

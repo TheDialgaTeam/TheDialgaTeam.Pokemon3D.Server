@@ -28,7 +28,6 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Converters;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Providers;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
@@ -45,15 +44,13 @@ public static class HostBuilderExtensions
     [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
     public static IHostBuilder ConfigurePokemonServer(this IHostBuilder hostBuilder)
     {
-        TypeDescriptor.AddAttributes(typeof(IPEndPoint), new TypeConverterAttribute(typeof(IPEndPointConverter)));
-
         return hostBuilder.ConfigureServices(collection =>
         {
-            collection.TryAddSingleton<INatDeviceUtility, NatDeviceUtility>();
+            collection.TryAddSingleton<INatDevicePortMapper, NatDevicePortMapper>();
             collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
             collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
             collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();
-            collection.TryAddSingleton<ILocalization, LocalizationProvider>();
+            collection.TryAddSingleton<IStringLocalizer, OptionsStringLocalizer>();
             
             collection.AddOptions<ServerOptions>().BindConfiguration("Server");
             collection.TryAddSingleton<ServerOptionsValidation>();

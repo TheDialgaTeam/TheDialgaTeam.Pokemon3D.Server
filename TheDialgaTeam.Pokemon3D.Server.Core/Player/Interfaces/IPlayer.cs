@@ -23,34 +23,24 @@ public interface IPlayer
     int Id { get; }
     
     string GameMode { get; }
-    
     bool IsGameJoltPlayer { get; }
-    
     string GameJoltId { get; }
-    
     string NumberDecimalSeparator { get; }
-    
     string Name { get; }
-    
     string MapFile { get; }
-    
     Position PlayerPosition { get; }
-    
     int PlayerFacing { get; }
-    
     bool IsMoving { get; }
-    
     string PlayerSkin { get; }
-    
     BusyType BusyType { get; }
-    
     bool PokemonVisible { get; }
-    
     Position PokemonPosition { get; }
-    
     string PokemonSkin { get; }
-    
     int PokemonFacing { get; }
+    
+    string DisplayName { get; }
+    
+    string DisplayStatus { get; }
 
     void ApplyGameData(GameDataPacket gameDataPacket);
 

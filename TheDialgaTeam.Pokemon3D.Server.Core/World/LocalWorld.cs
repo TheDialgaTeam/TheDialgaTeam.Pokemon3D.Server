@@ -17,8 +17,8 @@
 using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
@@ -28,11 +28,12 @@ internal sealed class LocalWorld : ILocalWorld
 
     public Weather CurrentWeather { get; private set; } = Weather.Clear;
 
-    public DateTimeOffset CurrentTime => DateTimeOffset.UtcNow.Add(_targetOffset);
+    public DateTime CurrentTime => DateTimeOffset.UtcNow.Add(_targetOffset).DateTime;
     
     private int WeekOfYear => (CurrentTime.DayOfYear - (CurrentTime.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
     
     private readonly IPokemonServerOptions _options;
+    private readonly IMediator _mediator;
     private readonly ILocalWorld? _world;
     
     private Season _targetSeason;
@@ -43,13 +44,14 @@ internal sealed class LocalWorld : ILocalWorld
 
     private readonly Timer _timer;
 
-    public LocalWorld(IPokemonServerOptions options) : this(options, null, options.WorldOptions.Season, options.WorldOptions.Weather, options.WorldOptions.TimeOffset)
+    public LocalWorld(IPokemonServerOptions options, IMediator mediator) : this(options, mediator, null, options.WorldOptions.Season, options.WorldOptions.Weather, options.WorldOptions.TimeOffset)
     {
     }
     
-    public LocalWorld(IPokemonServerOptions options, ILocalWorld? world, Season season, Weather weather, TimeSpan offset)
+    public LocalWorld(IPokemonServerOptions options, IMediator mediator, ILocalWorld? world, Season season, Weather weather, TimeSpan offset)
     {
         _options = options;
+        _mediator = mediator;
         _world = world;
         
         _targetSeason = season;
@@ -61,7 +63,7 @@ internal sealed class LocalWorld : ILocalWorld
 
     public WorldDataPacket GetRawPacket()
     {
-        return new WorldDataPacket(CurrentSeason, CurrentWeather, TimeOnly.FromDateTime(CurrentTime.DateTime));
+        return new WorldDataPacket(CurrentSeason, CurrentWeather, TimeOnly.FromDateTime(CurrentTime));
     }
 
     private void TimerCallback(object? state)
@@ -74,18 +76,26 @@ internal sealed class LocalWorld : ILocalWorld
         }
         
         var currentTime = CurrentTime;
+        var generatedNewWorld = false;
 
         if (_lastWorldUpdate.Day != currentTime.Day)
         {
             GenerateNewSeason(_targetSeason);
+            generatedNewWorld = true;
         }
 
         if (_lastWorldUpdate.Hour != currentTime.Hour)
         {
             GenerateNewWeather(_targetWeather);
+            generatedNewWorld = true;
         }
 
         _lastWorldUpdate = currentTime;
+
+        if (generatedNewWorld)
+        {
+            _mediator.Publish(new WorldUpdate(this)).AsTask();
+        }
     }
 
     private void GenerateNewSeason(Season targetSeason)

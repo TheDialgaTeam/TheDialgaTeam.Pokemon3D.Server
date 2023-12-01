@@ -35,9 +35,9 @@ public static class Program
     private static IHost CreateHost(string[] args)
     {
         return Host.CreateDefaultBuilder(args)
-            .ConfigureServices(static collection =>
+            .ConfigurePokemonServer()
+            .ConfigureServices(static collection => 
             {
-                collection.AddPokemonServer();
                 collection.AddMediator();
             })
             .ConfigureLogging(static builder =>

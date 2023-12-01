@@ -16,35 +16,59 @@
 
 using System.Collections.Concurrent;
 using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-public sealed class PlayerContainer : 
+public sealed class PlayerContainer :
     IQueryHandler<GetPlayerCount, int>,
-    ICommandHandler<CreateNewPlayer>
+    IQueryHandler<GetPlayerById, IPlayer>,
+    IQueryHandler<GetServerInfoData, ServerInfoDataPacket>,
+    ICommandHandler<CreateNewPlayer, IPlayer>
 {
-    private readonly List<IPlayer> _players = new();
-    private readonly object _playerLock = new();
+    private readonly IPokemonServerOptions _options;
+    private readonly IPlayerFactory _playerFactory;
+    private readonly ConcurrentDictionary<IPokemonServerClient, IPlayer> _players = new();
 
     private int _nextRunningId;
     private readonly ConcurrentQueue<int> _runningIdQueue = new();
-    
-    public ValueTask<int> Handle(GetPlayerCount query, CancellationToken cancellationToken)
+
+    public PlayerContainer(IPokemonServerOptions options, IPlayerFactory playerFactory)
     {
-        lock (_playerLock)
-        {
-            return ValueTask.FromResult(_players.Count);
-        }
+        _options = options;
+        _playerFactory = playerFactory;
     }
 
-    public ValueTask<Unit> Handle(CreateNewPlayer command, CancellationToken cancellationToken)
+    public ValueTask<int> Handle(GetPlayerCount query, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return ValueTask.FromResult(_players.Count);
     }
-    
+
+    public ValueTask<IPlayer> Handle(GetPlayerById query, CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(_players.Values.Single(player => player.Id == query.Id));
+    }
+
+    public ValueTask<ServerInfoDataPacket> Handle(GetServerInfoData query, CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(new ServerInfoDataPacket(
+            _players.Count,
+            _options.ServerOptions.MaxPlayers,
+            _options.ServerOptions.ServerName,
+            _options.ServerOptions.ServerDescription,
+            _players.Values.Select(player => player.DisplayName).ToArray()));
+    }
+
+    public ValueTask<IPlayer> Handle(CreateNewPlayer command, CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(_players.GetOrAdd(command.Client, _playerFactory.CreatePlayer(GetNextRunningId(), command.GameDataPacket)));
+    }
+
     private int GetNextRunningId()
     {
         return _runningIdQueue.TryDequeue(out var id) ? id : Interlocked.Increment(ref _nextRunningId);

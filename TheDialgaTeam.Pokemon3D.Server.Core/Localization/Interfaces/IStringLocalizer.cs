@@ -14,21 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Logging;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 
-public static partial class Logger
+public interface IStringLocalizer
 {
-    [LoggerMessage(LogLevel.Information, "{message}")]
-    public static partial void Print(this ILogger logger, string message);
+    string this[Func<LocalizedString, string> localizedString] { get; }
     
-    [LoggerMessage(LogLevel.Debug, "{message}")]
-    public static partial void PrintDebug(this ILogger logger, string message);
+    string this[Func<LocalizedString, string> localizedString, params object?[] args] { get; }
     
-    [LoggerMessage(LogLevel.Trace, "{message}")]
-    public static partial void PrintTrace(this ILogger logger, string message);
+    string this[Func<LocalizedString, string> localizedString, GameDataPacket packet, params object?[] args] { get; }
     
-    [LoggerMessage(LogLevel.Error, "{message}")]
-    public static partial void PrintError(this ILogger logger, Exception exception, string message);
+    string this[Func<LocalizedString, string> localizedString, IPlayer player, params object?[] args] { get; }
 }

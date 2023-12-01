@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Diagnostics.CodeAnalysis;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Database;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 

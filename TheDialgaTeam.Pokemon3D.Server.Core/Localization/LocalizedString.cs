@@ -16,9 +16,9 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
-public sealed class LocalizedToken
+public sealed class LocalizedString
 {
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     private static Type s_keepType = typeof(PlayerNameDisplayFormat);

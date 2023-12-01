@@ -15,22 +15,37 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
+using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-public sealed class GlobalWorld : IQueryHandler<GetGlobalWorld, ILocalWorld>
+public sealed class GlobalWorld : 
+    IQueryHandler<GetGlobalWorld, ILocalWorld>,
+    INotificationHandler<WorldUpdate>
 {
+    private readonly ILogger<GlobalWorld> _logger;
+    private readonly IStringLocalizer _stringLocalizer;
     private readonly ILocalWorld _world;
 
-    public GlobalWorld(ILocalWorldFactory factory)
+    public GlobalWorld(ILogger<GlobalWorld> logger, IStringLocalizer stringLocalizer, ILocalWorldFactory factory)
     {
+        _logger = logger;
+        _stringLocalizer = stringLocalizer;
         _world = factory.CreateLocalWorld();
     }
 
     public ValueTask<ILocalWorld> Handle(GetGlobalWorld query, CancellationToken cancellationToken)
     {
         return ValueTask.FromResult(_world);
+    }
+
+    public ValueTask Handle(WorldUpdate notification, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.GlobalWorldStatus, Enum.GetName(notification.World.CurrentSeason), Enum.GetName(notification.World.CurrentWeather), notification.World.CurrentTime]);
+        return ValueTask.CompletedTask;
     }
 }

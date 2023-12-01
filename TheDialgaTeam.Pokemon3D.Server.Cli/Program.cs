@@ -16,9 +16,9 @@ internal static class Program
         AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainOnUnhandledException;
 
         return Host.CreateDefaultBuilder(args)
+            .ConfigurePokemonServer()
             .ConfigureServices(static collection =>
             {
-                collection.AddPokemonServer();
                 collection.AddMediator();
                 collection.AddHostedService<ConsoleService>();
             })

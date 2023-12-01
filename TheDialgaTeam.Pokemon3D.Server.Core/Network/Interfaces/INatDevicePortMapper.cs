@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
-
-internal sealed class PlayerFactory(IServiceProvider serviceProvider) : IPlayerFactory
+public interface INatDevicePortMapper
 {
-    public IPlayer CreatePlayer(int id, GameDataPacket gameDataPacket)
-    {
-        return ActivatorUtilities.CreateInstance<Player>(serviceProvider, id, gameDataPacket);
-    }
+    Task CreatePortMappingAsync(CancellationToken cancellationToken = default);
+
+    Task DestroyPortMappingAsync();
 }

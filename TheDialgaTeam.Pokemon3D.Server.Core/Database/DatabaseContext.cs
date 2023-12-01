@@ -24,6 +24,8 @@ public sealed class DatabaseContext : DbContext
 {
     private readonly IPokemonServerOptions _options;
     
+    public required DbSet<PlayerProfile> PlayerProfiles { get; init; }
+    
     public required DbSet<Blacklist> BlacklistAccounts { get; init; }
     
     public required DbSet<Whitelist> WhitelistAccounts { get; init; }

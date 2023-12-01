@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Data.Sqlite;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Database;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Queries;
 
-public sealed class SqliteOptions : SqliteConnectionStringBuilder;
+public sealed record GetPlayerProfile(GameDataPacket GameDataPacket) : IQuery<PlayerProfile>;

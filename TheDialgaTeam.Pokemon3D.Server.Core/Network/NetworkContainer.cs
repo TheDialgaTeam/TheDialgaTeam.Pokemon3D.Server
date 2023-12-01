@@ -15,18 +15,17 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
-using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public sealed partial class NetworkContainer :
+public sealed class NetworkContainer :
     INotificationHandler<Connected>,
     INotificationHandler<Disconnected>,
     INotificationHandler<NewPacketReceived>
@@ -34,15 +33,21 @@ public sealed partial class NetworkContainer :
     private readonly ILogger _logger;
     private readonly IMediator _mediator;
     private readonly IPokemonServerOptions _options;
-    
+    private readonly IStringLocalizer _stringLocalizer;
+
     private readonly List<IPokemonServerClient> _tcpClientNetworks = new();
     private readonly object _clientLock = new();
     
-    public NetworkContainer(ILogger<NetworkContainer> logger, IMediator mediator, IPokemonServerOptions options)
+    public NetworkContainer(
+        ILogger<NetworkContainer> logger, 
+        IMediator mediator, 
+        IPokemonServerOptions options,
+        IStringLocalizer stringLocalizer)
     {
         _logger = logger;
         _mediator = mediator;
         _options = options;
+        _stringLocalizer = stringLocalizer;
     }
 
     private void AddClient(IPokemonServerClient network)
@@ -86,9 +91,8 @@ public sealed partial class NetworkContainer :
             
             case PacketType.ServerDataRequest:
             {
-                var playerCount = await _mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
-                var packet = new ServerInfoDataPacket(playerCount, _options.ServerOptions.MaxPlayers, _options.ServerOptions.ServerName, _options.ServerOptions.ServerDescription, Array.Empty<string>());
-                notification.Network.SendPacket(packet.ToRawPacket());
+                var serverInfoDataPacket = await _mediator.Send(new GetServerInfoData(), cancellationToken).ConfigureAwait(false);
+                notification.Network.SendPacket(serverInfoDataPacket.ToRawPacket());
                 break;
             }
         }
@@ -100,45 +104,50 @@ public sealed partial class NetworkContainer :
         {
             // This is a new player joining.
             var gameDataPacket = new GameDataPacket(notification.RawPacket);
+
+            var playerCanJoin = true;
+            var reason = string.Empty;
                     
             // Check Server Space Limit.
             var playerCount = await _mediator.Send(new GetPlayerCount(), cancellationToken).ConfigureAwait(false);
             
-            /*
             if (playerCount >= _options.ServerOptions.MaxPlayers)
             {
-                var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerIsFull);
-                await notification.Network.KickAsync(reason).ConfigureAwait(false);
-                PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
-                return;
+                playerCanJoin = false;
+                reason = _stringLocalizer[s => s.GameMessageFormat.ServerIsFull];
             }
             
             // Check Profile Type.
             if (!_options.ServerOptions.OfflineMode && !gameDataPacket.IsGameJoltPlayer)
             {
-                var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerOnlyAllowGameJoltProfile);
-                await notification.Network.KickAsync(reason).ConfigureAwait(false);
-                PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
-                return;
-            }
-            
-            // Check GameMode
-            if (_options.ServerOptions.AllowAnyGameModes && _options.ServerOptions.BlacklistedGameModes.Contains(gameDataPacket.GameMode, new CaseInsensitiveValueComparer()))
-            {
-                var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerBlacklistedGameModes);
-                await notification.Network.KickAsync(reason).ConfigureAwait(false);
-                PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
-                return;
+                playerCanJoin = false;
+                reason = _stringLocalizer[s => s.GameMessageFormat.ServerOnlyAllowGameJoltProfile];
             }
 
-            if (!_options.ServerOptions.AllowAnyGameModes && !_options.ServerOptions.WhitelistedGameModes.Contains(gameDataPacket.GameMode, new CaseInsensitiveValueComparer()))
+            switch (_options.ServerOptions.AllowAnyGameModes)
             {
-                var reason = _options.GetLocalizedString(options => options.GameMessageFormat.ServerWhitelistedGameModes, string.Join(", ", _options.ServerOptions.WhitelistedGameModes));
+                // Check GameMode
+                case true when _options.ServerOptions.BlacklistedGameModes.Any(s => gameDataPacket.GameMode.Equals(s, StringComparison.OrdinalIgnoreCase)):
+                {
+                    playerCanJoin = false;
+                    reason = _stringLocalizer[s => s.GameMessageFormat.ServerBlacklistedGameModes];
+                    break;
+                }
+
+                case false when !_options.ServerOptions.WhitelistedGameModes.Any(s => gameDataPacket.GameMode.Equals(s, StringComparison.OrdinalIgnoreCase)):
+                {
+                    playerCanJoin = false;
+                    reason = _stringLocalizer[s => s.GameMessageFormat.ServerWhitelistedGameModes, string.Join(", ", _options.ServerOptions.WhitelistedGameModes)];
+                    break;
+                }
+            }
+
+            if (!playerCanJoin)
+            {
                 await notification.Network.KickAsync(reason).ConfigureAwait(false);
-                PrintServerMessage(_options.GetLocalizedString(options => options.ServerMessageFormat.PlayerUnableToJoin, gameDataPacket, reason));
+                _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerUnableToJoin, gameDataPacket, reason]);
                 return;
             }
-            */
             
             // If all okay, let the player join in by generating an id and providing the world.
         }
@@ -147,7 +156,4 @@ public sealed partial class NetworkContainer :
             // This is updating existing player.
         }
     }
-
-    [LoggerMessage(LogLevel.Information, "[Server] {message}")]
-    private partial void PrintServerMessage(string message);
 }

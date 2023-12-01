@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-public sealed class GameMessageFormat
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+
+public sealed class PlayerProfile : BaseTable
 {
-    public string ServerChatMessage { get; init; } = "<{0}>: {1}";
+    public string GameJoltId { get; set; } = string.Empty;
 
-    public string ServerIsFull { get; init; } = "This server is currently full of players.";
-    public string ServerOnlyAllowGameJoltProfile { get; init; } = "This server do not allow offline profile.";
-    public string ServerWhitelistedGameModes { get; init; } = "This server require you to play the following GameMode(s): {0}";
-    public string ServerBlacklistedGameModes { get; init; } = "This server do not allow this GameMode to join.";
+    public string Name { get; set; } = string.Empty;
+    
+    public PlayerType PlayerType { get; set; }
 }

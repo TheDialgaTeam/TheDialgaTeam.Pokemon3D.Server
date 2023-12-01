@@ -5,10 +5,15 @@
     <PropertyGroup>
         <IsPublishable>false</IsPublishable>
         <IsTrimmable>true</IsTrimmable>
+        <EnableConfigurationBindingGenerator>false</EnableConfigurationBindingGenerator>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
         <PackageReference Include="Mono.Nat" Version="3.0.4" />

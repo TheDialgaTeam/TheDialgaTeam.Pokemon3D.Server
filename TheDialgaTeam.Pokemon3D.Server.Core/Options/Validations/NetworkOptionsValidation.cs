@@ -23,19 +23,26 @@ internal sealed class NetworkOptionsValidation : IValidateOptions<NetworkOptions
 {
     public ValidateOptionsResult Validate(string? name, NetworkOptions options)
     {
+        var failureMessages = new List<string>();
+        
+        if (!IPEndPoint.TryParse(options.BindingInformation, out var ipEndPoint))
+        {
+            failureMessages.Add($"[Server:Network:{nameof(options.BindingInformation)}] Invalid format given.");
+        }
+        
         if (!Dns.GetHostAddresses(Dns.GetHostName())
                 .Append(IPAddress.Any)
                 .Append(IPAddress.Loopback)
-                .Any(address => options.BindIpEndPoint.Address.Equals(address)))
+                .Any(address => ipEndPoint.Address.Equals(address)))
         {
-            return ValidateOptionsResult.Fail($"[Server:Network:{nameof(options.BindIpEndPoint)}] Invalid IP Address given.");
+            failureMessages.Add($"[Server:Network:{nameof(options.BindingInformation)}] Invalid IP address given.");
         }
 
         if (options.UpnpDiscoveryTime.TotalSeconds < 1)
         {
-            return ValidateOptionsResult.Fail($"[Server:Network:{nameof(options.UpnpDiscoveryTime)}] Upnp Discovery Time require at least 1 second.");
+            failureMessages.Add($"[Server:Network:{nameof(options.UpnpDiscoveryTime)}] Upnp Discovery Time require at least 1 second.");
         }
 
-        return ValidateOptionsResult.Success;
+        return failureMessages.Count > 0 ? ValidateOptionsResult.Fail(failureMessages) : ValidateOptionsResult.Success;
     }
 }

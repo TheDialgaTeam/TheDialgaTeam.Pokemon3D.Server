@@ -24,7 +24,7 @@ public interface ILocalWorld : IDisposable
     
     Weather CurrentWeather { get; }
     
-    DateTimeOffset CurrentTime { get; }
+    DateTime CurrentTime { get; }
 
     WorldDataPacket GetRawPacket();
 }

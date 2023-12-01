@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Localization;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
 
-public interface ILocalization
-{
-    string GetLocalizedString(Func<LocalizedToken, string> token, params object?[] args);
-
-    string GetLocalizedString(Func<LocalizedToken, string> token, GameDataPacket packet, params object?[] args);
-}
+public record GetPlayerById(int Id) : IQuery<IPlayer>;

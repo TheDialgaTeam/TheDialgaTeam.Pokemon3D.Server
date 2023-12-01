@@ -18,7 +18,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
 public sealed class Blacklist : BaseTable
 {
-    public UserProfile User { get; init; }
+    public PlayerProfile Player { get; init; }
     
     public string Reason { get; set; } = string.Empty;
     

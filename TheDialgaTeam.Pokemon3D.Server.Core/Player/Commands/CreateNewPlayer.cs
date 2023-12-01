@@ -16,8 +16,9 @@
 
 using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Commands;
 
-public sealed record CreateNewPlayer(IPokemonServerClient Client, IRawPacket RawPacket) : ICommand;
+public sealed record CreateNewPlayer(IPokemonServerClient Client, GameDataPacket GameDataPacket) : ICommand<IPlayer>;
