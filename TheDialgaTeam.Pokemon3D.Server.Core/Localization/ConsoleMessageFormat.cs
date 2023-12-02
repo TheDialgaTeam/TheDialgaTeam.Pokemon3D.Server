@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 public sealed class ConsoleMessageFormat
@@ -58,8 +56,28 @@ public sealed class ConsoleMessageFormat
 
     #endregion
 
-    #region NetworkContainer
+    #region PokemonServerClient
 
+    public string ClientReceiveRawPacket { get; init; } = "[Client {0}] Receive raw packet data: {1}";
+    
+    public string ClientSendRawPacket { get; init; } = "[Client {0}] Send raw packet data: {1}";
+
+    public string ClientReadSocketIssue { get; init; } = "[Client {0}] Unable to read data from this network.";
+    
+    public string ClientWriteSocketIssue { get; init; } = "[Client {0}] Unable to write data from this network.";
+    
+    public string ClientReceiveInvalidPacket { get; init; } = "[Client {0}] Invalid packet received.";
+
+    public string ClientDisconnected { get; init; } = "[Client {0}] Disconnected.";
+
+    #endregion
+
+    #region NetworkContainer
+    
+    public string PlayerJoin { get; init; } = "[Server] {0} join the server.";
+    public string PlayerLeft { get; init; } = "[Server] {0} left the server.";
+    public string PlayerLeftWithReason { get; init; } = "[Server] {0} left the server with the following reason: {1}";
+    
     public string PlayerUnableToJoin { get; init; } = "[Server] {0} is unable to join the server with the following reason: {1}";
 
     #endregion

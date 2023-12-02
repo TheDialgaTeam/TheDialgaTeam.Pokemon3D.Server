@@ -34,7 +34,7 @@ public sealed record ServerOptions
 
     public bool OfflineMode { get; init; }
 
-    public TimeSpan AwayFromKeyboardKickTime { get; init; } = TimeSpan.FromMinutes(5);
+    public int AwayFromKeyboardKickTime { get; init; } = 60 * 5;
     
-    public TimeSpan NoPingKickTime { get; init; } = TimeSpan.FromSeconds(30);
+    public int NoPingKickTime { get; init; } = 30;
 }

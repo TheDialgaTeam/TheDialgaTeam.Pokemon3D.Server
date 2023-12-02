@@ -9,8 +9,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
 internal static class Program
 {
-    [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
-    [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026")]
     public static Task Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainOnUnhandledException;
@@ -20,7 +19,8 @@ internal static class Program
             .ConfigureServices(static collection =>
             {
                 collection.AddMediator();
-                collection.AddHostedService<ConsoleService>();
+                collection.AddHostedService<ServerHostedService>();
+                collection.AddHostedService<ConsoleBackgroundService>();
             })
             .ConfigureLogging(static builder =>
             {

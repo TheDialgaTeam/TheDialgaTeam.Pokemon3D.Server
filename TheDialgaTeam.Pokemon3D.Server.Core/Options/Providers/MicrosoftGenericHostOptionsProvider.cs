@@ -19,7 +19,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Providers;
 
-internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposable
+internal sealed class MicrosoftGenericHostOptionsProvider : IPokemonServerOptions, IDisposable
 {
     public ServerOptions ServerOptions { get; private set; }
     
@@ -39,7 +39,7 @@ internal sealed class MicrosoftOptionsProvider : IPokemonServerOptions, IDisposa
 
     private readonly IDisposable?[] _disposables;
 
-    public MicrosoftOptionsProvider(
+    public MicrosoftGenericHostOptionsProvider(
         IOptionsMonitor<ServerOptions> serverOptions,
         IOptionsMonitor<NetworkOptions> networkOptions,
         IOptionsMonitor<DatabaseOptions> dataBaseOptions,

@@ -27,5 +27,5 @@ public interface IPokemonServerClient : IDisposable
 
     ValueTask KickAsync(string reason);
 
-    ValueTask DisconnectAsync();
+    ValueTask DisconnectAsync(string? reason = null);
 }

@@ -129,13 +129,16 @@ public readonly record struct RawPacket(PacketType PacketType, int Origin, strin
                 currentPacketIndex++;
                 rawData = rawData[(nextDataLength + 1)..];
             }
-            
-            for (; dataItemIndex < dataItemIndexLength - 1; dataItemIndex++)
-            {
-                dataItems[dataItemIndex] = rawData[dataItemIndexes[dataItemIndex]..dataItemIndexes[dataItemIndex + 1]].ToString();
-            }
 
-            dataItems[dataItemIndex] = rawData[dataItemIndexes[dataItemIndex]..].ToString();
+            if (dataItemIndexLength > 0)
+            {
+                for (; dataItemIndex < dataItemIndexLength - 1; dataItemIndex++)
+                {
+                    dataItems[dataItemIndex] = rawData[dataItemIndexes[dataItemIndex]..dataItemIndexes[dataItemIndex + 1]].ToString();
+                }
+
+                dataItems[dataItemIndex] = rawData[dataItemIndexes[dataItemIndex]..].ToString();
+            }
 
             rawPacket = new RawPacket(packetType, origin, dataItems);
             return true;

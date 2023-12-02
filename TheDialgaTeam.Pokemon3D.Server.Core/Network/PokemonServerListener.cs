@@ -27,7 +27,6 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
@@ -118,7 +117,7 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
             while (!stoppingToken.IsCancellationRequested)
             {
                 var tcpClient = await _tcpListener.AcceptTcpClientAsync(stoppingToken).ConfigureAwait(false);
-                await _mediator.Publish(new Connected(_pokemonServerClientFactory.CreateTcpClientNetwork(tcpClient)), stoppingToken).ConfigureAwait(false);
+                await _mediator.Publish(new ClientConnected(_pokemonServerClientFactory.CreateTcpClientNetwork(tcpClient)), stoppingToken).ConfigureAwait(false);
             }
         }
         catch (SocketException exception)
@@ -151,7 +150,7 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
 
             try
             {
-                using var noPingCancellationTokenSource = new CancellationTokenSource(serverOptions.NoPingKickTime);
+                using var noPingCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(serverOptions.NoPingKickTime));
                 using var globalCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(noPingCancellationTokenSource.Token, cancellationToken);
 
                 using var tcpClient = new TcpClient();
@@ -164,14 +163,7 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
                 using var streamReader = new StreamReader(tcpClient.GetStream(), Encoding.UTF8, false, tcpClient.ReceiveBufferSize);
                 var data = await streamReader.ReadLineAsync(globalCancellationTokenSource.Token).ConfigureAwait(false);
 
-                if (RawPacket.TryParse(data, out var _))
-                {
-                    _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsOpened, portToCheck, new IPEndPoint(publicIpAddress, portToCheck)]);
-                }
-                else
-                {
-                    _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsClosed, portToCheck]);
-                }
+                _logger.LogInformation("{Message}", RawPacket.TryParse(data, out var _) ? _stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsOpened, portToCheck, new IPEndPoint(publicIpAddress, portToCheck)] : _stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsClosed, portToCheck]);
             }
             catch
             {

@@ -24,5 +24,5 @@ public sealed record NetworkOptions
 
     public bool UseUpnp { get; init; }
     
-    public TimeSpan UpnpDiscoveryTime { get; init; } = TimeSpan.FromSeconds(5);
+    public int UpnpDiscoveryTime { get; init; } = 5;
 }

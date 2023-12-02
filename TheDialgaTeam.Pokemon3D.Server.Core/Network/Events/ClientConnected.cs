@@ -19,4 +19,4 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 
-public sealed record Connected(IPokemonServerClient PokemonServerClient) : INotification;
+public sealed record ClientConnected(IPokemonServerClient PokemonServerClient) : INotification;

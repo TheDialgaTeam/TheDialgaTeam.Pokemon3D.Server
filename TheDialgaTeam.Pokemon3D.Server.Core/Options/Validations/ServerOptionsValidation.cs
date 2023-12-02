@@ -32,7 +32,7 @@ internal sealed class ServerOptionsValidation : IValidateOptions<ServerOptions>
             return ValidateOptionsResult.Fail($"[Server:{nameof(options.MaxPlayers)}] Max player limit must be more than 0.");
         }
         
-        if (options.NoPingKickTime.TotalSeconds < 10)
+        if (options.NoPingKickTime < 10)
         {
             return ValidateOptionsResult.Fail($"[Server:{nameof(options.NoPingKickTime)}] NoPingKickTime must be at least 10 seconds.");
         }

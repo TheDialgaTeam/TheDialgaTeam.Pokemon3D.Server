@@ -25,6 +25,12 @@ public interface ILocalWorld : IDisposable
     Weather CurrentWeather { get; }
     
     DateTime CurrentTime { get; }
+    
+    Season TargetSeason { get; set; }
+    
+    Weather TargetWeather { get; set; }
+    
+    TimeSpan TargetOffset { get; set; }
 
-    WorldDataPacket GetRawPacket();
+    WorldDataPacket GetWorldDataPacket();
 }

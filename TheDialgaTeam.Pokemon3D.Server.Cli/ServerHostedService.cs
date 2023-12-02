@@ -15,10 +15,27 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using Microsoft.Extensions.Hosting;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Commands;
+namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
-public sealed record CreateNewPlayer(IPokemonServerClient Client, GameDataPacket GameDataPacket) : ICommand<IPlayer>;
+internal sealed class ServerHostedService : IHostedService
+{
+    private readonly IMediator _mediator;
+
+    public ServerHostedService(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+    
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new StartServer(), cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new StopServer(), cancellationToken).ConfigureAwait(false);
+    }
+}

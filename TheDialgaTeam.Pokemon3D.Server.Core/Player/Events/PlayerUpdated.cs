@@ -17,6 +17,6 @@
 using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 
-public record GetPlayerById(int Id) : IQuery<IPlayer>;
+public record PlayerUpdated(IPlayer Player) : INotification;

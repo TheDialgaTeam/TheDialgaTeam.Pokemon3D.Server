@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
@@ -44,24 +46,23 @@ internal sealed class Player : IPlayer
         _stringLocalizer[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, Name, GameJoltId] : 
         _stringLocalizer[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, Name];
     
-    public string DisplayStatus => _gameDataPacket.IsGameJoltPlayer ? 
-        $"{Id}: {_gameDataPacket.Name} ({_gameDataPacket.GameJoltId}) - {_gameDataPacket.BusyType}" : 
-        $"{Id}: {_gameDataPacket.Name} - {_gameDataPacket.BusyType}";
-
     private readonly IStringLocalizer _stringLocalizer;
+    private readonly IMediator _mediator;
     private GameDataPacket _gameDataPacket;
 
-    public Player(IStringLocalizer stringLocalizer, int id, GameDataPacket gameDataPacket)
+    public Player(IStringLocalizer stringLocalizer, IMediator mediator, int id, GameDataPacket gameDataPacket)
     {
         _stringLocalizer = stringLocalizer;
-        
+        _mediator = mediator;
+
         Id = id;
         _gameDataPacket = gameDataPacket with { Origin = id };
     }
 
-    public void ApplyGameData(GameDataPacket gameDataPacket)
+    public ValueTask ApplyGameDataAsync(RawPacket rawPacket)
     {
-        _gameDataPacket = gameDataPacket;
+        _gameDataPacket = new GameDataPacket(this, rawPacket);
+        return _mediator.Publish(new PlayerUpdated(this));
     }
 
     public GameDataPacket ToGameDataPacket()

@@ -20,6 +20,7 @@ using System.Net.Sockets;
 using System.Text;
 using Mediator;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
@@ -27,18 +28,20 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed partial class PokemonServerClient : IPokemonServerClient
+internal sealed class PokemonServerClient : IPokemonServerClient
 {
     public IPAddress RemoteIpAddress { get; }
 
     private readonly ILogger<PokemonServerClient> _logger;
     private readonly IPokemonServerOptions _options;
+    private readonly IStringLocalizer _stringLocalizer;
     private readonly IMediator _mediator;
     private readonly TcpClient _tcpClient;
 
     private readonly StreamWriter _streamWriter;
     private readonly object _streamWriterLock = new();
 
+    private int _isActive = 1;
     private DateTime _lastValidPackage = DateTime.Now;
 
     private readonly BlockingCollection<RawPacket> _gameDataPacketQueue = new();
@@ -46,39 +49,43 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
     public PokemonServerClient(
         ILogger<PokemonServerClient> logger, 
         IPokemonServerOptions options, 
+        IStringLocalizer stringLocalizer,
         IMediator mediator, 
         TcpClient tcpClient)
     {
         _logger = logger;
         _options = options;
+        _stringLocalizer = stringLocalizer;
         _mediator = mediator;
         _tcpClient = tcpClient;
         
-        _streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize);
+        _streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize, true);
         _streamWriter.AutoFlush = true;
 
         RemoteIpAddress = (_tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
 
         Task.Run(RunReadingTask);
         Task.Run(RunConnectionCheckTask);
-        Task.Run(HandleGameDataPacketTask);
+        Task.Factory.StartNew(HandleGameDataPacketTask, TaskCreationOptions.LongRunning);
     }
 
     public void SendPacket(RawPacket rawPacket)
     {
+        if (_isActive == 0) return;
+        
         lock (_streamWriterLock)
         {
+            if (!_tcpClient.Connected) return;
+            
             try
             {
                 var packageData = rawPacket.ToRawPacketString();
-
-                PrintSendRawPacket(RemoteIpAddress, packageData);
-
+                _logger.LogTrace("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientSendRawPacket, RemoteIpAddress, packageData]);
                 _streamWriter.WriteLine(packageData);
             }
             catch
             {
-                PrintWriteSocketIssue(RemoteIpAddress);
+                _logger.LogDebug("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientWriteSocketIssue, RemoteIpAddress]);
                 throw;
             }
         }
@@ -86,18 +93,75 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
     public ValueTask KickAsync(string reason)
     {
+        if (_isActive == 0) return ValueTask.CompletedTask;
         SendPacket(new KickPacket(reason).ToRawPacket());
-        return DisconnectAsync();
+        return DisconnectAsync(reason);
     }
 
-    public ValueTask DisconnectAsync()
+    public ValueTask DisconnectAsync(string? reason = null)
     {
+        if (Interlocked.CompareExchange(ref _isActive, 0, 1) == 0) return ValueTask.CompletedTask;
+        
         _tcpClient.Close();
-        PrintDisconnected(RemoteIpAddress);
-        return _mediator.Publish(new Disconnected(this));
+        _gameDataPacketQueue.CompleteAdding();
+        
+        _logger.LogDebug("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientDisconnected, RemoteIpAddress]);
+        
+        return _mediator.Publish(new ClientDisconnected(this, reason));
     }
 
-    public void HandleIncomingPacket(RawPacket rawPacket)
+    private async Task RunReadingTask()
+    {
+        using var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, false, _tcpClient.ReceiveBufferSize, true);
+
+        while (_isActive == 1)
+        {
+            try
+            {
+                var rawData = await streamReader.ReadLineAsync().ConfigureAwait(false);
+                
+                if (rawData == null)
+                {
+                    await DisconnectAsync().ConfigureAwait(false);
+                    return;
+                }
+
+                _logger.LogTrace("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientReceiveRawPacket, RemoteIpAddress, rawData]);
+           
+                if (!RawPacket.TryParse(rawData, out var rawPacket))
+                {
+                    _logger.LogDebug("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientReceiveInvalidPacket, RemoteIpAddress]);
+                }
+                else
+                {
+                    HandleIncomingPacket(rawPacket);
+                }
+            }
+            catch
+            {
+                _logger.LogDebug("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientReadSocketIssue, RemoteIpAddress]);
+                await DisconnectAsync().ConfigureAwait(false);
+                return;
+            }
+        }
+    }
+
+    private async Task RunConnectionCheckTask()
+    {
+        while (_isActive == 1)
+        {
+            if ((DateTime.Now - _lastValidPackage).TotalSeconds > _options.ServerOptions.NoPingKickTime)
+            {
+                // Most likely disconnected, so let's destroy it.
+                await DisconnectAsync().ConfigureAwait(false);
+                return;
+            }
+
+            await Task.Delay(1000).ConfigureAwait(false);
+        }
+    }
+
+    private void HandleIncomingPacket(RawPacket rawPacket)
     {
         _lastValidPackage = DateTime.Now;
 
@@ -111,125 +175,31 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient
 
             default:
             {
-                try
-                {
-                    Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket)));
-                }
-                catch (Exception ex)
-                {
-                    PrintPacketHandlerError(ex, RemoteIpAddress, ex.Message);
-                }
-                
+                Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket)));
                 break;
             }
         }
     }
-
-    private async Task RunReadingTask()
-    {
-        using var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, false, _tcpClient.ReceiveBufferSize, true);
-
-        while (_tcpClient.Connected)
-        {
-            try
-            {
-                var rawData = await streamReader.ReadLineAsync().ConfigureAwait(false);
-                
-                if (rawData == null)
-                {
-                    await DisconnectAsync().ConfigureAwait(false);
-                    return;
-                }
-
-                PrintReceiveRawPacket(RemoteIpAddress, rawData);
-
-                if (!RawPacket.TryParse(rawData, out var rawPacket))
-                {
-                    PrintInvalidPacketReceive(RemoteIpAddress);
-                }
-                else
-                {
-                    HandleIncomingPacket(rawPacket);
-                }
-            }
-            catch (OutOfMemoryException)
-            {
-                PrintOutOfMemory(RemoteIpAddress);
-                await DisconnectAsync().ConfigureAwait(false);
-                return;
-            }
-            catch (IOException)
-            {
-                PrintReadSocketIssue(RemoteIpAddress);
-                await DisconnectAsync().ConfigureAwait(false);
-                return;
-            }
-        }
-    }
-
-    private async Task RunConnectionCheckTask()
-    {
-        while (_tcpClient.Connected)
-        {
-            if ((DateTime.Now - _lastValidPackage).TotalSeconds > _options.ServerOptions.NoPingKickTime.TotalSeconds)
-            {
-                // Most likely disconnected, so let's destroy it.
-                await DisconnectAsync().ConfigureAwait(false);
-                return;
-            }
-
-            await Task.Delay(1000).ConfigureAwait(false);
-        }
-    }
-
+    
     private async Task HandleGameDataPacketTask()
     {
         while (_tcpClient.Connected)
         {
-            if (_gameDataPacketQueue.TryTake(out var rawPacket))
+            try
             {
-                try
-                {
-                    await _mediator.Publish(new NewPacketReceived(this, rawPacket)).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    PrintPacketHandlerError(ex, RemoteIpAddress, ex.Message);
-                }
+                var rawPacket = _gameDataPacketQueue.Take();
+                await _mediator.Publish(new NewPacketReceived(this, rawPacket)).ConfigureAwait(true);
             }
-            else
+            catch (InvalidOperationException)
             {
-                await Task.Delay(1).ConfigureAwait(false);
+                return;
             }
         }
     }
-    
-    [LoggerMessage(LogLevel.Trace, "[{ipAddress}] Receive raw packet data: {rawData}")]
-    private partial void PrintReceiveRawPacket(IPAddress ipAddress, string rawData);
-
-    [LoggerMessage(LogLevel.Trace, "[{ipAddress}] Send raw packet data: {rawData}")]
-    private partial void PrintSendRawPacket(IPAddress ipAddress, string rawData);
-
-    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Unable to allocate buffer for the packet data due to insufficient memory")]
-    private partial void PrintOutOfMemory(IPAddress ipAddress);
-
-    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Unable to read data from this network")]
-    private partial void PrintReadSocketIssue(IPAddress ipAddress);
-
-    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Unable to write data from this network")]
-    private partial void PrintWriteSocketIssue(IPAddress ipAddress);
-
-    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Invalid packet received")]
-    private partial void PrintInvalidPacketReceive(IPAddress ipAddress);
-
-    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] Disconnected")]
-    private partial void PrintDisconnected(IPAddress ipAddress);
-    
-    [LoggerMessage(LogLevel.Debug, "[{ipAddress}] {message}")]
-    private partial void PrintPacketHandlerError(Exception exception, IPAddress ipAddress, string message);
 
     public void Dispose()
     {
+        _streamWriter.Dispose();
         _tcpClient.Dispose();
         _gameDataPacketQueue.Dispose();
     }

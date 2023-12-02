@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Diagnostics.CodeAnalysis;
 using TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed class DatabaseOptions
 {
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType = typeof(SqliteOptions);
-
     public static readonly string[] SupportedProviders = { nameof(Sqlite) };
     
-    public string UseProvider { get; init; } = "Sqlite";
+    public string DatabaseProvider { get; init; } = nameof(Sqlite);
 
-    public SqliteOptions Sqlite { get; init; } = new();
+    public SqliteOptions Sqlite { get; init; } = new() { DataSource = "data.db" };
 }

@@ -24,4 +24,9 @@ public sealed class GameMessageFormat
     public string ServerOnlyAllowGameJoltProfile { get; init; } = "This server do not allow offline profile.";
     public string ServerWhitelistedGameModes { get; init; } = "This server require you to play the following GameMode(s): {0}";
     public string ServerBlacklistedGameModes { get; init; } = "This server do not allow this GameMode to join.";
+
+    public string ServerError { get; init; } = "This server has faced an unrecoverable error. Please try again later.";
+
+    public string PlayerJoin { get; init; } = "{0} join the server.";
+    public string PlayerLeft { get; init; } = "{0} left the server.";
 }

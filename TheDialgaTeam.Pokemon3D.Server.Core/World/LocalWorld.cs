@@ -28,17 +28,19 @@ internal sealed class LocalWorld : ILocalWorld
 
     public Weather CurrentWeather { get; private set; } = Weather.Clear;
 
-    public DateTime CurrentTime => DateTimeOffset.UtcNow.Add(_targetOffset).DateTime;
+    public DateTime CurrentTime => DateTimeOffset.UtcNow.Add(TargetOffset).DateTime;
+    
+    public Season TargetSeason { get; set; }
+    
+    public Weather TargetWeather { get; set; }
+    
+    public TimeSpan TargetOffset { get; set; }
     
     private int WeekOfYear => (CurrentTime.DayOfYear - (CurrentTime.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
     
     private readonly IPokemonServerOptions _options;
     private readonly IMediator _mediator;
     private readonly ILocalWorld? _world;
-    
-    private Season _targetSeason;
-    private Weather _targetWeather;
-    private TimeSpan _targetOffset;
 
     private DateTimeOffset _lastWorldUpdate = DateTimeOffset.MinValue;
 
@@ -54,14 +56,14 @@ internal sealed class LocalWorld : ILocalWorld
         _mediator = mediator;
         _world = world;
         
-        _targetSeason = season;
-        _targetWeather = weather;
-        _targetOffset = offset;
+        TargetSeason = season;
+        TargetWeather = weather;
+        TargetOffset = offset;
         
         _timer = new Timer(TimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
-    public WorldDataPacket GetRawPacket()
+    public WorldDataPacket GetWorldDataPacket()
     {
         return new WorldDataPacket(CurrentSeason, CurrentWeather, TimeOnly.FromDateTime(CurrentTime));
     }
@@ -70,9 +72,9 @@ internal sealed class LocalWorld : ILocalWorld
     {
         if (_world == null)
         {
-            _targetSeason = _options.WorldOptions.Season;
-            _targetWeather = _options.WorldOptions.Weather;
-            _targetOffset = _options.WorldOptions.TimeOffset;
+            TargetSeason = _options.WorldOptions.Season;
+            TargetWeather = _options.WorldOptions.Weather;
+            TargetOffset = _options.WorldOptions.TimeOffset;
         }
         
         var currentTime = CurrentTime;
@@ -80,13 +82,13 @@ internal sealed class LocalWorld : ILocalWorld
 
         if (_lastWorldUpdate.Day != currentTime.Day)
         {
-            GenerateNewSeason(_targetSeason);
+            GenerateNewSeason(TargetSeason);
             generatedNewWorld = true;
         }
 
         if (_lastWorldUpdate.Hour != currentTime.Hour)
         {
-            GenerateNewWeather(_targetWeather);
+            GenerateNewWeather(TargetWeather);
             generatedNewWorld = true;
         }
 

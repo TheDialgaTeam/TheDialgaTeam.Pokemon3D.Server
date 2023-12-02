@@ -33,12 +33,12 @@ internal sealed class NetworkOptionsValidation : IValidateOptions<NetworkOptions
         if (!Dns.GetHostAddresses(Dns.GetHostName())
                 .Append(IPAddress.Any)
                 .Append(IPAddress.Loopback)
-                .Any(address => ipEndPoint.Address.Equals(address)))
+                .Any(address => ipEndPoint?.Address.Equals(address) ?? false))
         {
             failureMessages.Add($"[Server:Network:{nameof(options.BindingInformation)}] Invalid IP address given.");
         }
 
-        if (options.UpnpDiscoveryTime.TotalSeconds < 1)
+        if (options.UpnpDiscoveryTime < 1)
         {
             failureMessages.Add($"[Server:Network:{nameof(options.UpnpDiscoveryTime)}] Upnp Discovery Time require at least 1 second.");
         }

@@ -15,8 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 
-public sealed record Disconnected(IPokemonServerClient PokemonServerClient) : INotification;
+public record PlayerJoin : INotification;

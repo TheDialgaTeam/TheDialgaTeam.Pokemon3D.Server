@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-internal sealed class DatabaseOptionsValidation : IValidateOptions<DatabaseOptions>
+public readonly record struct ChatMessagePacket(int Origin, string Message) : IPacket
 {
-    public ValidateOptionsResult Validate(string? name, DatabaseOptions options)
+    public ChatMessagePacket(RawPacket rawPacket) : this(rawPacket.Origin, rawPacket.DataItems[0])
     {
-        if (!DatabaseOptions.SupportedProviders.Any(s => string.Equals(s, options.DatabaseProvider, StringComparison.OrdinalIgnoreCase)))
-        {
-            return ValidateOptionsResult.Fail($"[Server:Database:{nameof(options.DatabaseProvider)}] Unsupported database provider.");
-        }
-        
-        return ValidateOptionsResult.Success;
+    }
+
+    public RawPacket ToRawPacket()
+    {
+        return new RawPacket(PacketType.ChatMessage, Origin, new[] { Message });
     }
 }

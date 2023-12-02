@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -41,7 +39,12 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 public static class HostBuilderExtensions
 {
     [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
-    [RequiresUnreferencedCode("Dependent types may have their members trimmed. Ensure all required members are preserved.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Dependent types have been preserved.")]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(SqliteOptions))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(LocalizedString))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(PlayerNameDisplayFormat))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ConsoleMessageFormat))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(GameMessageFormat))]
     public static IHostBuilder ConfigurePokemonServer(this IHostBuilder hostBuilder)
     {
         return hostBuilder.ConfigureServices(collection =>
@@ -70,8 +73,8 @@ public static class HostBuilderExtensions
             collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
             collection.AddOptions<LocalizationOptions>().BindConfiguration("Localization");
 
-            collection.TryAddSingleton<MicrosoftOptionsProvider>();
-            collection.TryAddSingleton<IPokemonServerOptions>(static provider => provider.GetRequiredService<MicrosoftOptionsProvider>());
+            collection.TryAddSingleton<MicrosoftGenericHostOptionsProvider>();
+            collection.TryAddSingleton<IPokemonServerOptions>(static provider => provider.GetRequiredService<MicrosoftGenericHostOptionsProvider>());
 
             collection.AddDbContextFactory<DatabaseContext>();
         }).ConfigureAppConfiguration(builder =>

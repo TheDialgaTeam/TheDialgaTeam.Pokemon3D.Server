@@ -18,5 +18,5 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
 public class Whitelist : BaseTable
 {
-    public PlayerProfile Player { get; init; }
+    public required PlayerProfile Player { get; init; }
 }

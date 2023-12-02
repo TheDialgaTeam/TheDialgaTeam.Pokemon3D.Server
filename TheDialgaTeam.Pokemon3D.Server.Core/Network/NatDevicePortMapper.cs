@@ -67,9 +67,9 @@ internal sealed class NatDevicePortMapper : INatDevicePortMapper
 
     public async Task CreatePortMappingAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.NatSearchForUpnpDevices, _options.NetworkOptions.UpnpDiscoveryTime.TotalSeconds]);
+        _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.NatSearchForUpnpDevices, _options.NetworkOptions.UpnpDiscoveryTime]);
         
-        using var upnpCancellationTokenSource = new CancellationTokenSource(_options.NetworkOptions.UpnpDiscoveryTime);
+        using var upnpCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(_options.NetworkOptions.UpnpDiscoveryTime));
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, upnpCancellationTokenSource.Token);
 
         _natDevices = await DiscoverNatDevicesAsync(linkedCancellationTokenSource.Token).ConfigureAwait(false);

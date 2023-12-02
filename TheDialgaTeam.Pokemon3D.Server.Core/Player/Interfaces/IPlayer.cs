@@ -39,10 +39,8 @@ public interface IPlayer
     int PokemonFacing { get; }
     
     string DisplayName { get; }
-    
-    string DisplayStatus { get; }
 
-    void ApplyGameData(GameDataPacket gameDataPacket);
+    ValueTask ApplyGameDataAsync(RawPacket rawPacket);
 
     GameDataPacket ToGameDataPacket();
 }

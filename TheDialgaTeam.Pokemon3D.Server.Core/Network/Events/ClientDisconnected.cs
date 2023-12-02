@@ -14,19 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Options;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 
-internal sealed class DatabaseOptionsValidation : IValidateOptions<DatabaseOptions>
-{
-    public ValidateOptionsResult Validate(string? name, DatabaseOptions options)
-    {
-        if (!DatabaseOptions.SupportedProviders.Any(s => string.Equals(s, options.DatabaseProvider, StringComparison.OrdinalIgnoreCase)))
-        {
-            return ValidateOptionsResult.Fail($"[Server:Database:{nameof(options.DatabaseProvider)}] Unsupported database provider.");
-        }
-        
-        return ValidateOptionsResult.Success;
-    }
-}
+public sealed record ClientDisconnected(IPokemonServerClient PokemonServerClient, string? Reason = null) : INotification;

@@ -14,15 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Diagnostics.CodeAnalysis;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed class LocalizationOptions
 {
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType = typeof(LocalizedString);
-
     public Dictionary<string, LocalizedString> CultureInfo { get; init; } = new() { { "en", new LocalizedString() } };
 }

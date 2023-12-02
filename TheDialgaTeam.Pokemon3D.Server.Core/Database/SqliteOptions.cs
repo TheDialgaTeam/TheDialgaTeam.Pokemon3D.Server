@@ -18,4 +18,21 @@ using Microsoft.Data.Sqlite;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
-public sealed class SqliteOptions : SqliteConnectionStringBuilder;
+public sealed class SqliteOptions
+{
+    public string DataSource { get; init; } = "data.db";
+
+    public SqliteOpenMode Mode { get; init; } = SqliteOpenMode.ReadWriteCreate;
+
+    public SqliteCacheMode Cache { get; init; } = SqliteCacheMode.Default;
+
+    public string Password { get; init; } = string.Empty;
+    
+    public bool? ForeignKeys { get; init; }
+    
+    public bool RecursiveTriggers { get; init; }
+
+    public int DefaultTimeout { get; init; } = 30;
+
+    public bool Pooling { get; init; } = true;
+}

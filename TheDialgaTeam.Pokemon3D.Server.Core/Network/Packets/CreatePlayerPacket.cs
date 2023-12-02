@@ -14,9 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Queries;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public record GetServerInfoData : IQuery<ServerInfoDataPacket>;
+public readonly record struct CreatePlayerPacket(int Id) : IPacket
+{
+    public CreatePlayerPacket(RawPacket rawPacket) : this(int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
+    {
+    }
+    
+    public RawPacket ToRawPacket()
+    {
+        return new RawPacket(PacketType.CreatePlayer, -1, new[] { Id.ToString(CultureInfo.InvariantCulture) });
+    }
+}

@@ -14,21 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 public sealed class LocalizedString
 {
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType = typeof(PlayerNameDisplayFormat);
-    
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType2 = typeof(ConsoleMessageFormat);
-    
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-    private static Type s_keepType3 = typeof(GameMessageFormat);
-
     public PlayerNameDisplayFormat PlayerNameDisplayFormat { get; init; } = new();
     
     public ConsoleMessageFormat ConsoleMessageFormat { get; init; } = new();
