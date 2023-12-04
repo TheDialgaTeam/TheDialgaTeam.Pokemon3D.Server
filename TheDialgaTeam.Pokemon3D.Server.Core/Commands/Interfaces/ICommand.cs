@@ -14,13 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-public sealed class LocalizedString
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Commands.Interfaces;
+
+public interface ICommand
 {
-    public PlayerNameDisplayFormat PlayerNameDisplayFormat { get; set; } = new();
+    /// <summary>
+    /// Name of the command. [To use, add "/" before the name]
+    /// </summary>
+    string Name { get; }
     
-    public ConsoleMessageFormat ConsoleMessageFormat { get; set; } = new();
+    /// <summary>
+    /// Short Description of the command.
+    /// </summary>
+    string Description { get; }
     
-    public GameMessageFormat GameMessageFormat { get; set; } = new();
+    /// <summary>
+    /// Minimum Permission require to use this command.
+    /// </summary>
+    PlayerType RequiredPermission { get; }
 }

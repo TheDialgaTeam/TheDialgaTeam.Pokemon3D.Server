@@ -45,7 +45,11 @@ public sealed class GlobalWorld :
 
     public ValueTask Handle(WorldUpdate notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.GlobalWorldStatus, Enum.GetName(notification.World.CurrentSeason), Enum.GetName(notification.World.CurrentWeather), notification.World.CurrentTime]);
+        if (notification.World == _world)
+        {
+            _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.GlobalWorldStatus, Enum.GetName(notification.World.CurrentSeason), Enum.GetName(notification.World.CurrentWeather), notification.World.CurrentTime]);
+        }
+        
         return ValueTask.CompletedTask;
     }
 }

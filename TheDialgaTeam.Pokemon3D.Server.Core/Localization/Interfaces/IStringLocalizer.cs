@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 
 public interface IStringLocalizer
@@ -24,8 +21,4 @@ public interface IStringLocalizer
     string this[Func<LocalizedString, string> localizedString] { get; }
     
     string this[Func<LocalizedString, string> localizedString, params object?[] args] { get; }
-    
-    string this[Func<LocalizedString, string> localizedString, GameDataPacket packet, params object?[] args] { get; }
-    
-    string this[Func<LocalizedString, string> localizedString, IPlayer player, params object?[] args] { get; }
 }

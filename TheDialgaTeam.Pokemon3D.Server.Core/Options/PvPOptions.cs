@@ -18,7 +18,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed record PvPOptions
 {
-    public bool AllowPvP { get; init; } = true;
+    public bool AllowPvP { get; set; } = true;
 
-    public bool AllowPvPValidation { get; init; } = true;
+    public bool AllowPvPValidation { get; set; } = true;
 }

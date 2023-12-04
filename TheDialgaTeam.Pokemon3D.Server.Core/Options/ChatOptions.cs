@@ -18,7 +18,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed record ChatOptions
 {
-    public bool AllowChat { get; init; } = true;
+    public bool AllowChat { get; set; } = true;
 
-    public string[] ChatChannels { get; init; } = { "All" };
+    public string[] ChatChannels { get; set; } = { "All" };
 }

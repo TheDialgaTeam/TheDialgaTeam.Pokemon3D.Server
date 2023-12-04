@@ -20,9 +20,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed record NetworkOptions
 {
-    public string BindingInformation { get; init; } = new IPEndPoint(IPAddress.Any, 15124).ToString();
+    public string BindingInformation { get; set; } = new IPEndPoint(IPAddress.Any, 15124).ToString();
 
-    public bool UseUpnp { get; init; }
+    public bool UseUpnp { get; set; }
     
-    public int UpnpDiscoveryTime { get; init; } = 5;
+    public int UpnpDiscoveryTime { get; set; } = 5;
 }

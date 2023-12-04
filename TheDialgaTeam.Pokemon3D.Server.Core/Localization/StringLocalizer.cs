@@ -22,26 +22,15 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
-internal sealed class OptionsStringLocalizer : IStringLocalizer
+internal sealed class StringLocalizer : IStringLocalizer
 {
     public string this[Func<LocalizedString, string> localizedString] => GetLocalizedTemplate(localizedString);
 
     public string this[Func<LocalizedString, string> localizedString, params object?[] args] => string.Format(GetLocalizedTemplate(localizedString), args);
-
-    public string this[Func<LocalizedString, string> localizedString, GameDataPacket packet, params object?[] args]
-    {
-        get
-        {
-            var playerNameDisplay = packet.IsGameJoltPlayer ? this[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, packet.Name, packet.GameJoltId] : this[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, packet.Name];
-            return string.Format(GetLocalizedTemplate(localizedString), [playerNameDisplay, ..args]);
-        }
-    }
-
-    public string this[Func<LocalizedString, string> localizedString, IPlayer player, params object?[] args] => string.Format(GetLocalizedTemplate(localizedString), [player.DisplayName, ..args]);
-
+    
     private readonly IPokemonServerOptions _options;
 
-    public OptionsStringLocalizer(IPokemonServerOptions options)
+    public StringLocalizer(IPokemonServerOptions options)
     {
         _options = options;
     }

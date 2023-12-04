@@ -40,6 +40,8 @@ public interface IPlayer
     
     string DisplayName { get; }
 
+    ValueTask InitializePlayer(CancellationToken cancellationToken);
+    
     ValueTask ApplyGameDataAsync(RawPacket rawPacket);
 
     GameDataPacket ToGameDataPacket();

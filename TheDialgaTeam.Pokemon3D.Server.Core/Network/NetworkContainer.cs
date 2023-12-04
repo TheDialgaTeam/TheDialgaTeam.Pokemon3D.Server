@@ -17,11 +17,13 @@
 using System.Collections.Concurrent;
 using Mediator;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Formats;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
 
@@ -30,7 +32,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 public sealed class NetworkContainer :
     INotificationHandler<ClientConnected>,
     INotificationHandler<ClientDisconnected>,
-    INotificationHandler<NewPacketReceived>
+    INotificationHandler<NewPacketReceived>,
+    INotificationHandler<PlayerJoin>,
+    INotificationHandler<PlayerUpdated>,
+    INotificationHandler<PlayerLeft>
 {
     private readonly ILogger _logger;
     private readonly IMediator _mediator;
@@ -81,8 +86,12 @@ public sealed class NetworkContainer :
         {
             if (player is not null)
             {
-                _runningIds.Add(player.Id);
-                _logger.LogInformation("{Message}", notification.Reason is null ? _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeft, player] : _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeftWithReason, player, notification.Reason]);
+                lock (_runningIdLock)
+                {
+                    _runningIds.Add(player.Id);
+                }
+                
+                return _mediator.Publish(new PlayerLeft(player, notification.Reason), cancellationToken);
             }
         }
 
@@ -98,6 +107,11 @@ public sealed class NetworkContainer :
                 case PacketType.GameData:
                 {
                     await HandleGameDataPacket(notification, cancellationToken).ConfigureAwait(false);
+                    break;
+                }
+
+                case PacketType.ChatMessage:
+                {
                     break;
                 }
 
@@ -117,6 +131,41 @@ public sealed class NetworkContainer :
         {
             await notification.Network.KickAsync(_stringLocalizer[s => s.GameMessageFormat.ServerError]).ConfigureAwait(false);
         }
+    }
+    
+    public ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
+    {
+        foreach (var keyValuePair in _players.Where(pair => pair.Value is not null))
+        {
+            keyValuePair.Key.SendPacket(new CreatePlayerPacket(notification.Player.Id).ToRawPacket());
+            keyValuePair.Key.SendPacket(notification.Player.ToGameDataPacket().ToRawPacket());
+            keyValuePair.Key.SendPacket(new ChatMessagePacket(-1, _stringLocalizer[s => s.GameMessageFormat.PlayerJoin, new PlayerNameFormat(_stringLocalizer, notification.Player)]).ToRawPacket());
+        }
+        
+        return ValueTask.CompletedTask;
+    }
+    
+    public ValueTask Handle(PlayerUpdated notification, CancellationToken cancellationToken)
+    {
+        foreach (var keyValuePair in _players.Where(pair => pair.Value is not null))
+        {
+            keyValuePair.Key.SendPacket(notification.Player.ToGameDataPacket().ToRawPacket());
+        }
+        
+        return ValueTask.CompletedTask;
+    }
+    
+    public ValueTask Handle(PlayerLeft notification, CancellationToken cancellationToken)
+    {
+        foreach (var keyValuePair in _players.Where(pair => pair.Value is not null && pair.Value != notification.Player))
+        {
+            keyValuePair.Key.SendPacket(new DestroyPlayerPacket(notification.Player.Id).ToRawPacket());
+            keyValuePair.Key.SendPacket(new ChatMessagePacket(-1, _stringLocalizer[s => s.GameMessageFormat.PlayerLeft, new PlayerNameFormat(_stringLocalizer, notification.Player)]).ToRawPacket());
+        }
+        
+        _logger.LogInformation("{Message}", notification.Reason is null ? _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeft, new PlayerNameFormat(_stringLocalizer, notification.Player)] : _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeftWithReason, new PlayerNameFormat(_stringLocalizer, notification.Player), notification.Reason]);
+        
+        return ValueTask.CompletedTask;
     }
 
     #region Player Related Functions
@@ -217,14 +266,15 @@ public sealed class NetworkContainer :
             if (!playerCanJoin)
             {
                 await notification.Network.KickAsync(reason).ConfigureAwait(false);
-                _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerUnableToJoin, gameDataPacket, reason]);
+                _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerUnableToJoin, new PlayerNameFormat(_stringLocalizer, gameDataPacket), reason]);
                 return;
             }
 
             // If all okay, let the player join in by generating an id and providing the world.
-            _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerJoin, gameDataPacket]);
+            _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerJoin, new PlayerNameFormat(_stringLocalizer, gameDataPacket)]);
             
             var player = _playerFactory.CreatePlayer(GetNextRunningId(), gameDataPacket);
+            await player.InitializePlayer(cancellationToken).ConfigureAwait(false);
             _players[notification.Network] = player;
             
             notification.Network.SendPacket(new IdPacket(player.Id).ToRawPacket());
@@ -234,6 +284,7 @@ public sealed class NetworkContainer :
 
             foreach (var otherPlayer in GetPlayers(player.Id))
             {
+                notification.Network.SendPacket(new CreatePlayerPacket(otherPlayer.Id).ToRawPacket());
                 notification.Network.SendPacket(otherPlayer.ToGameDataPacket().ToRawPacket());
             }
 
@@ -241,6 +292,8 @@ public sealed class NetworkContainer :
             {
                 notification.Network.SendPacket(new ChatMessagePacket(-1, welcomeMessage).ToRawPacket());
             }
+            
+            await _mediator.Publish(new PlayerJoin(player), cancellationToken).ConfigureAwait(false);
         }
         else
         {

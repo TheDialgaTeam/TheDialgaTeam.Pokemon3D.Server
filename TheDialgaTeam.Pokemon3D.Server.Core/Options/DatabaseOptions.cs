@@ -22,7 +22,7 @@ public sealed class DatabaseOptions
 {
     public static readonly string[] SupportedProviders = { nameof(Sqlite) };
     
-    public string DatabaseProvider { get; init; } = nameof(Sqlite);
+    public string DatabaseProvider { get; set; } = nameof(Sqlite);
 
-    public SqliteOptions Sqlite { get; init; } = new() { DataSource = "data.db" };
+    public SqliteOptions Sqlite { get; set; } = new() { DataSource = "data.db" };
 }

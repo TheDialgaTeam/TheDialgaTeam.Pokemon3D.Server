@@ -18,7 +18,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 public sealed class PlayerNameDisplayFormat
 {
-    public string GameJoltNameDisplayFormat { get; init; } = "{0} ({1})";
+    public string GameJoltNameDisplayFormat { get; set; } = "{0} ({1})";
 
-    public string OfflineNameDisplayFormat { get; init; } = "{0}";
+    public string OfflineNameDisplayFormat { get; set; } = "{0}";
 }

@@ -20,19 +20,19 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
 public sealed class SqliteOptions
 {
-    public string DataSource { get; init; } = "data.db";
+    public string DataSource { get; set; } = "data.db";
 
-    public SqliteOpenMode Mode { get; init; } = SqliteOpenMode.ReadWriteCreate;
+    public SqliteOpenMode Mode { get; set; } = SqliteOpenMode.ReadWriteCreate;
 
-    public SqliteCacheMode Cache { get; init; } = SqliteCacheMode.Default;
+    public SqliteCacheMode Cache { get; set; } = SqliteCacheMode.Default;
 
-    public string Password { get; init; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
     
-    public bool? ForeignKeys { get; init; }
+    public bool? ForeignKeys { get; set; }
     
-    public bool RecursiveTriggers { get; init; }
+    public bool RecursiveTriggers { get; set; }
 
-    public int DefaultTimeout { get; init; } = 30;
+    public int DefaultTimeout { get; set; } = 30;
 
-    public bool Pooling { get; init; } = true;
+    public bool Pooling { get; set; } = true;
 }

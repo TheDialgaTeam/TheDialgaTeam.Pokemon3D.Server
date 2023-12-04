@@ -18,7 +18,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed record TradeOptions
 {
-    public bool AllowTrade { get; init; } = true;
+    public bool AllowTrade { get; set; } = true;
 
-    public bool AllowTradeValidation { get; init; } = true;
+    public bool AllowTradeValidation { get; set; } = true;
 }

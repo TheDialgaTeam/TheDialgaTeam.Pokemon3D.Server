@@ -20,13 +20,13 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed record WorldOptions
 {
-    public Season Season { get; init; } = Season.Default;
+    public Season Season { get; set; } = Season.Default;
 
-    public Weather Weather { get; init; } = Weather.Default;
+    public Weather Weather { get; set; } = Weather.Default;
 
-    public TimeSpan TimeOffset { get; init; } = DateTimeOffset.Now.Offset;
+    public TimeSpan TimeOffset { get; set; } = DateTimeOffset.Now.Offset;
 
-    public int[] SeasonMonth { get; init; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    public int[] SeasonMonth { get; set; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
-    public int[] WeatherSeason { get; init; } = { -1, -1, -1, -1 };
+    public int[] WeatherSeason { get; set; } = { -1, -1, -1, -1 };
 }

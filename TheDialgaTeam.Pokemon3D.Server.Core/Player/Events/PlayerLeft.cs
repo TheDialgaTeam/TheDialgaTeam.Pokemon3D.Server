@@ -19,4 +19,4 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 
-public record PlayerLeft(IPlayer Player) : INotification;
+public record PlayerLeft(IPlayer Player, string? Reason = null) : INotification;

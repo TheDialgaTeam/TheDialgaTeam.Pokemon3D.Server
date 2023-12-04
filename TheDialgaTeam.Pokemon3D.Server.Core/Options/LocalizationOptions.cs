@@ -20,5 +20,5 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed class LocalizationOptions
 {
-    public Dictionary<string, LocalizedString> CultureInfo { get; init; } = new() { { "en", new LocalizedString() } };
+    public Dictionary<string, LocalizedString> CultureInfo { get; set; } = new() { { "en", new LocalizedString() } };
 }

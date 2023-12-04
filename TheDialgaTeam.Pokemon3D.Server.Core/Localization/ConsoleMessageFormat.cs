@@ -20,71 +20,71 @@ public sealed class ConsoleMessageFormat
 {
     #region PokemonServerListener
 
-    public string ServerIsStarting { get; init; } = "[Server] Starting Pokemon 3D Server.";
+    public string ServerIsStarting { get; set; } = "[Server] Starting Pokemon 3D Server.";
 
-    public string ServerStartedListening { get; init; } = "[Server] Server started listening on {0}";
+    public string ServerStartedListening { get; set; } = "[Server] Server started listening on {0}";
 
-    public string ServerStoppedListening { get; init; } = "[Server] Stopped listening for new players.";
+    public string ServerStoppedListening { get; set; } = "[Server] Stopped listening for new players.";
 
-    public string ServerAllowOfflineProfile { get; init; } = "[Server] Players with offline profile can join the server.";
+    public string ServerAllowOfflineProfile { get; set; } = "[Server] Players with offline profile can join the server.";
 
-    public string ServerAllowAnyGameModes { get; init; } = "[Server] Players can join with any GameMode(s).";
+    public string ServerAllowAnyGameModes { get; set; } = "[Server] Players can join with any GameMode(s).";
 
-    public string ServerAllowAnyGameModesExcept { get; init; } = "[Server] Players can join with any GameModes except the following GameMode(s): {0}";
+    public string ServerAllowAnyGameModesExcept { get; set; } = "[Server] Players can join with any GameModes except the following GameMode(s): {0}";
 
-    public string ServerAllowOnlyGameModes { get; init; } = "[Server] Players can join with the following GameMode(s): {0}";
+    public string ServerAllowOnlyGameModes { get; set; } = "[Server] Players can join with the following GameMode(s): {0}";
 
-    public string ServerRunningPortCheck { get; init; } = "[Server] Checking port {0} is open.";
+    public string ServerRunningPortCheck { get; set; } = "[Server] Checking port {0} is open.";
 
-    public string ServerPortCheckFailed { get; init; } = "[Server] Unable to check port {0} due to error getting public ip address.";
+    public string ServerPortCheckFailed { get; set; } = "[Server] Unable to check port {0} due to error getting public ip address.";
 
-    public string ServerPortIsOpened { get; init; } = "[Server] Port {0} is opened. Players will be able to join via {1}.";
+    public string ServerPortIsOpened { get; set; } = "[Server] Port {0} is opened. Players will be able to join via {1}.";
 
-    public string ServerPortIsClosed { get; init; } = "[Server] Port {0} is closed. Players will not be able to join using public ip address.";
+    public string ServerPortIsClosed { get; set; } = "[Server] Port {0} is closed. Players will not be able to join using public ip address.";
 
-    public string ServerError { get; init; } = "[Server] Error: {0}";
+    public string ServerError { get; set; } = "[Server] Error: {0}";
 
     #endregion
     
     #region NatDeviceUtility
     
-    public string NatSearchForUpnpDevices { get; init; } = "[NAT] Searching for UPnP devices. This will take {0:F0} seconds.";
+    public string NatSearchForUpnpDevices { get; set; } = "[NAT] Searching for UPnP devices. This will take {0:F0} seconds.";
 
-    public string NatFoundUpnpDevices { get; init; } = "[NAT] Found {0} UPnP devices.";
+    public string NatFoundUpnpDevices { get; set; } = "[NAT] Found {0} UPnP devices.";
 
-    public string NatNatCreatedUpnpDeviceMapping { get; init; } = "[NAT] Created new UPnP port mapping for interface {0}.";
+    public string NatNatCreatedUpnpDeviceMapping { get; set; } = "[NAT] Created new UPnP port mapping for interface {0}.";
 
     #endregion
 
     #region PokemonServerClient
 
-    public string ClientReceiveRawPacket { get; init; } = "[Client {0}] Receive raw packet data: {1}";
+    public string ClientReceiveRawPacket { get; set; } = "[Client {0}] Receive raw packet data: {1}";
     
-    public string ClientSendRawPacket { get; init; } = "[Client {0}] Send raw packet data: {1}";
+    public string ClientSendRawPacket { get; set; } = "[Client {0}] Send raw packet data: {1}";
 
-    public string ClientReadSocketIssue { get; init; } = "[Client {0}] Unable to read data from this network.";
+    public string ClientReadSocketIssue { get; set; } = "[Client {0}] Unable to read data from this network.";
     
-    public string ClientWriteSocketIssue { get; init; } = "[Client {0}] Unable to write data from this network.";
+    public string ClientWriteSocketIssue { get; set; } = "[Client {0}] Unable to write data from this network.";
     
-    public string ClientReceiveInvalidPacket { get; init; } = "[Client {0}] Invalid packet received.";
+    public string ClientReceiveInvalidPacket { get; set; } = "[Client {0}] Invalid packet received.";
 
-    public string ClientDisconnected { get; init; } = "[Client {0}] Disconnected.";
+    public string ClientDisconnected { get; set; } = "[Client {0}] Disconnected.";
 
     #endregion
 
     #region NetworkContainer
     
-    public string PlayerJoin { get; init; } = "[Server] {0} join the server.";
-    public string PlayerLeft { get; init; } = "[Server] {0} left the server.";
-    public string PlayerLeftWithReason { get; init; } = "[Server] {0} left the server with the following reason: {1}";
+    public string PlayerJoin { get; set; } = "[Server] {0} join the server.";
+    public string PlayerLeft { get; set; } = "[Server] {0} left the server.";
+    public string PlayerLeftWithReason { get; set; } = "[Server] {0} left the server with the following reason: {1}";
     
-    public string PlayerUnableToJoin { get; init; } = "[Server] {0} is unable to join the server with the following reason: {1}";
+    public string PlayerUnableToJoin { get; set; } = "[Server] {0} is unable to join the server with the following reason: {1}";
 
     #endregion
 
     #region World
 
-    public string GlobalWorldStatus { get; init; } = "[World] Current Season: {0} | Current Weather: {1} | Current Time: {2}";
+    public string GlobalWorldStatus { get; set; } = "[World] Current Season: {0} | Current Weather: {1} | Current Time: {2}";
 
     #endregion
 }

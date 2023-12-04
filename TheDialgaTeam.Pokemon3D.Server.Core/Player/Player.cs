@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Queries;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
@@ -46,6 +48,8 @@ internal sealed class Player : IPlayer
         _stringLocalizer[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, Name, GameJoltId] : 
         _stringLocalizer[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, Name];
     
+    public PlayerProfile? PlayerProfile { get; private set; }
+    
     private readonly IStringLocalizer _stringLocalizer;
     private readonly IMediator _mediator;
     private GameDataPacket _gameDataPacket;
@@ -57,6 +61,14 @@ internal sealed class Player : IPlayer
 
         Id = id;
         _gameDataPacket = gameDataPacket with { Origin = id };
+    }
+
+    public async ValueTask InitializePlayer(CancellationToken cancellationToken)
+    {
+        if (IsGameJoltPlayer)
+        {
+            PlayerProfile = await _mediator.Send(new GetPlayerProfile(_gameDataPacket), cancellationToken).ConfigureAwait(false);
+        }
     }
 
     public ValueTask ApplyGameDataAsync(RawPacket rawPacket)

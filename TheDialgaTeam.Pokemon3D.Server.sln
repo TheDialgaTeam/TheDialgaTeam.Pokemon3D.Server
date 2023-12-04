@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Gui", "TheDialgaTeam.Pokemon3D.Server.Gui\TheDialgaTeam.Pokemon3D.Server.Gui.csproj", "{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Serilog", "..\TheDialgaTeam.Serilog\TheDialgaTeam.Serilog\TheDialgaTeam.Serilog.csproj", "{132DAFC5-D4B9-41A0-BC2D-EBC282F628E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,5 +28,9 @@ Global
 		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{132DAFC5-D4B9-41A0-BC2D-EBC282F628E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{132DAFC5-D4B9-41A0-BC2D-EBC282F628E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{132DAFC5-D4B9-41A0-BC2D-EBC282F628E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{132DAFC5-D4B9-41A0-BC2D-EBC282F628E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

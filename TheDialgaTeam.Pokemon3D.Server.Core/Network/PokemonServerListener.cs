@@ -20,6 +20,7 @@ using System.Text;
 using Mediator;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Formats;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
@@ -104,12 +105,12 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
 
             if (serverOptions is { AllowAnyGameModes: true, BlacklistedGameModes.Length: > 0 })
             {
-                _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerAllowAnyGameModesExcept, string.Join(", ", serverOptions.BlacklistedGameModes)]);
+                _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerAllowAnyGameModesExcept, new ArrayFormat<string>(serverOptions.BlacklistedGameModes)]);
             }
 
             if (!serverOptions.AllowAnyGameModes)
             {
-                _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerAllowOnlyGameModes, string.Join(", ", serverOptions.WhitelistedGameModes)]);
+                _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerAllowOnlyGameModes, new ArrayFormat<string>(serverOptions.WhitelistedGameModes)]);
             }
             
             _ = Task.Run(() => RunServerPortCheckingTask(networkOptions, serverOptions, stoppingToken), stoppingToken);

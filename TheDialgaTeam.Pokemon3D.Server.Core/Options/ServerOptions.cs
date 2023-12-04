@@ -18,23 +18,23 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed record ServerOptions
 {
-    public string ServerName { get; init; } = "Pokemon 3D Server";
+    public string ServerName { get; set; } = "Pokemon 3D Server";
 
-    public string ServerDescription { get; init; } = string.Empty;
+    public string ServerDescription { get; set; } = string.Empty;
 
-    public string[] WelcomeMessage { get; init; } = Array.Empty<string>();
+    public string[] WelcomeMessage { get; set; } = Array.Empty<string>();
 
-    public bool AllowAnyGameModes { get; init; }
+    public bool AllowAnyGameModes { get; set; }
 
-    public string[] WhitelistedGameModes { get; init; } = Array.Empty<string>();
+    public string[] WhitelistedGameModes { get; set; } = Array.Empty<string>();
 
-    public string[] BlacklistedGameModes { get; init; } = Array.Empty<string>();
+    public string[] BlacklistedGameModes { get; set; } = Array.Empty<string>();
 
-    public int MaxPlayers { get; init; } = 20;
+    public int MaxPlayers { get; set; } = 20;
 
-    public bool OfflineMode { get; init; }
+    public bool OfflineMode { get; set; }
 
-    public int AwayFromKeyboardKickTime { get; init; } = 60 * 5;
+    public int AwayFromKeyboardKickTime { get; set; } = 60 * 5;
     
-    public int NoPingKickTime { get; init; } = 30;
+    public int NoPingKickTime { get; set; } = 30;
 }

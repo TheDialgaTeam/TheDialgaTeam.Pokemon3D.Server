@@ -18,15 +18,15 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 public sealed class GameMessageFormat
 {
-    public string ServerChatMessage { get; init; } = "<{0}>: {1}";
+    public string ServerChatMessage { get; set; } = "<{0}>: {1}";
     
-    public string ServerIsFull { get; init; } = "This server is currently full of players.";
-    public string ServerOnlyAllowGameJoltProfile { get; init; } = "This server do not allow offline profile.";
-    public string ServerWhitelistedGameModes { get; init; } = "This server require you to play the following GameMode(s): {0}";
-    public string ServerBlacklistedGameModes { get; init; } = "This server do not allow this GameMode to join.";
+    public string ServerIsFull { get; set; } = "This server is currently full of players.";
+    public string ServerOnlyAllowGameJoltProfile { get; set; } = "This server do not allow offline profile.";
+    public string ServerWhitelistedGameModes { get; set; } = "This server require you to play the following GameMode(s): {0}";
+    public string ServerBlacklistedGameModes { get; set; } = "This server do not allow this GameMode to join.";
 
-    public string ServerError { get; init; } = "This server has faced an unrecoverable error. Please try again later.";
+    public string ServerError { get; set; } = "This server has faced an unrecoverable error. Please try again later.";
 
-    public string PlayerJoin { get; init; } = "{0} join the server.";
-    public string PlayerLeft { get; init; } = "{0} left the server.";
+    public string PlayerJoin { get; set; } = "{0} join the server.";
+    public string PlayerLeft { get; set; } = "{0} left the server.";
 }

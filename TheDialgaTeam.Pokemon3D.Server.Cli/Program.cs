@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using TheDialgaTeam.Microsoft.Extensions.Logging;
-using TheDialgaTeam.Microsoft.Extensions.Logging.AnsiConsole;
+using ReactiveUI;
 using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
+using TheDialgaTeam.Serilog.Extensions;
+using TheDialgaTeam.Serilog.Sinks.AnsiConsole;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
@@ -16,18 +18,20 @@ internal static class Program
 
         return Host.CreateDefaultBuilder(args)
             .ConfigurePokemonServer()
-            .ConfigureServices(static collection =>
+            .ConfigureSerilog((_, provider, configuration) => configuration.WriteTo.AnsiConsoleSink(provider))
+            .ConfigureServices(static (context, collection) =>
             {
                 collection.AddMediator();
                 collection.AddHostedService<ServerHostedService>();
-                collection.AddHostedService<ConsoleBackgroundService>();
-            })
-            .ConfigureLogging(static builder =>
-            {
-                builder.AddAnsiConsole(static options =>
+                
+                if (context.Configuration.GetValue("TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode", false))
                 {
-                    options.SetDefaultTemplate(static formattingBuilder => formattingBuilder.SetGlobal(static messageFormattingBuilder => messageFormattingBuilder.SetPrefix(static (in LoggingTemplateEntry _) => $"{AnsiEscapeCodeConstants.DarkGrayForegroundColor}{DateTime.Now:yyyy-MM-dd HH:mm:ss}{AnsiEscapeCodeConstants.Reset} ")));
-                });
+                    collection.AddHostedService<ConsoleGuiService>();
+                }
+                else
+                {
+                    collection.AddHostedService<ConsoleBackgroundService>();
+                }
             })
             .RunConsoleAsync(static options => options.SuppressStatusMessages = true);
     }

@@ -38,13 +38,12 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 
 public static class HostBuilderExtensions
 {
-    [RequiresDynamicCode("Binding strongly typed objects to configuration values may require generating dynamic code at runtime.")]
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Dependent types have been preserved.")]
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(SqliteOptions))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(LocalizedString))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(PlayerNameDisplayFormat))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ConsoleMessageFormat))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(GameMessageFormat))]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Dependent types have been preserved.")]
     public static IHostBuilder ConfigurePokemonServer(this IHostBuilder hostBuilder)
     {
         return hostBuilder.ConfigureServices(collection =>
@@ -53,7 +52,7 @@ public static class HostBuilderExtensions
             collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
             collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
             collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();
-            collection.TryAddSingleton<IStringLocalizer, OptionsStringLocalizer>();
+            collection.TryAddSingleton<IStringLocalizer, StringLocalizer>();
             
             collection.AddOptions<ServerOptions>().BindConfiguration("Server");
             collection.TryAddSingleton<ServerOptionsValidation>();

@@ -20,6 +20,6 @@ public enum PlayerType
 {
     OfflinePlayer,
     GameJoltPlayer,
-    ServerModerator,
+    Moderator,
     Administrator,
 }
