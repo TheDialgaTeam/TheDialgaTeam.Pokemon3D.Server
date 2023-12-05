@@ -16,9 +16,7 @@
 
 using System.Globalization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
@@ -27,7 +25,7 @@ internal sealed class StringLocalizer : IStringLocalizer
     public string this[Func<LocalizedString, string> localizedString] => GetLocalizedTemplate(localizedString);
 
     public string this[Func<LocalizedString, string> localizedString, params object?[] args] => string.Format(GetLocalizedTemplate(localizedString), args);
-    
+
     private readonly IPokemonServerOptions _options;
 
     public StringLocalizer(IPokemonServerOptions options)

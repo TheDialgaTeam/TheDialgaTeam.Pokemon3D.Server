@@ -25,4 +25,6 @@ public sealed class PlayerProfile : BaseTable
     public string Name { get; set; } = string.Empty;
     
     public PlayerType PlayerType { get; set; }
+
+    public LocalWorld LocalWorld { get; set; } = null!;
 }

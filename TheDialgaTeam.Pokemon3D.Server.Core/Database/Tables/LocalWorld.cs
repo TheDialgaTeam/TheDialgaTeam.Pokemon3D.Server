@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using System.ComponentModel.DataAnnotations.Schema;
+using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
-public interface IPokemonServerClient
+public sealed class LocalWorld : BaseTable
 {
-    IPAddress RemoteIpAddress { get; }
+    [ForeignKey(nameof(PlayerProfile))]
+    public int PlayerProfileId { get; init; }
 
-    void SendPacket(RawPacket rawPacket);
-
-    ValueTask KickAsync(string reason);
-
-    ValueTask DisconnectAsync(string? reason = null);
+    public PlayerProfile PlayerProfile { get; init; } = null!;
+    
+    public bool? DoDayCycle { get; set; }
+    
+    public Season? Season { get; set; }
+    
+    public Weather? Weather { get; set; }
+    
+    public int? TimeOffset { get; set; }
 }

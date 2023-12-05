@@ -23,8 +23,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
 internal sealed class PlayerFactory(IServiceProvider serviceProvider) : IPlayerFactory
 {
-    public IPlayer CreatePlayer(int id, GameDataPacket gameDataPacket)
+    public IPlayer CreatePlayer(IPokemonServerClient client, int id, GameDataPacket gameDataPacket)
     {
-        return ActivatorUtilities.CreateInstance<Player>(serviceProvider, id, gameDataPacket);
+        return ActivatorUtilities.CreateInstance<Player>(serviceProvider, client, id, gameDataPacket);
     }
 }

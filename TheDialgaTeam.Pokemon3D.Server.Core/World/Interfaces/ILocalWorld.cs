@@ -26,11 +26,19 @@ public interface ILocalWorld : IDisposable
     
     DateTime CurrentTime { get; }
     
+    bool DoDayCycle { get; set; }
+    
     Season TargetSeason { get; set; }
     
     Weather TargetWeather { get; set; }
     
     TimeSpan TargetOffset { get; set; }
+    
+    bool IsGlobalWorld { get; }
+
+    void StartWorld();
+
+    void StopWorld();
 
     WorldDataPacket GetWorldDataPacket();
 }

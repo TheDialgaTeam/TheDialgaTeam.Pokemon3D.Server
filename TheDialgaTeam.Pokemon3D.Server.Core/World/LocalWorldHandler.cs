@@ -17,21 +17,24 @@
 using Mediator;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-public sealed class GlobalWorld : 
+public sealed class LocalWorldHandler : 
     IQueryHandler<GetGlobalWorld, ILocalWorld>,
+    ICommandHandler<StartGlobalWorld>,
+    ICommandHandler<StopGlobalWorld>,
     INotificationHandler<WorldUpdate>
 {
-    private readonly ILogger<GlobalWorld> _logger;
+    private readonly ILogger<LocalWorldHandler> _logger;
     private readonly IStringLocalizer _stringLocalizer;
     private readonly ILocalWorld _world;
 
-    public GlobalWorld(ILogger<GlobalWorld> logger, IStringLocalizer stringLocalizer, ILocalWorldFactory factory)
+    public LocalWorldHandler(ILogger<LocalWorldHandler> logger, IStringLocalizer stringLocalizer, ILocalWorldFactory factory)
     {
         _logger = logger;
         _stringLocalizer = stringLocalizer;
@@ -42,10 +45,22 @@ public sealed class GlobalWorld :
     {
         return ValueTask.FromResult(_world);
     }
+    
+    public ValueTask<Unit> Handle(StartGlobalWorld command, CancellationToken cancellationToken)
+    {
+        _world.StartWorld();
+        return Unit.ValueTask;
+    }
+
+    public ValueTask<Unit> Handle(StopGlobalWorld command, CancellationToken cancellationToken)
+    {
+        _world.StopWorld();
+        return Unit.ValueTask;
+    }
 
     public ValueTask Handle(WorldUpdate notification, CancellationToken cancellationToken)
     {
-        if (notification.World == _world)
+        if (notification.World.IsGlobalWorld)
         {
             _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.GlobalWorldStatus, Enum.GetName(notification.World.CurrentSeason), Enum.GetName(notification.World.CurrentWeather), notification.World.CurrentTime]);
         }

@@ -14,18 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using System.Collections.ObjectModel;
+using ReactiveUI;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Cli.ViewModels;
 
-public interface IPokemonServerClient
+internal sealed class PlayerListViewModel : ReactiveObject
 {
-    IPAddress RemoteIpAddress { get; }
-
-    void SendPacket(RawPacket rawPacket);
-
-    ValueTask KickAsync(string reason);
-
-    ValueTask DisconnectAsync(string? reason = null);
+    public ObservableCollection<IPlayer> Players { get; } = [];
 }

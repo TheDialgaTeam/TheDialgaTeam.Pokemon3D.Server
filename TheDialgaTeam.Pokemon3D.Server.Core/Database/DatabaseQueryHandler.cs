@@ -22,7 +22,8 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
-public sealed class DatabaseQueryHandler : IQueryHandler<GetPlayerProfile, PlayerProfile>
+public sealed class DatabaseQueryHandler :
+    IQueryHandler<GetPlayerProfile, PlayerProfile>
 {
     private readonly IDbContextFactory<DatabaseContext> _contextFactory;
 
@@ -38,34 +39,56 @@ public sealed class DatabaseQueryHandler : IQueryHandler<GetPlayerProfile, Playe
     {
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-        if (query.GameDataPacket.IsGameJoltPlayer)
+        if (query.Player.IsGameJoltPlayer)
         {
-            var isExists = await context.PlayerProfiles.CountAsync(profile => profile.GameJoltId == query.GameDataPacket.GameJoltId, cancellationToken).ConfigureAwait(false) > 0;
+            var isExists = await context.PlayerProfiles
+                .CountAsync(profile => profile.GameJoltId == query.Player.GameJoltId, cancellationToken)
+                .ConfigureAwait(false) > 0;
 
             if (isExists)
             {
-                return await context.PlayerProfiles.SingleAsync(profile => profile.GameJoltId == query.GameDataPacket.GameJoltId, cancellationToken).ConfigureAwait(false);
+                return await context.PlayerProfiles
+                    .Include(profile => profile.LocalWorld)
+                    .SingleAsync(profile => profile.GameJoltId == query.Player.GameJoltId, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
-            var playerProfile = new PlayerProfile { GameJoltId = query.GameDataPacket.GameJoltId, PlayerType = PlayerType.GameJoltPlayer };
+            var playerProfile = new PlayerProfile
+            {
+                GameJoltId = query.Player.GameJoltId,
+                PlayerType = PlayerType.GameJoltPlayer,
+                LocalWorld = new LocalWorld()
+            };
+            
             context.Add(playerProfile);
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            
+
             return playerProfile;
         }
         else
         {
-            var isExists = await context.PlayerProfiles.CountAsync(profile => profile.Name == query.GameDataPacket.Name, cancellationToken).ConfigureAwait(false) > 0;
+            var isExists = await context.PlayerProfiles
+                .CountAsync(profile => profile.Name == query.Player.Name, cancellationToken)
+                .ConfigureAwait(false) > 0;
 
             if (isExists)
             {
-                return await context.PlayerProfiles.SingleAsync(profile => profile.Name == query.GameDataPacket.Name, cancellationToken).ConfigureAwait(false);
+                return await context.PlayerProfiles
+                    .Include(profile => profile.LocalWorld)
+                    .SingleAsync(profile => profile.Name == query.Player.Name, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
-            var playerProfile = new PlayerProfile { Name = query.GameDataPacket.Name, PlayerType = PlayerType.OfflinePlayer };
+            var playerProfile = new PlayerProfile
+            {
+                Name = query.Player.Name,
+                PlayerType = PlayerType.OfflinePlayer,
+                LocalWorld = new LocalWorld()
+            };
+            
             context.Add(playerProfile);
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            
+
             return playerProfile;
         }
     }

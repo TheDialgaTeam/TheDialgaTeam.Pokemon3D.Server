@@ -17,7 +17,8 @@
 using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Queries;
 
-public sealed record GetPlayerProfile(GameDataPacket GameDataPacket) : IQuery<PlayerProfile>;
+public sealed record GetPlayerProfile(IPlayer Player) : IQuery<PlayerProfile>;

@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Microsoft.Extensions.DependencyInjection;
 using Terminal.Gui;
+using TheDialgaTeam.Pokemon3D.Server.Cli.ViewModels;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
-internal sealed class PlayerViewList : FrameView
+internal sealed class PlayerListView : FrameView
 {
-    public PlayerViewList()
+    public PlayerListView(IServiceProvider serviceProvider)
     {
         Title = "Player Online";
+        
+        var viewModel = ActivatorUtilities.CreateInstance<PlayerListViewModel>(serviceProvider);
     }
 }

@@ -23,20 +23,24 @@ using TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
-internal sealed class ConsoleGuiService : IHostedService
+internal sealed class ConsoleGuiService : BackgroundService
 {
-    public Task StartAsync(CancellationToken cancellationToken)
+    private readonly IServiceProvider _serviceProvider;
+
+    public ConsoleGuiService(IServiceProvider serviceProvider)
     {
-        Application.Init();
-        RxApp.MainThreadScheduler = TerminalScheduler.Default;
-        RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
-        Application.Run(new MainConsoleView());
-        return Task.CompletedTask;
+        _serviceProvider = serviceProvider;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Application.Shutdown();
-        return Task.CompletedTask;
+        return Task.Factory.StartNew(() =>
+        {
+            Application.Init();
+            RxApp.MainThreadScheduler = TerminalScheduler.Default;
+            RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
+            Application.Run(new MainConsoleView(_serviceProvider));
+            Application.Shutdown();
+        }, stoppingToken);
     }
 }

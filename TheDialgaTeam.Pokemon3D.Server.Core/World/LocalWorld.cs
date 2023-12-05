@@ -17,6 +17,7 @@
 using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
@@ -24,43 +25,48 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
 internal sealed class LocalWorld : ILocalWorld
 {
-    public Season CurrentSeason { get; private set; } = Season.Spring;
+    public Season CurrentSeason { get; private set; }
 
-    public Weather CurrentWeather { get; private set; } = Weather.Clear;
+    public Weather CurrentWeather { get; private set; }
 
-    public DateTime CurrentTime => DateTimeOffset.UtcNow.Add(TargetOffset).DateTime;
+    public DateTime CurrentTime { get; private set; }
+    
+    public bool DoDayCycle { get; set; }
     
     public Season TargetSeason { get; set; }
     
     public Weather TargetWeather { get; set; }
     
     public TimeSpan TargetOffset { get; set; }
+
+    public bool IsGlobalWorld => _world is null;
     
     private int WeekOfYear => (CurrentTime.DayOfYear - (CurrentTime.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
     
     private readonly IPokemonServerOptions _options;
     private readonly IMediator _mediator;
     private readonly ILocalWorld? _world;
-
-    private DateTimeOffset _lastWorldUpdate = DateTimeOffset.MinValue;
+    private readonly IPlayer? _player;
 
     private readonly Timer _timer;
 
-    public LocalWorld(IPokemonServerOptions options, IMediator mediator) : this(options, mediator, null, options.WorldOptions.Season, options.WorldOptions.Weather, options.WorldOptions.TimeOffset)
-    {
-    }
-    
-    public LocalWorld(IPokemonServerOptions options, IMediator mediator, ILocalWorld? world, Season season, Weather weather, TimeSpan offset)
+    public LocalWorld(IPokemonServerOptions options, IMediator mediator, ILocalWorld? world = null, IPlayer? player = null)
     {
         _options = options;
         _mediator = mediator;
         _world = world;
-        
-        TargetSeason = season;
-        TargetWeather = weather;
-        TargetOffset = offset;
-        
-        _timer = new Timer(TimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        _player = player;
+        _timer = new Timer(TimerCallback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+    }
+
+    public void StartWorld()
+    {
+        _timer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+    
+    public void StopWorld()
+    {
+        _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
 
     public WorldDataPacket GetWorldDataPacket()
@@ -72,32 +78,47 @@ internal sealed class LocalWorld : ILocalWorld
     {
         if (_world == null)
         {
+            DoDayCycle = _options.WorldOptions.DoDayCycle;
             TargetSeason = _options.WorldOptions.Season;
             TargetWeather = _options.WorldOptions.Weather;
-            TargetOffset = _options.WorldOptions.TimeOffset;
+            TargetOffset = TimeSpan.FromMinutes(_options.WorldOptions.TimeOffset);
         }
-        
-        var currentTime = CurrentTime;
+        else
+        {
+            DoDayCycle = _player?.PlayerProfile?.LocalWorld.DoDayCycle ?? _options.WorldOptions.DoDayCycle;
+            TargetSeason = _player?.PlayerProfile?.LocalWorld.Season ?? _options.WorldOptions.Season;
+            TargetWeather = _player?.PlayerProfile?.LocalWorld.Weather ?? _options.WorldOptions.Weather;
+            TargetOffset = TimeSpan.FromMinutes(_player?.PlayerProfile?.LocalWorld.TimeOffset ?? _options.WorldOptions.TimeOffset);
+        }
+
+        if (!DoDayCycle)
+        {
+            CurrentSeason = TargetSeason > Season.Default ? TargetSeason : Season.Winter;
+            CurrentWeather = TargetWeather > Weather.Default ? TargetWeather : Weather.Clear;
+            CurrentTime = DateTime.Today.AddHours(12);
+            return;
+        }
+
+        var previousDateTime = CurrentTime;
+        CurrentTime = DateTimeOffset.UtcNow.Add(TargetOffset).DateTime;
         var generatedNewWorld = false;
 
-        if (_lastWorldUpdate.Day != currentTime.Day)
+        if (CurrentTime.Date != previousDateTime.Date)
         {
             GenerateNewSeason(TargetSeason);
             generatedNewWorld = true;
         }
 
-        if (_lastWorldUpdate.Hour != currentTime.Hour)
+        if (CurrentTime.Date != previousDateTime.Date || CurrentTime.Hour != previousDateTime.Hour)
         {
             GenerateNewWeather(TargetWeather);
             generatedNewWorld = true;
         }
 
-        _lastWorldUpdate = currentTime;
-
-        if (generatedNewWorld)
-        {
-            _mediator.Publish(new WorldUpdate(this)).AsTask();
-        }
+        if (!generatedNewWorld) return;
+        
+        _player?.SendPacket(GetWorldDataPacket().ToRawPacket());
+        _mediator.Publish(new WorldUpdate(this)).AsTask();
     }
 
     private void GenerateNewSeason(Season targetSeason)

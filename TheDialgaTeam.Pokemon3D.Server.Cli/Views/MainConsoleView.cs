@@ -21,25 +21,31 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
 internal sealed class MainConsoleView : Window
 {
-    public MainConsoleView()
+    public MainConsoleView(IServiceProvider serviceProvider)
     {
         Title = $"{ApplicationUtility.Name} v{ApplicationUtility.Version} ({ApplicationUtility.FrameworkVersion})";
 
-        var playerViewList = new PlayerViewList
+        var playerViewList = new PlayerListView(serviceProvider)
         {
-            Width = Dim.Percent(25),
-            Height = Dim.Fill(1)
+            Width = Dim.Percent(20),
+            Height = Dim.Fill()
         };
 
-        var chatMessage = new ChatMessage
+        var consoleMessageView = new ConsoleMessageView(serviceProvider)
         {
             X = Pos.Right(playerViewList),
             Width = Dim.Fill(),
             Height = Dim.Fill(2)
         };
-
-        var statusBar = new StatusBar();
         
-        Add(playerViewList, chatMessage, statusBar);
+        var inputField = new TextField
+        {
+            X = Pos.Right(playerViewList) + 1,
+            Y = Pos.Bottom(consoleMessageView),
+            Width = Dim.Fill(1),
+            Height = Dim.Fill()
+        };
+        
+        Add(playerViewList, consoleMessageView, inputField);
     }
 }

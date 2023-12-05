@@ -29,6 +29,8 @@ public sealed class DatabaseContext : DbContext
 
     public required DbSet<Whitelist> WhitelistAccounts { get; init; }
     
+    public required DbSet<LocalWorld> LocalWorldSettings { get; init; }
+    
     private readonly IPokemonServerOptions _options;
 
     public DatabaseContext(IPokemonServerOptions options)

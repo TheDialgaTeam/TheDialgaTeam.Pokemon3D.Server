@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Terminal.Gui;
+using System.Collections.ObjectModel;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
+namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
-internal sealed class ChatMessage : FrameView
+public sealed class PlayerEventHandler : INotificationHandler<PlayerJoin>
 {
-    public ChatMessage()
+    public ObservableCollection<IPlayer> Players { get; } = [];
+    
+    public ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
     {
-        Title = "Log and Chat";
+        Players.Add(notification.Player);
+        return ValueTask.CompletedTask;
     }
 }

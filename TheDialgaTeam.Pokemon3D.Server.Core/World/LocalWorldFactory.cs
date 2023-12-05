@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.DependencyInjection;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
@@ -33,8 +34,8 @@ internal sealed class LocalWorldFactory : ILocalWorldFactory
         return ActivatorUtilities.CreateInstance<LocalWorld>(_serviceProvider);
     }
 
-    public ILocalWorld CreateLocalWorld(ILocalWorld world, Season season, Weather weather, TimeSpan offset)
+    public ILocalWorld CreateLocalWorld(ILocalWorld world, IPlayer player)
     {
-        return ActivatorUtilities.CreateInstance<LocalWorld>(_serviceProvider, world, season, weather, offset);
+        return ActivatorUtilities.CreateInstance<LocalWorld>(_serviceProvider, world, player);
     }
 }

@@ -28,6 +28,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
@@ -115,6 +116,8 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
             
             _ = Task.Run(() => RunServerPortCheckingTask(networkOptions, serverOptions, stoppingToken), stoppingToken);
 
+            await _mediator.Send(new StartGlobalWorld(), stoppingToken).ConfigureAwait(false);
+            
             while (!stoppingToken.IsCancellationRequested)
             {
                 var tcpClient = await _tcpListener.AcceptTcpClientAsync(stoppingToken).ConfigureAwait(false);
@@ -128,9 +131,11 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
         catch (OperationCanceledException)
         {
         }
+        
+        await _mediator.Send(new StopGlobalWorld(), stoppingToken).ConfigureAwait(false);
 
         _tcpListener?.Stop();
-
+        
         if (networkOptions.UseUpnp)
         {
             await _natDevicePortMapper.DestroyPortMappingAsync().ConfigureAwait(false);

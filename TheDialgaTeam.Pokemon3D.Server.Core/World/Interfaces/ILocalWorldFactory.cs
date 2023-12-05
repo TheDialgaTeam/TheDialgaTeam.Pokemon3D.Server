@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 public interface ILocalWorldFactory
 {
     ILocalWorld CreateLocalWorld();
     
-    ILocalWorld CreateLocalWorld(ILocalWorld world, Season season, Weather weather, TimeSpan offset);
+    ILocalWorld CreateLocalWorld(ILocalWorld world, IPlayer player);
 }

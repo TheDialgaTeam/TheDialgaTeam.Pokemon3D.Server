@@ -20,11 +20,13 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed record WorldOptions
 {
+    public bool DoDayCycle { get; set; } = true;
+    
     public Season Season { get; set; } = Season.Default;
 
     public Weather Weather { get; set; } = Weather.Default;
 
-    public TimeSpan TimeOffset { get; set; } = DateTimeOffset.Now.Offset;
+    public int TimeOffset { get; set; } = (int) DateTimeOffset.Now.Offset.TotalMinutes;
 
     public int[] SeasonMonth { get; set; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 

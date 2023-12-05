@@ -28,7 +28,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed class PokemonServerClient : IPokemonServerClient
+internal sealed class PokemonServerClient : IPokemonServerClient, IDisposable
 {
     public IPAddress RemoteIpAddress { get; }
 
@@ -183,17 +183,9 @@ internal sealed class PokemonServerClient : IPokemonServerClient
     
     private async Task HandleGameDataPacketTask()
     {
-        while (_tcpClient.Connected)
+        foreach (var rawPacket in _gameDataPacketQueue.GetConsumingEnumerable())
         {
-            try
-            {
-                var rawPacket = _gameDataPacketQueue.Take();
-                await _mediator.Publish(new NewPacketReceived(this, rawPacket)).ConfigureAwait(true);
-            }
-            catch (InvalidOperationException)
-            {
-                return;
-            }
+            await _mediator.Publish(new NewPacketReceived(this, rawPacket)).ConfigureAwait(true);
         }
     }
 

@@ -18,8 +18,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 public sealed class GameMessageFormat
 {
-    public string ServerChatMessage { get; set; } = "<{0}>: {1}";
-    
     public string ServerIsFull { get; set; } = "This server is currently full of players.";
     public string ServerOnlyAllowGameJoltProfile { get; set; } = "This server do not allow offline profile.";
     public string ServerWhitelistedGameModes { get; set; } = "This server require you to play the following GameMode(s): {0}";

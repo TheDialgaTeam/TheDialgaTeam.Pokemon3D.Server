@@ -14,20 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Net;
 using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Database.Queries;
 using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-internal sealed class Player : IPlayer
+internal sealed class Player : IPlayer, IDisposable
 {
-    public int Id { get; }
-
+    public IPAddress RemoteIpAddress => _client.RemoteIpAddress;
+    
+    public int Id => _gameDataPacket.Origin;
     public string GameMode => _gameDataPacket.GameMode;
     public bool IsGameJoltPlayer => _gameDataPacket.IsGameJoltPlayer;
     public string GameJoltId => _gameDataPacket.GameJoltId;
@@ -44,22 +49,28 @@ internal sealed class Player : IPlayer
     public string PokemonSkin => _gameDataPacket.PokemonSkin;
     public int PokemonFacing => _gameDataPacket.PokemonFacing;
 
-    public string DisplayName => _gameDataPacket.IsGameJoltPlayer ? 
-        _stringLocalizer[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, Name, GameJoltId] : 
-        _stringLocalizer[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, Name];
+    public string DisplayName => _gameDataPacket.IsGameJoltPlayer ? _stringLocalizer[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, Name, GameJoltId] : _stringLocalizer[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, Name];
+    
+    public bool IsReady { get; private set; }
     
     public PlayerProfile? PlayerProfile { get; private set; }
-    
+
+    public bool HasLocalWorld => _localWorld is not null;
+
     private readonly IStringLocalizer _stringLocalizer;
     private readonly IMediator _mediator;
+    private readonly ILocalWorldFactory _localWorldFactory;
+    private readonly IPokemonServerClient _client;
     private GameDataPacket _gameDataPacket;
 
-    public Player(IStringLocalizer stringLocalizer, IMediator mediator, int id, GameDataPacket gameDataPacket)
+    private ILocalWorld? _localWorld;
+
+    public Player(IStringLocalizer stringLocalizer, IMediator mediator, ILocalWorldFactory localWorldFactory, IPokemonServerClient client, int id, GameDataPacket gameDataPacket)
     {
         _stringLocalizer = stringLocalizer;
         _mediator = mediator;
-
-        Id = id;
+        _localWorldFactory = localWorldFactory;
+        _client = client;
         _gameDataPacket = gameDataPacket with { Origin = id };
     }
 
@@ -67,8 +78,14 @@ internal sealed class Player : IPlayer
     {
         if (IsGameJoltPlayer)
         {
-            PlayerProfile = await _mediator.Send(new GetPlayerProfile(_gameDataPacket), cancellationToken).ConfigureAwait(false);
+            PlayerProfile = await _mediator.Send(new GetPlayerProfile(this), cancellationToken).ConfigureAwait(false);
+
+            var globalWorld = await _mediator.Send(new GetGlobalWorld(), cancellationToken).ConfigureAwait(false);
+            _localWorld = _localWorldFactory.CreateLocalWorld(globalWorld, this);
+            _localWorld.StartWorld();
         }
+
+        IsReady = true;
     }
 
     public ValueTask ApplyGameDataAsync(RawPacket rawPacket)
@@ -80,5 +97,25 @@ internal sealed class Player : IPlayer
     public GameDataPacket ToGameDataPacket()
     {
         return _gameDataPacket;
+    }
+
+    public void SendPacket(RawPacket rawPacket)
+    {
+        _client.SendPacket(rawPacket);
+    }
+
+    public ValueTask KickAsync(string reason)
+    {
+        return _client.KickAsync(reason);
+    }
+
+    public ValueTask DisconnectAsync(string? reason = null)
+    {
+        return _client.DisconnectAsync(reason);
+    }
+
+    public void Dispose()
+    {
+        _localWorld?.Dispose();
     }
 }

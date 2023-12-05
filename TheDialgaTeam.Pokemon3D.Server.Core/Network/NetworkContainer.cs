@@ -25,7 +25,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Queries;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
@@ -35,7 +35,8 @@ public sealed class NetworkContainer :
     INotificationHandler<NewPacketReceived>,
     INotificationHandler<PlayerJoin>,
     INotificationHandler<PlayerUpdated>,
-    INotificationHandler<PlayerLeft>
+    INotificationHandler<PlayerLeft>,
+    INotificationHandler<WorldUpdate>
 {
     private readonly ILogger _logger;
     private readonly IMediator _mediator;
@@ -63,6 +64,8 @@ public sealed class NetworkContainer :
         _playerFactory = playerFactory;
     }
 
+    #region Client Event Handler
+
     public async ValueTask Handle(ClientConnected notification, CancellationToken cancellationToken)
     {
         try
@@ -80,7 +83,10 @@ public sealed class NetworkContainer :
 
     public ValueTask Handle(ClientDisconnected notification, CancellationToken cancellationToken)
     {
-        notification.PokemonServerClient.Dispose();
+        if (notification.PokemonServerClient is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
 
         if (_players.TryRemove(notification.PokemonServerClient, out var player))
         {
@@ -90,7 +96,7 @@ public sealed class NetworkContainer :
                 {
                     _runningIds.Add(player.Id);
                 }
-                
+
                 return _mediator.Publish(new PlayerLeft(player, notification.Reason), cancellationToken);
             }
         }
@@ -112,112 +118,26 @@ public sealed class NetworkContainer :
 
                 case PacketType.ChatMessage:
                 {
+                    foreach (var player in GetPlayersEnumerable())
+                    {
+                        player.SendPacket(notification.RawPacket);
+                    }
                     break;
                 }
 
                 case PacketType.ServerDataRequest:
                 {
-                    notification.Network.SendPacket(new ServerInfoDataPacket(
-                        GetPlayerCount(),
-                        _options.ServerOptions.MaxPlayers,
-                        _options.ServerOptions.ServerName,
-                        _options.ServerOptions.ServerDescription,
-                        GetPlayerDisplayNames()).ToRawPacket());
+                    await HandleServerDataRequest(notification, cancellationToken).ConfigureAwait(false);
                     break;
                 }
             }
         }
-        catch
+        catch (Exception exception)
         {
             await notification.Network.KickAsync(_stringLocalizer[s => s.GameMessageFormat.ServerError]).ConfigureAwait(false);
+            _logger.LogError(exception, "{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ServerError, exception.Message]);
         }
     }
-    
-    public ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
-    {
-        foreach (var keyValuePair in _players.Where(pair => pair.Value is not null))
-        {
-            keyValuePair.Key.SendPacket(new CreatePlayerPacket(notification.Player.Id).ToRawPacket());
-            keyValuePair.Key.SendPacket(notification.Player.ToGameDataPacket().ToRawPacket());
-            keyValuePair.Key.SendPacket(new ChatMessagePacket(-1, _stringLocalizer[s => s.GameMessageFormat.PlayerJoin, new PlayerNameFormat(_stringLocalizer, notification.Player)]).ToRawPacket());
-        }
-        
-        return ValueTask.CompletedTask;
-    }
-    
-    public ValueTask Handle(PlayerUpdated notification, CancellationToken cancellationToken)
-    {
-        foreach (var keyValuePair in _players.Where(pair => pair.Value is not null))
-        {
-            keyValuePair.Key.SendPacket(notification.Player.ToGameDataPacket().ToRawPacket());
-        }
-        
-        return ValueTask.CompletedTask;
-    }
-    
-    public ValueTask Handle(PlayerLeft notification, CancellationToken cancellationToken)
-    {
-        foreach (var keyValuePair in _players.Where(pair => pair.Value is not null && pair.Value != notification.Player))
-        {
-            keyValuePair.Key.SendPacket(new DestroyPlayerPacket(notification.Player.Id).ToRawPacket());
-            keyValuePair.Key.SendPacket(new ChatMessagePacket(-1, _stringLocalizer[s => s.GameMessageFormat.PlayerLeft, new PlayerNameFormat(_stringLocalizer, notification.Player)]).ToRawPacket());
-        }
-        
-        _logger.LogInformation("{Message}", notification.Reason is null ? _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeft, new PlayerNameFormat(_stringLocalizer, notification.Player)] : _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeftWithReason, new PlayerNameFormat(_stringLocalizer, notification.Player), notification.Reason]);
-        
-        return ValueTask.CompletedTask;
-    }
-
-    #region Player Related Functions
-
-    private int GetPlayerCount()
-    {
-        return _players.Values.Count(player => player is not null);
-    }
-
-    private IPlayer GetPlayerById(int id)
-    {
-        return _players.Values.Single(player => player is not null && player.Id == id)!;
-    }
-    
-    private int GetNextRunningId()
-    {
-        lock (_runningIdLock)
-        {
-            if (_runningIds.Count <= 0) return _nextRunningId++;
-            
-            var id = _runningIds.Min;
-            _runningIds.Remove(id);
-            return id;
-        }
-    }
-
-    private string[] GetPlayerDisplayNames()
-    {
-        var playerCount = GetPlayerCount();
-
-        if (playerCount > 20)
-        {
-            return _players.Values
-                .Where(player => player is not null)
-                .Take(20)
-                .Select(player => player!.DisplayName)
-                .Append($"(And {playerCount - 20} more)")
-                .ToArray();
-        }
-
-        return _players.Values
-            .Where(player => player is not null)
-            .Select(player => player!.DisplayName)
-            .ToArray();
-    }
-
-    private IEnumerable<IPlayer> GetPlayers(int excludeId = 0)
-    {
-        return _players.Values.Where(player => player is not null && player.Id != excludeId)!;
-    }
-
-    #endregion
     
     private async ValueTask HandleGameDataPacket(NewPacketReceived notification, CancellationToken cancellationToken)
     {
@@ -258,7 +178,7 @@ public sealed class NetworkContainer :
                 case false when !_options.ServerOptions.WhitelistedGameModes.Any(s => gameDataPacket.GameMode.Equals(s, StringComparison.OrdinalIgnoreCase)):
                 {
                     playerCanJoin = false;
-                    reason = _stringLocalizer[s => s.GameMessageFormat.ServerWhitelistedGameModes, string.Join(", ", _options.ServerOptions.WhitelistedGameModes)];
+                    reason = _stringLocalizer[s => s.GameMessageFormat.ServerWhitelistedGameModes, new ArrayFormat<string>(_options.ServerOptions.WhitelistedGameModes)];
                     break;
                 }
             }
@@ -270,28 +190,9 @@ public sealed class NetworkContainer :
                 return;
             }
 
-            // If all okay, let the player join in by generating an id and providing the world.
-            _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerJoin, new PlayerNameFormat(_stringLocalizer, gameDataPacket)]);
-            
-            var player = _playerFactory.CreatePlayer(GetNextRunningId(), gameDataPacket);
-            await player.InitializePlayer(cancellationToken).ConfigureAwait(false);
+            // If all okay, create a new player object.
+            var player = _playerFactory.CreatePlayer(notification.Network, GetNextRunningId(), gameDataPacket);
             _players[notification.Network] = player;
-            
-            notification.Network.SendPacket(new IdPacket(player.Id).ToRawPacket());
-
-            var world = await _mediator.Send(new GetGlobalWorld(), cancellationToken).ConfigureAwait(false);
-            notification.Network.SendPacket(world.GetWorldDataPacket().ToRawPacket());
-
-            foreach (var otherPlayer in GetPlayers(player.Id))
-            {
-                notification.Network.SendPacket(new CreatePlayerPacket(otherPlayer.Id).ToRawPacket());
-                notification.Network.SendPacket(otherPlayer.ToGameDataPacket().ToRawPacket());
-            }
-
-            foreach (var welcomeMessage in _options.ServerOptions.WelcomeMessage)
-            {
-                notification.Network.SendPacket(new ChatMessagePacket(-1, welcomeMessage).ToRawPacket());
-            }
             
             await _mediator.Publish(new PlayerJoin(player), cancellationToken).ConfigureAwait(false);
         }
@@ -300,5 +201,144 @@ public sealed class NetworkContainer :
             // This is updating existing player.
             await GetPlayerById(notification.RawPacket.Origin).ApplyGameDataAsync(notification.RawPacket).ConfigureAwait(false);
         }
+    }
+    
+    private ValueTask HandleServerDataRequest(NewPacketReceived notification, CancellationToken cancellationToken)
+    {
+        notification.Network.SendPacket(new ServerInfoDataPacket(
+            GetPlayerCount(),
+            _options.ServerOptions.MaxPlayers,
+            _options.ServerOptions.ServerName,
+            _options.ServerOptions.ServerDescription,
+            GetPlayerDisplayNames()).ToRawPacket());
+        
+        return ValueTask.CompletedTask;
+    }
+
+    #endregion
+
+    #region Player Event Handler
+
+    public async ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
+    {
+        await notification.Player.InitializePlayer(cancellationToken).ConfigureAwait(false);
+        
+        notification.Player.SendPacket(new IdPacket(notification.Player.Id).ToRawPacket());
+
+        foreach (var player in GetPlayersEnumerable(null, true))
+        {
+            if (player != notification.Player)
+            {
+                notification.Player.SendPacket(new CreatePlayerPacket(player.Id).ToRawPacket());
+                notification.Player.SendPacket(player.ToGameDataPacket().ToRawPacket());
+            }
+            
+            player.SendPacket(new CreatePlayerPacket(notification.Player.Id).ToRawPacket());
+            player.SendPacket(notification.Player.ToGameDataPacket().ToRawPacket());
+            player.SendPacket(new ChatMessagePacket(-1, _stringLocalizer[s => s.GameMessageFormat.PlayerJoin, new PlayerNameFormat(_stringLocalizer, notification.Player)]).ToRawPacket());
+        }
+
+        foreach (var welcomeMessage in _options.ServerOptions.WelcomeMessage)
+        {
+            notification.Player.SendPacket(new ChatMessagePacket(-1, welcomeMessage).ToRawPacket());
+        }
+        
+        _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerJoin, new PlayerNameFormat(_stringLocalizer, notification.Player)]);
+    }
+
+    public ValueTask Handle(PlayerUpdated notification, CancellationToken cancellationToken)
+    {
+        foreach (var player in GetPlayersEnumerable(null, true))
+        {
+            player.SendPacket(notification.Player.ToGameDataPacket().ToRawPacket());
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask Handle(PlayerLeft notification, CancellationToken cancellationToken)
+    {
+        foreach (var player in GetPlayersEnumerable(null, true))
+        {
+            player.SendPacket(new DestroyPlayerPacket(notification.Player.Id).ToRawPacket());
+            player.SendPacket(new ChatMessagePacket(-1, _stringLocalizer[s => s.GameMessageFormat.PlayerLeft, new PlayerNameFormat(_stringLocalizer, notification.Player)]).ToRawPacket());
+        }
+
+        if (notification.Player is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        _logger.LogInformation("{Message}", notification.Reason is null ? _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeft, new PlayerNameFormat(_stringLocalizer, notification.Player)] : _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeftWithReason, new PlayerNameFormat(_stringLocalizer, notification.Player), notification.Reason]);
+
+        return ValueTask.CompletedTask;
+    }
+
+    #endregion
+
+    #region Player Related Functions
+
+    private int GetNextRunningId()
+    {
+        lock (_runningIdLock)
+        {
+            if (_runningIds.Count <= 0) return _nextRunningId++;
+
+            var id = _runningIds.Min;
+            _runningIds.Remove(id);
+            return id;
+        }
+    }
+    
+    private int GetPlayerCount()
+    {
+        return _players.Values.Count(player => player is not null);
+    }
+
+    private IPlayer GetPlayerById(int id)
+    {
+        return _players.Values.Single(player => player is not null && player.Id == id)!;
+    }
+    
+    private string[] GetPlayerDisplayNames()
+    {
+        var playerCount = GetPlayerCount();
+
+        if (playerCount > 20)
+        {
+            return _players.Values
+                .Where(player => player is not null)
+                .OrderBy(player => player!.Name)
+                .Take(20)
+                .Select(player => player!.DisplayName)
+                .Append($"(And {playerCount - 20} more)")
+                .ToArray();
+        }
+
+        return _players.Values
+            .Where(player => player is not null)
+            .OrderBy(player => player!.Name)
+            .Select(player => player!.DisplayName)
+            .ToArray();
+    }
+
+    private IEnumerable<IPlayer> GetPlayersEnumerable(IPlayer? excludePlayer = null, bool includeNonReady = false)
+    {
+        return (includeNonReady ? _players.Values.Where(player => player is not null && player != excludePlayer) : _players.Values.Where(player => player is not null && player.IsReady && player != excludePlayer))!;
+    }
+
+    #endregion
+
+    public ValueTask Handle(WorldUpdate notification, CancellationToken cancellationToken)
+    {
+        if (notification.World.IsGlobalWorld)
+        {
+            foreach (var player in _players.Values.Where(player => player is not null && player.IsReady))
+            {
+                player!.SendPacket(notification.World.GetWorldDataPacket().ToRawPacket());
+            }
+        }
+        
+        return ValueTask.CompletedTask;
     }
 }

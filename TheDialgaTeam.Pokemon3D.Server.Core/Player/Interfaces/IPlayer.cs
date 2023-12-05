@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-public interface IPlayer
+public interface IPlayer : IPokemonServerClient
 {
     int Id { get; }
-    
     string GameMode { get; }
     bool IsGameJoltPlayer { get; }
     string GameJoltId { get; }
@@ -39,6 +40,12 @@ public interface IPlayer
     int PokemonFacing { get; }
     
     string DisplayName { get; }
+    
+    bool IsReady { get; }
+    
+    PlayerProfile? PlayerProfile { get; }
+    
+    bool HasLocalWorld { get; }
 
     ValueTask InitializePlayer(CancellationToken cancellationToken);
     
