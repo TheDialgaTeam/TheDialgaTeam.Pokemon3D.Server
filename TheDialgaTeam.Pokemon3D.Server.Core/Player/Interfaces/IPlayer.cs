@@ -17,6 +17,7 @@
 using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
@@ -47,7 +48,7 @@ public interface IPlayer : IPokemonServerClient
     
     bool HasLocalWorld { get; }
 
-    ValueTask InitializePlayer(CancellationToken cancellationToken);
+    ValueTask InitializePlayer(ILocalWorld globalWorld, CancellationToken cancellationToken);
     
     ValueTask ApplyGameDataAsync(RawPacket rawPacket);
 

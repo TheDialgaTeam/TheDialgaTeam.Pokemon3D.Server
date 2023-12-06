@@ -37,10 +37,10 @@ internal sealed class ConsoleGuiService : BackgroundService
         return Task.Factory.StartNew(() =>
         {
             Application.Init();
+            Application.QuitKey = Key.F1;
             RxApp.MainThreadScheduler = TerminalScheduler.Default;
             RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
             Application.Run(new MainConsoleView(_serviceProvider));
-            Application.Shutdown();
         }, stoppingToken);
     }
 }

@@ -25,7 +25,8 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
@@ -36,7 +37,8 @@ public sealed class NetworkContainer :
     INotificationHandler<PlayerJoin>,
     INotificationHandler<PlayerUpdated>,
     INotificationHandler<PlayerLeft>,
-    INotificationHandler<WorldUpdate>
+    ICommandHandler<StartGlobalWorld>,
+    ICommandHandler<StopGlobalWorld>
 {
     private readonly ILogger _logger;
     private readonly IMediator _mediator;
@@ -45,6 +47,7 @@ public sealed class NetworkContainer :
     private readonly IPlayerFactory _playerFactory;
 
     private readonly ConcurrentDictionary<IPokemonServerClient, IPlayer?> _players = new();
+    private readonly ILocalWorld _globalWorld;
 
     private int _nextRunningId = 1;
     private readonly SortedSet<int> _runningIds = [];
@@ -55,13 +58,15 @@ public sealed class NetworkContainer :
         IMediator mediator,
         IPokemonServerOptions options,
         IStringLocalizer stringLocalizer,
-        IPlayerFactory playerFactory)
+        IPlayerFactory playerFactory,
+        ILocalWorldFactory worldFactory)
     {
         _logger = logger;
         _mediator = mediator;
         _options = options;
         _stringLocalizer = stringLocalizer;
         _playerFactory = playerFactory;
+        _globalWorld = worldFactory.CreateLocalWorld();
     }
 
     #region Client Event Handler
@@ -221,9 +226,9 @@ public sealed class NetworkContainer :
 
     public async ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
     {
-        await notification.Player.InitializePlayer(cancellationToken).ConfigureAwait(false);
-        
         notification.Player.SendPacket(new IdPacket(notification.Player.Id).ToRawPacket());
+        
+        await notification.Player.InitializePlayer(_globalWorld, cancellationToken).ConfigureAwait(false);
 
         foreach (var player in GetPlayersEnumerable(null, true))
         {
@@ -329,16 +334,20 @@ public sealed class NetworkContainer :
 
     #endregion
 
-    public ValueTask Handle(WorldUpdate notification, CancellationToken cancellationToken)
+    #region World Command Handler
+
+    public ValueTask<Unit> Handle(StartGlobalWorld command, CancellationToken cancellationToken)
     {
-        if (notification.World.IsGlobalWorld)
-        {
-            foreach (var player in _players.Values.Where(player => player is not null && player.IsReady))
-            {
-                player!.SendPacket(notification.World.GetWorldDataPacket().ToRawPacket());
-            }
-        }
-        
-        return ValueTask.CompletedTask;
+        _globalWorld.StartWorld();
+        return Unit.ValueTask;
     }
+
+    public ValueTask<Unit> Handle(StopGlobalWorld command, CancellationToken cancellationToken)
+    {
+        _globalWorld.StopWorld();
+        return Unit.ValueTask;
+    }
+
+    #endregion
+    
 }

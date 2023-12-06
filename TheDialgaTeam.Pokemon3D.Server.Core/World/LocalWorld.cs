@@ -15,10 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
+using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
@@ -42,18 +43,25 @@ internal sealed class LocalWorld : ILocalWorld
     public bool IsGlobalWorld => _world is null;
     
     private int WeekOfYear => (CurrentTime.DayOfYear - (CurrentTime.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
-    
+
+    private readonly ILogger _logger;
     private readonly IPokemonServerOptions _options;
-    private readonly IMediator _mediator;
+    private readonly IStringLocalizer _stringLocalizer;
     private readonly ILocalWorld? _world;
     private readonly IPlayer? _player;
 
     private readonly Timer _timer;
 
-    public LocalWorld(IPokemonServerOptions options, IMediator mediator, ILocalWorld? world = null, IPlayer? player = null)
+    public LocalWorld(
+        ILogger<LocalWorld> logger,
+        IPokemonServerOptions options,
+        IStringLocalizer stringLocalizer,
+        ILocalWorld? world = null, 
+        IPlayer? player = null)
     {
+        _logger = logger;
         _options = options;
-        _mediator = mediator;
+        _stringLocalizer = stringLocalizer;
         _world = world;
         _player = player;
         _timer = new Timer(TimerCallback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
@@ -76,7 +84,7 @@ internal sealed class LocalWorld : ILocalWorld
 
     private void TimerCallback(object? state)
     {
-        if (_world == null)
+        if (_world is null)
         {
             DoDayCycle = _options.WorldOptions.DoDayCycle;
             TargetSeason = _options.WorldOptions.Season;
@@ -118,7 +126,11 @@ internal sealed class LocalWorld : ILocalWorld
         if (!generatedNewWorld) return;
         
         _player?.SendPacket(GetWorldDataPacket().ToRawPacket());
-        _mediator.Publish(new WorldUpdate(this)).AsTask();
+
+        if (IsGlobalWorld)
+        {
+            _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.GlobalWorldStatus, Enum.GetName(CurrentSeason), Enum.GetName(CurrentWeather), CurrentTime]);
+        }
     }
 
     private void GenerateNewSeason(Season targetSeason)

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using DynamicData;
 using Terminal.Gui;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
@@ -28,24 +29,27 @@ internal sealed class MainConsoleView : Window
         var playerViewList = new PlayerListView(serviceProvider)
         {
             Width = Dim.Percent(20),
-            Height = Dim.Fill()
+            Height = Dim.Fill(1)
         };
 
         var consoleMessageView = new ConsoleMessageView(serviceProvider)
         {
             X = Pos.Right(playerViewList),
             Width = Dim.Fill(),
-            Height = Dim.Fill(2)
+            Height = Dim.Fill(1)
         };
-        
-        var inputField = new TextField
+
+        var statusItems = new[]
         {
-            X = Pos.Right(playerViewList) + 1,
-            Y = Pos.Bottom(consoleMessageView),
-            Width = Dim.Fill(1),
-            Height = Dim.Fill()
+            new StatusItem(Application.QuitKey, $"~{Enum.GetName(Application.QuitKey)}~ Quit", Application.Shutdown)
+        };
+
+        var statusBar = new StatusBar(statusItems)
+        {
+            Y = Pos.Bottom(playerViewList),
+            Width = Dim.Fill()
         };
         
-        Add(playerViewList, consoleMessageView, inputField);
+        Add(playerViewList, consoleMessageView, statusBar);
     }
 }

@@ -25,9 +25,9 @@ internal sealed class ConsoleMessageViewModel : ReactiveObject
 {
     public ObservableCollection<string> ConsoleMessages { get; } = [];
     
-    public ConsoleMessageViewModel(ActionSinkConfiguration configuration)
+    public ConsoleMessageViewModel(ActionSinkOptions options)
     {
-        configuration.RegisteredActionLogger = RegisteredActionLogger;
+        options.RegisteredActionLogger = RegisteredActionLogger;
     }
 
     private void RegisteredActionLogger(string message)

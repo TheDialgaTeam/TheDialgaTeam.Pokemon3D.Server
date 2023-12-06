@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,7 +38,6 @@ internal static class Program
                 
                 if (context.Configuration.GetValue("TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode", false))
                 {
-                    collection.AddActionSinkConfiguration();
                     collection.AddHostedService<ConsoleGuiService>();
                     collection.AddHostedService<ServerHostedService>();
                 }
