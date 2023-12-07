@@ -19,14 +19,14 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public sealed record CreatePlayerPacket(int Id) : IPacket
+public sealed record TradeRequestPacket(Origin Origin, Origin TradePartner) : IPacket
 {
-    public CreatePlayerPacket(IRawPacket rawPacket) : this(int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
+    public TradeRequestPacket(IRawPacket rawPacket) : this(rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
     {
     }
     
     public IRawPacket ToRawPacket()
     {
-        return new RawPacket(PacketType.CreatePlayer, Origin.Server, new[] { Id.ToString(CultureInfo.InvariantCulture) });
+        return new RawPacket(PacketType.TradeRequest, Origin, Array.Empty<string>());
     }
 }

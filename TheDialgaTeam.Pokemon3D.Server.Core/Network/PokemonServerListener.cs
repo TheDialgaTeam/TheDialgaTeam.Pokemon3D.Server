@@ -106,12 +106,12 @@ public sealed class PokemonServerListener : BackgroundService, ICommandHandler<S
 
             if (serverOptions is { AllowAnyGameModes: true, BlacklistedGameModes.Length: > 0 })
             {
-                _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerAllowAnyGameModesExcept, new ArrayFormat<string>(serverOptions.BlacklistedGameModes)]);
+                _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerAllowAnyGameModesExcept, new ArrayStringFormat<string>(serverOptions.BlacklistedGameModes)]);
             }
 
             if (!serverOptions.AllowAnyGameModes)
             {
-                _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerAllowOnlyGameModes, new ArrayFormat<string>(serverOptions.WhitelistedGameModes)]);
+                _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.ServerAllowOnlyGameModes, new ArrayStringFormat<string>(serverOptions.WhitelistedGameModes)]);
             }
             
             _ = Task.Run(() => RunServerPortCheckingTask(networkOptions, serverOptions, stoppingToken), stoppingToken);

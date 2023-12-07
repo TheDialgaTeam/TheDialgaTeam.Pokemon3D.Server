@@ -25,7 +25,7 @@ public enum PacketType
 
     /// <summary>
     ///     Game Data
-    ///     <para>Join: {Origin = PlayerID | DataItem[] = FullPackageData[] | To other players}</para>
+    ///     <para>Join: {Origin = 0 | DataItem[] = FullPackageData[] | To other players}</para>
     ///     <para>Update: {Origin = PlayerID | DataItem[] = PartialPackageData[] | To other players}</para>
     /// </summary>
     GameData = 0,
@@ -59,7 +59,7 @@ public enum PacketType
 
     /// <summary>
     ///     Create Player
-    ///     <para>{Origin = -1 | DataItem[0] = PlayerID | To other players}</para>
+    ///     <para>{Origin = -1 | DataItem[0] = PlayerID | To all players}</para>
     /// </summary>
     CreatePlayer = 8,
 
@@ -93,7 +93,8 @@ public enum PacketType
     Ping = 13,
 
     /// <summary>
-    ///     Gamestate Message (Get Only)
+    ///     Gamestate Message
+    ///     <para>{Origin = PlayerID | DataItem[0] = Message}</para>
     /// </summary>
     GamestateMessage = 14,
 
@@ -105,13 +106,13 @@ public enum PacketType
 
     /// <summary>
     ///     Trade Join
-    ///     <para>{Origin = PlayerID | DataItem = null | To trade player}</para>
+    ///     <para>{Origin = PlayerID | DataItem[0] = TradePartnerId | To trade player}</para>
     /// </summary>
     TradeJoin = 31,
 
     /// <summary>
     ///     Trade Quit
-    ///     <para>{Origin = PlayerID | DataItem = null | To trade player}</para>
+    ///     <para>{Origin = PlayerID | DataItem[0] = TradePartnerId | To trade player}</para>
     /// </summary>
     TradeQuit = 32,
 

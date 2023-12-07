@@ -23,34 +23,39 @@ using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed class PokemonServerClient : IPokemonServerClient, IDisposable
+internal sealed partial class PokemonServerClient : IPokemonServerClient, IDisposable
 {
     public IPAddress RemoteIpAddress { get; }
 
-    private readonly ILogger<PokemonServerClient> _logger;
+    private readonly ILogger _logger;
     private readonly IPokemonServerOptions _options;
     private readonly IStringLocalizer _stringLocalizer;
     private readonly IMediator _mediator;
     private readonly TcpClient _tcpClient;
+    
+    private readonly CancellationTokenSource _sendCompleteTokenSource;
+    private CancellationToken SendCompleteToken => _sendCompleteTokenSource.Token;
 
-    private readonly StreamWriter _streamWriter;
-    private readonly object _streamWriterLock = new();
+    private readonly CancellationTokenSource _disconnectedTokenSource;
+    private CancellationToken DisconnectedToken => _disconnectedTokenSource.Token;
 
-    private int _isActive = 1;
-    private DateTime _lastValidPackage = DateTime.Now;
+    private readonly Timer _pingCheckTimer;
 
-    private readonly BlockingCollection<RawPacket> _gameDataPacketQueue = new();
+    private readonly BlockingCollection<IRawPacket> _handleGameDataPacketQueue = new();
+    private readonly BlockingCollection<Task> _handlePacketHandlerExceptionQueue = new();
+    private readonly BlockingCollection<IRawPacket> _sendingPacketQueue = new();
 
     public PokemonServerClient(
-        ILogger<PokemonServerClient> logger, 
-        IPokemonServerOptions options, 
+        ILogger<PokemonServerClient> logger,
+        IPokemonServerOptions options,
         IStringLocalizer stringLocalizer,
-        IMediator mediator, 
+        IMediator mediator,
         TcpClient tcpClient)
     {
         _logger = logger;
@@ -58,141 +63,187 @@ internal sealed class PokemonServerClient : IPokemonServerClient, IDisposable
         _stringLocalizer = stringLocalizer;
         _mediator = mediator;
         _tcpClient = tcpClient;
-        
-        _streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize, true);
-        _streamWriter.AutoFlush = true;
+
+        _sendCompleteTokenSource = new CancellationTokenSource();
+        _disconnectedTokenSource = new CancellationTokenSource();
 
         RemoteIpAddress = (_tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
 
-        Task.Run(RunReadingTask);
-        Task.Run(RunConnectionCheckTask);
-        Task.Factory.StartNew(HandleGameDataPacketTask, TaskCreationOptions.LongRunning);
+        _pingCheckTimer = new Timer(PingCheckTimerCallback, null, TimeSpan.FromSeconds(_options.ServerOptions.NoPingKickTime), Timeout.InfiniteTimeSpan);
+
+        Task.Factory.StartNew(PacketDataProducer, TaskCreationOptions.LongRunning);
+        Task.Factory.StartNew(HandleGameDataPacketQueue, TaskCreationOptions.LongRunning);
+        Task.Factory.StartNew(HandlePacketHandlerExceptionQueue, TaskCreationOptions.LongRunning);
+        Task.Factory.StartNew(SendingQueueConsumer, TaskCreationOptions.LongRunning);
     }
 
-    public void SendPacket(RawPacket rawPacket)
+    public void SendPacket(IPacket packet)
     {
-        if (_isActive == 0) return;
-        
-        lock (_streamWriterLock)
+        SendPacket(packet.ToRawPacket());
+    }
+
+    public void SendPacket(IRawPacket rawPacket)
+    {
+        if (DisconnectedToken.IsCancellationRequested) return;
+        _sendingPacketQueue.Add(rawPacket, DisconnectedToken);
+    }
+
+    public void Disconnect(string? reason = null, bool waitForCompletion = false)
+    {
+        if (waitForCompletion)
         {
-            if (!_tcpClient.Connected) return;
-            
-            try
-            {
-                var packageData = rawPacket.ToRawPacketString();
-                _logger.LogTrace("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientSendRawPacket, RemoteIpAddress, packageData]);
-                _streamWriter.WriteLine(packageData);
-            }
-            catch
-            {
-                _logger.LogDebug("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientWriteSocketIssue, RemoteIpAddress]);
-                throw;
-            }
+            _sendingPacketQueue.CompleteAdding();
+            SendCompleteToken.WaitHandle.WaitOne();
         }
-    }
-
-    public ValueTask KickAsync(string reason)
-    {
-        if (_isActive == 0) return ValueTask.CompletedTask;
-        SendPacket(new KickPacket(reason).ToRawPacket());
-        return DisconnectAsync(reason);
-    }
-
-    public ValueTask DisconnectAsync(string? reason = null)
-    {
-        if (Interlocked.CompareExchange(ref _isActive, 0, 1) == 0) return ValueTask.CompletedTask;
         
+        _disconnectedTokenSource.Cancel();
+        _pingCheckTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
+        _handleGameDataPacketQueue.CompleteAdding();
+        _handlePacketHandlerExceptionQueue.CompleteAdding();
+        _sendingPacketQueue.CompleteAdding();
+
         _tcpClient.Close();
-        _gameDataPacketQueue.CompleteAdding();
-        
-        _logger.LogDebug("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientDisconnected, RemoteIpAddress]);
-        
-        return _mediator.Publish(new ClientDisconnected(this, reason));
+
+        PrintDebug(RemoteIpAddress, _stringLocalizer[s => s.ConsoleMessageFormat.ClientDisconnected]);
+
+        Task.Run(() => _mediator.Publish(new ClientDisconnected(this, reason), CancellationToken.None).AsTask(), CancellationToken.None).GetAwaiter().GetResult();
     }
 
-    private async Task RunReadingTask()
+    private void PingCheckTimerCallback(object? state)
     {
-        using var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, false, _tcpClient.ReceiveBufferSize, true);
+        Disconnect(_stringLocalizer[s => s.ConsoleMessageFormat.ClientReceivedNoPing]);
+    }
 
-        while (_isActive == 1)
+    private void PacketDataProducer()
+    {
+        try
         {
-            try
+            using var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, false, _tcpClient.ReceiveBufferSize, true);
+
+            while (_tcpClient.Connected)
             {
-                var rawData = await streamReader.ReadLineAsync().ConfigureAwait(false);
-                
+                var rawData = streamReader.ReadLine();
+
                 if (rawData == null)
                 {
-                    await DisconnectAsync().ConfigureAwait(false);
+                    Disconnect(_stringLocalizer[s => s.ConsoleMessageFormat.ClientDisconnected]);
                     return;
                 }
 
-                _logger.LogTrace("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientReceiveRawPacket, RemoteIpAddress, rawData]);
-           
+                PrintTrace(RemoteIpAddress, _stringLocalizer[s => s.ConsoleMessageFormat.ClientReceivedRawPacket, rawData]);
+
                 if (!RawPacket.TryParse(rawData, out var rawPacket))
                 {
-                    _logger.LogDebug("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientReceiveInvalidPacket, RemoteIpAddress]);
+                    PrintDebug(RemoteIpAddress, _stringLocalizer[s => s.ConsoleMessageFormat.ClientReceivedInvalidPacket]);
                 }
                 else
                 {
-                    HandleIncomingPacket(rawPacket);
+                    _pingCheckTimer.Change(TimeSpan.FromSeconds(_options.ServerOptions.NoPingKickTime), Timeout.InfiniteTimeSpan);
+
+                    if (rawPacket.PacketType == PacketType.GameData)
+                    {
+                        _handleGameDataPacketQueue.Add(rawPacket, DisconnectedToken);
+                    }
+                    else
+                    {
+                        _handlePacketHandlerExceptionQueue.Add(Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask(), DisconnectedToken), DisconnectedToken);
+                    }
                 }
             }
-            catch
+        }
+        catch (IOException)
+        {
+            var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ClientReadSocketIssue];
+            PrintDebug(RemoteIpAddress, reason);
+            Disconnect(reason);
+        }
+    }
+
+    private void HandleGameDataPacketQueue()
+    {
+        try
+        {
+            foreach (var rawPacket in _handleGameDataPacketQueue.GetConsumingEnumerable())
             {
-                _logger.LogDebug("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.ClientReadSocketIssue, RemoteIpAddress]);
-                await DisconnectAsync().ConfigureAwait(false);
+                Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask(), DisconnectedToken).GetAwaiter().GetResult();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ServerUncaughtExceptionThrown];
+            PrintDebugWithException(exception, RemoteIpAddress, reason);
+            Disconnect(reason);
+        }
+    }
+
+    private void HandlePacketHandlerExceptionQueue()
+    {
+        foreach (var task in _handlePacketHandlerExceptionQueue.GetConsumingEnumerable())
+        {
+            if (task.IsCanceled || task.IsCompletedSuccessfully) continue;
+
+            if (task.IsFaulted)
+            {
+                var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ServerUncaughtExceptionThrown];
+                PrintDebugWithException(task.Exception, RemoteIpAddress, reason);
+                Disconnect(reason);
                 return;
             }
+
+            _handlePacketHandlerExceptionQueue.Add(task, DisconnectedToken);
         }
     }
 
-    private async Task RunConnectionCheckTask()
+    private void SendingQueueConsumer()
     {
-        while (_isActive == 1)
+        try
         {
-            if ((DateTime.Now - _lastValidPackage).TotalSeconds > _options.ServerOptions.NoPingKickTime)
+            using var streamWriter = new StreamWriter(_tcpClient.GetStream(), Encoding.UTF8, _tcpClient.SendBufferSize, true);
+            streamWriter.AutoFlush = true;
+
+            foreach (var rawPacket in _sendingPacketQueue.GetConsumingEnumerable(DisconnectedToken))
             {
-                // Most likely disconnected, so let's destroy it.
-                await DisconnectAsync().ConfigureAwait(false);
-                return;
-            }
+                if (!_tcpClient.Connected) return;
 
-            await Task.Delay(1000).ConfigureAwait(false);
-        }
-    }
+                var packageData = rawPacket.ToRawPacketString();
+                streamWriter.WriteLine(packageData);
 
-    private void HandleIncomingPacket(RawPacket rawPacket)
-    {
-        _lastValidPackage = DateTime.Now;
-
-        switch (rawPacket.PacketType)
-        {
-            case PacketType.GameData:
-            {
-                _gameDataPacketQueue.Add(rawPacket);
-                break;
-            }
-
-            default:
-            {
-                Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket)));
-                break;
+                PrintTrace(RemoteIpAddress, _stringLocalizer[s => s.ConsoleMessageFormat.ClientSentRawPacket, packageData]);
             }
         }
-    }
-    
-    private async Task HandleGameDataPacketTask()
-    {
-        foreach (var rawPacket in _gameDataPacketQueue.GetConsumingEnumerable())
+        catch (IOException)
         {
-            await _mediator.Publish(new NewPacketReceived(this, rawPacket)).ConfigureAwait(true);
+            var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ClientWriteSocketIssue];
+            PrintDebug(RemoteIpAddress, reason);
+            Disconnect(reason);
+        }
+        finally
+        {
+            _sendCompleteTokenSource.Cancel();
         }
     }
+
+    [LoggerMessage(LogLevel.Debug, "[Client:{RemoteIpAddress}] {Message}")]
+    private partial void PrintDebug(IPAddress remoteIpAddress, string message);
+
+    [LoggerMessage(LogLevel.Debug, "[Client:{RemoteIpAddress}] {Message}")]
+    private partial void PrintDebugWithException(Exception exception, IPAddress remoteIpAddress, string message);
+
+    [LoggerMessage(LogLevel.Trace, "[Client:{RemoteIpAddress}] {Message}")]
+    private partial void PrintTrace(IPAddress remoteIpAddress, string message);
 
     public void Dispose()
     {
-        _streamWriter.Dispose();
         _tcpClient.Dispose();
-        _gameDataPacketQueue.Dispose();
+        _disconnectedTokenSource.Dispose();
+        _pingCheckTimer.Dispose();
+        _handleGameDataPacketQueue.Dispose();
+        _handlePacketHandlerExceptionQueue.Dispose();
+        _sendingPacketQueue.Dispose();
     }
 }

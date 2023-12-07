@@ -18,13 +18,13 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct ChatMessagePacket(int Origin, string Message) : IPacket
+public sealed record ChatMessagePacket(Origin Origin, string Message) : IPacket
 {
-    public ChatMessagePacket(RawPacket rawPacket) : this(rawPacket.Origin, rawPacket.DataItems[0])
+    public ChatMessagePacket(IRawPacket rawPacket) : this(rawPacket.Origin, rawPacket.DataItems[0])
     {
     }
 
-    public RawPacket ToRawPacket()
+    public IRawPacket ToRawPacket()
     {
         return new RawPacket(PacketType.ChatMessage, Origin, new[] { Message });
     }

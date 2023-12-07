@@ -14,20 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.ObjectModel;
 using Mediator;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using Microsoft.Extensions.Hosting;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Cli;
+namespace TheDialgaTeam.Pokemon3D.Server.Cli.Services;
 
-public sealed class PlayerEventHandler : INotificationHandler<PlayerJoin>
+internal sealed class ServerHostedService : IHostedService
 {
-    public ObservableCollection<IPlayer> Players { get; } = [];
-    
-    public ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
+    private readonly IMediator _mediator;
+
+    public ServerHostedService(IMediator mediator)
     {
-        Players.Add(notification.Player);
-        return ValueTask.CompletedTask;
+        _mediator = mediator;
+    }
+    
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new StartServer(), cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new StopServer(), cancellationToken).ConfigureAwait(false);
     }
 }

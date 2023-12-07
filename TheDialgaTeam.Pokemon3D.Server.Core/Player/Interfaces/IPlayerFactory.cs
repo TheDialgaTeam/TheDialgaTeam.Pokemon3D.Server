@@ -21,5 +21,5 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 public interface IPlayerFactory
 {
-    IPlayer CreatePlayer(IPokemonServerClient client, int id, GameDataPacket gameDataPacket);
+    public IPlayer CreatePlayer(IPokemonServerClient client, int id, GameDataPacket gameDataPacket);
 }

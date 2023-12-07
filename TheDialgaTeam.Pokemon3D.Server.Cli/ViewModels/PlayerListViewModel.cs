@@ -15,12 +15,82 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.ObjectModel;
+using Mediator;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.ViewModels;
 
-internal sealed class PlayerListViewModel : ReactiveObject
+public sealed class PlayerListViewModel :
+    INotificationHandler<PlayerJoin>,
+    INotificationHandler<PlayerUpdated>,
+    INotificationHandler<PlayerLeft>
 {
-    public ObservableCollection<IPlayer> Players { get; } = [];
+    public class Player : ReactiveObject
+    {
+        public int Id => _player.Id;
+        
+        [Reactive]
+        private string GetDisplayStatus { get; set; }
+
+        private readonly IPlayer _player;
+
+        public Player(IPlayer player)
+        {
+            _player = player;
+            GetDisplayStatus = $"{_player.Id}: {(_player.BusyType == BusyType.NotBusy ? _player.DisplayName : $"{_player.DisplayName} - {Enum.GetName(_player.BusyType)}")}";
+        }
+
+        public void Update()
+        {
+            GetDisplayStatus = $"{_player.Id}: {(_player.BusyType == BusyType.NotBusy ? _player.DisplayName : $"{_player.DisplayName} - {Enum.GetName(_player.BusyType)}")}";
+        }
+
+        public override string ToString()
+        {
+            return GetDisplayStatus;
+        }
+    }
+
+    public ObservableCollection<Player> Players { get; } = [];
+
+    private readonly object _syncLock = new();
+
+    public ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
+    {
+        lock (_syncLock)
+        {
+            Players.Add(new Player(notification.Player));
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask Handle(PlayerUpdated notification, CancellationToken cancellationToken)
+    {
+        lock (_syncLock)
+        {
+            GetPlayerById(notification.Player.Id).Update();
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    public ValueTask Handle(PlayerLeft notification, CancellationToken cancellationToken)
+    {
+        lock (_syncLock)
+        {
+            Players.Remove(GetPlayerById(notification.Player.Id));
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    private Player GetPlayerById(int id)
+    {
+        return Players.Single(wrapper => wrapper.Id == id);
+    }
 }

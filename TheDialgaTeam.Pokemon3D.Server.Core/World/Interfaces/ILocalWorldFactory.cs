@@ -20,7 +20,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 public interface ILocalWorldFactory
 {
-    ILocalWorld CreateLocalWorld();
+    public ILocalWorld CreateLocalWorld();
     
-    ILocalWorld CreateLocalWorld(ILocalWorld world, IPlayer player);
+    public ILocalWorld CreateLocalWorld(ILocalWorld world, IPlayer player);
 }

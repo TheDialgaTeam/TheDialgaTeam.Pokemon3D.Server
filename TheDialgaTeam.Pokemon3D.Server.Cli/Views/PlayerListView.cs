@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI;
 using Terminal.Gui;
 using TheDialgaTeam.Pokemon3D.Server.Cli.ViewModels;
 
@@ -22,10 +26,41 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
 internal sealed class PlayerListView : FrameView
 {
+    public ListView PlayerView { get; }
+    
+    public PlayerListViewModel ViewModel { get; }
+    
+    private readonly CompositeDisposable _disposable = new();
+    
     public PlayerListView(IServiceProvider serviceProvider)
     {
         Title = "Player Online";
+        ViewModel = serviceProvider.GetRequiredService<PlayerListViewModel>();
         
-        var viewModel = ActivatorUtilities.CreateInstance<PlayerListViewModel>(serviceProvider);
+        var observableCollectionDataSource = new ObservableCollectionDataSource<PlayerListViewModel.Player>(ViewModel.Players);
+        _disposable.Add(observableCollectionDataSource);
+        
+        PlayerView = new ListView(observableCollectionDataSource)
+        {
+            Width = Dim.Fill(),
+            Height = Dim.Fill()
+        };
+        
+        Add(PlayerView);
+        
+        ViewModel.Players
+            .ToObservableChangeSet()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ =>
+            {
+                PlayerView.SetNeedsDisplay();
+                PlayerView.EnsureSelectedItemVisible();
+            }).DisposeWith(_disposable);
+    }
+    
+    protected override void Dispose(bool disposing)
+    {
+        _disposable.Dispose();
+        base.Dispose(disposing);
     }
 }

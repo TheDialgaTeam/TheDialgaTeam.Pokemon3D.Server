@@ -20,6 +20,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Database.Queries;
 using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
@@ -54,8 +55,6 @@ internal sealed class Player : IPlayer, IDisposable
     
     public PlayerProfile? PlayerProfile { get; private set; }
 
-    public bool HasLocalWorld => _localWorld is not null;
-
     private readonly IStringLocalizer _stringLocalizer;
     private readonly IMediator _mediator;
     private readonly ILocalWorldFactory _localWorldFactory;
@@ -86,7 +85,7 @@ internal sealed class Player : IPlayer, IDisposable
         IsReady = true;
     }
 
-    public ValueTask ApplyGameDataAsync(RawPacket rawPacket)
+    public ValueTask ApplyGameDataAsync(IRawPacket rawPacket)
     {
         _gameDataPacket = new GameDataPacket(this, rawPacket);
         return _mediator.Publish(new PlayerUpdated(this));
@@ -97,19 +96,20 @@ internal sealed class Player : IPlayer, IDisposable
         return _gameDataPacket;
     }
 
-    public void SendPacket(RawPacket rawPacket)
+    public void SendPacket(IPacket packet)
+    {
+        _client.SendPacket(packet);
+    }
+    
+    public void SendPacket(IRawPacket rawPacket)
     {
         _client.SendPacket(rawPacket);
     }
 
-    public ValueTask KickAsync(string reason)
+    public void Kick(string reason)
     {
-        return _client.KickAsync(reason);
-    }
-
-    public ValueTask DisconnectAsync(string? reason = null)
-    {
-        return _client.DisconnectAsync(reason);
+        SendPacket(new KickPacket(reason));
+        _client.Disconnect(reason, true);
     }
 
     public void Dispose()

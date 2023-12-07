@@ -19,14 +19,14 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct ServerInfoDataPacket(
+public sealed record ServerInfoDataPacket(
     int PlayerCount, 
     int MaxServerSize, 
     string ServerName, 
     string ServerDescription, 
     string[] PlayerNames) : IPacket
 {
-    public ServerInfoDataPacket(RawPacket rawPacket) : this(
+    public ServerInfoDataPacket(IRawPacket rawPacket) : this(
         int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture),
         int.Parse(rawPacket.DataItems[1], CultureInfo.InvariantCulture),
         rawPacket.DataItems[2],
@@ -37,7 +37,7 @@ public readonly record struct ServerInfoDataPacket(
         rawPacket.DataItems.AsSpan(4).CopyTo(PlayerNames);
     }
 
-    public RawPacket ToRawPacket()
+    public IRawPacket ToRawPacket()
     {
         var dataItems = new string[4 + Math.Min(PlayerCount, 21)];
         dataItems[0] = PlayerCount.ToString(CultureInfo.InvariantCulture);
@@ -52,6 +52,6 @@ public readonly record struct ServerInfoDataPacket(
             dataItems[^1] = $"({PlayerCount - 20} more...)";
         }
 
-        return new RawPacket(PacketType.ServerInfoData, -1, dataItems);
+        return new RawPacket(PacketType.ServerInfoData, Origin.Server, dataItems);
     }
 }

@@ -18,14 +18,14 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct ServerRequestPacket(string Data) : IPacket
+public sealed record ServerRequestPacket(string Data) : IPacket
 {
-    public ServerRequestPacket(RawPacket rawPacket) : this(rawPacket.DataItems[0])
+    public ServerRequestPacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
     {
     }
 
-    public RawPacket ToRawPacket()
+    public IRawPacket ToRawPacket()
     {
-        return new RawPacket(PacketType.ServerDataRequest, -1, new[] { Data });
+        return new RawPacket(PacketType.ServerDataRequest, Origin.Server, new[] { Data });
     }
 }

@@ -16,13 +16,13 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Formats;
 
-internal sealed class ArrayFormat<T> : IFormattable
+internal sealed class ArrayStringFormat<T> : IFormattable
 {
     private readonly T[] _array;
     private readonly string? _format;
     private readonly IFormatProvider? _formatProvider;
 
-    public ArrayFormat(T[] array, string? format = null, IFormatProvider? formatProvider = null)
+    public ArrayStringFormat(T[] array, string? format = null, IFormatProvider? formatProvider = null)
     {
         _array = array;
         _format = format;

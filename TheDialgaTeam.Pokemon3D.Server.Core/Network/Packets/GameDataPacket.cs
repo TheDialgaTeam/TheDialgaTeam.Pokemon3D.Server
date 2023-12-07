@@ -21,8 +21,8 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct GameDataPacket(
-    int Origin,
+public sealed record GameDataPacket(
+    Origin Origin,
     string GameMode,
     bool IsGameJoltPlayer,
     string GameJoltId,
@@ -39,7 +39,7 @@ public readonly record struct GameDataPacket(
     string PokemonSkin,
     int PokemonFacing) : IPacket
 {
-    public GameDataPacket(RawPacket rawPacket) : this(
+    public GameDataPacket(IRawPacket rawPacket) : this(
         rawPacket.Origin,
         rawPacket.DataItems[0],
         int.Parse(rawPacket.DataItems[1], CultureInfo.InvariantCulture) == 1,
@@ -59,7 +59,7 @@ public readonly record struct GameDataPacket(
     {
     }
 
-    public GameDataPacket(IPlayer player, RawPacket rawPacket) : this(
+    public GameDataPacket(IPlayer player, IRawPacket rawPacket) : this(
         rawPacket.Origin,
         string.IsNullOrEmpty(rawPacket.DataItems[0]) ? player.GameMode : rawPacket.DataItems[0],
         string.IsNullOrEmpty(rawPacket.DataItems[1]) ? player.IsGameJoltPlayer : int.Parse(rawPacket.DataItems[1], CultureInfo.InvariantCulture) == 1,
@@ -79,12 +79,12 @@ public readonly record struct GameDataPacket(
     {
     }
 
-    public static bool IsFullGameData(RawPacket rawPacket)
+    public static bool IsFullGameData(IRawPacket rawPacket)
     {
-        return rawPacket.Origin == 0;
+        return rawPacket.Origin == Origin.NewPlayer;
     }
 
-    public RawPacket ToRawPacket()
+    public IRawPacket ToRawPacket()
     {
         return new RawPacket(PacketType.GameData, Origin, new[]
         {

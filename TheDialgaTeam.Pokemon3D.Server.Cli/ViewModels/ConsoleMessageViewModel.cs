@@ -16,7 +16,6 @@
 
 using System.Collections.ObjectModel;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
 using TheDialgaTeam.Serilog.Sinks.Action;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.ViewModels;

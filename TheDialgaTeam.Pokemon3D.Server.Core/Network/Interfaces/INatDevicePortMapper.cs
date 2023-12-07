@@ -18,7 +18,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 public interface INatDevicePortMapper
 {
-    Task CreatePortMappingAsync(CancellationToken cancellationToken = default);
+    public Task CreatePortMappingAsync(CancellationToken cancellationToken = default);
 
-    Task DestroyPortMappingAsync();
+    public Task DestroyPortMappingAsync();
 }

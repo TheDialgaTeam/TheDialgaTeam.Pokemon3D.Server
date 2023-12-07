@@ -20,25 +20,23 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 public interface ILocalWorld : IDisposable
 {
-    Season CurrentSeason { get; }
+    public Season CurrentSeason { get; }
     
-    Weather CurrentWeather { get; }
+    public Weather CurrentWeather { get; }
     
-    DateTime CurrentTime { get; }
+    public DateTime CurrentTime { get; }
     
-    bool DoDayCycle { get; set; }
+    public bool DoDayCycle { get; set; }
     
-    Season TargetSeason { get; set; }
+    public Season TargetSeason { get; set; }
     
-    Weather TargetWeather { get; set; }
+    public Weather TargetWeather { get; set; }
     
-    TimeSpan TargetOffset { get; set; }
-    
-    bool IsGlobalWorld { get; }
+    public TimeSpan TargetOffset { get; set; }
 
-    void StartWorld();
+    public void StartWorld();
 
-    void StopWorld();
+    public void StopWorld();
 
-    WorldDataPacket GetWorldDataPacket();
+    public WorldDataPacket GetWorldDataPacket();
 }

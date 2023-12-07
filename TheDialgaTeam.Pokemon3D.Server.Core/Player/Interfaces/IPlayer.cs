@@ -15,42 +15,46 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-public interface IPlayer : IPokemonServerClient
+public interface IPlayer
 {
-    int Id { get; }
-    string GameMode { get; }
-    bool IsGameJoltPlayer { get; }
-    string GameJoltId { get; }
-    string NumberDecimalSeparator { get; }
-    string Name { get; }
-    string MapFile { get; }
-    Position PlayerPosition { get; }
-    int PlayerFacing { get; }
-    bool IsMoving { get; }
-    string PlayerSkin { get; }
-    BusyType BusyType { get; }
-    bool PokemonVisible { get; }
-    Position PokemonPosition { get; }
-    string PokemonSkin { get; }
-    int PokemonFacing { get; }
+    public int Id { get; }
+    public string GameMode { get; }
+    public bool IsGameJoltPlayer { get; }
+    public string GameJoltId { get; }
+    public string NumberDecimalSeparator { get; }
+    public string Name { get; }
+    public string MapFile { get; }
+    public Position PlayerPosition { get; }
+    public int PlayerFacing { get; }
+    public bool IsMoving { get; }
+    public string PlayerSkin { get; }
+    public BusyType BusyType { get; }
+    public bool PokemonVisible { get; }
+    public Position PokemonPosition { get; }
+    public string PokemonSkin { get; }
+    public int PokemonFacing { get; }
     
-    string DisplayName { get; }
+    public string DisplayName { get; }
     
-    bool IsReady { get; }
+    public bool IsReady { get; }
     
-    PlayerProfile? PlayerProfile { get; }
-    
-    bool HasLocalWorld { get; }
+    public PlayerProfile? PlayerProfile { get; }
 
-    ValueTask InitializePlayer(ILocalWorld globalWorld, CancellationToken cancellationToken);
+    public ValueTask InitializePlayer(ILocalWorld globalWorld, CancellationToken cancellationToken);
     
-    ValueTask ApplyGameDataAsync(RawPacket rawPacket);
+    public ValueTask ApplyGameDataAsync(IRawPacket rawPacket);
 
-    GameDataPacket ToGameDataPacket();
+    public GameDataPacket ToGameDataPacket();
+
+    public void SendPacket(IPacket packet);
+
+    public void SendPacket(IRawPacket rawPacket);
+
+    public void Kick(string reason);
 }

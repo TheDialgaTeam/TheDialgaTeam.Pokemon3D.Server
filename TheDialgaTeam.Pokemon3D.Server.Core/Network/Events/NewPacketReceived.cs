@@ -16,8 +16,8 @@
 
 using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 
-public sealed record NewPacketReceived(IPokemonServerClient Network, RawPacket RawPacket) : INotification;
+public sealed record NewPacketReceived(IPokemonServerClient Network, IRawPacket RawPacket) : INotification;

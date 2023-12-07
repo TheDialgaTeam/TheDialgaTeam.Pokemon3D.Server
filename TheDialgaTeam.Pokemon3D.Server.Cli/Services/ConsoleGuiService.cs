@@ -21,7 +21,7 @@ using Terminal.Gui;
 using TheDialgaTeam.Pokemon3D.Server.Cli.Scheduler;
 using TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Cli;
+namespace TheDialgaTeam.Pokemon3D.Server.Cli.Services;
 
 internal sealed class ConsoleGuiService : BackgroundService
 {

@@ -15,17 +15,17 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 public interface IPokemonServerClient
 {
-    IPAddress RemoteIpAddress { get; }
+    public IPAddress RemoteIpAddress { get; }
 
-    void SendPacket(RawPacket rawPacket);
+    public void SendPacket(IPacket packet);
+    
+    public void SendPacket(IRawPacket rawPacket);
 
-    ValueTask KickAsync(string reason);
-
-    ValueTask DisconnectAsync(string? reason = null);
+    public void Disconnect(string? reason = null, bool waitForCompletion = false);
 }

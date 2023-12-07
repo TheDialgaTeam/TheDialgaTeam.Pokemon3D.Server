@@ -14,14 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections;
-using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using DynamicData;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
-using NStack;
 using ReactiveUI;
 using Terminal.Gui;
 using TheDialgaTeam.Pokemon3D.Server.Cli.ViewModels;
@@ -30,113 +26,78 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
 internal sealed class ConsoleMessageView : FrameView
 {
-    private class DynamicListWrapper : IListDataSource, IDisposable
-    {
-        public int Count => _source.Count;
-        
-        public int Length { get; private set; }
-        
-        private readonly IList _source;
-        private readonly CompositeDisposable _disposable = new();
-        
-        public DynamicListWrapper(IList source)
-        {
-            _source = source;
+    public ListView ConsoleView { get; }
 
-            if (source is ObservableCollection<string> observableCollection)
-            {
-                observableCollection
-                    .ToObservableChangeSet()
-                    .ToCollection()
-                    .Do(collection => Length = collection.Select(s => s.Length).Max())
-                    .Subscribe()
-                    .DisposeWith(_disposable);
-            }
-        }
-        
-        public void Render (ListView container, ConsoleDriver driver, bool marked, int item, int col, int line, int width, int start = 0)
-        {
-            container.Move (col, line);
-            var t = _source[item];
-            if (t == null) {
-                RenderUstr (driver, ustring.Make (""), col, line, width);
-            } else {
-                if (t is ustring u) {
-                    RenderUstr (driver, u, col, line, width, start);
-                } else if (t is string s) {
-                    RenderUstr (driver, s, col, line, width, start);
-                } else {
-                    RenderUstr (driver, t.ToString (), col, line, width, start);
-                }
-            }
-        }
-        
-        public bool IsMarked (int item)
-        {
-            return false;
-        }
-        
-        public void SetMark (int item, bool value)
-        {
-        }
-        
-        public IList ToList ()
-        {
-            return _source;
-        }
-        
-        private void RenderUstr (ConsoleDriver driver, ustring ustr, int col, int line, int width, int start = 0)
-        {
-            var u = TextFormatter.ClipAndJustify (ustr, width, TextAlignment.Left);
-            driver.AddStr (u);
-            width -= TextFormatter.GetTextWidth (u);
-            while (width-- > 0) {
-                driver.AddRune (' ');
-            }
-        }
+    public TextField CommandInputField { get; }
 
-        public void Dispose()
-        {
-            _disposable.Dispose();
-        }
-    }
-    
+    public ScrollBarView ScrollBarView { get; }
+
+    public ConsoleMessageViewModel ViewModel { get; }
+
     private readonly CompositeDisposable _disposable = new();
 
     public ConsoleMessageView(IServiceProvider serviceProvider)
     {
         Title = "Console Message";
-        
-        var viewModel = ActivatorUtilities.CreateInstance<ConsoleMessageViewModel>(serviceProvider);
+        ViewModel = ActivatorUtilities.CreateInstance<ConsoleMessageViewModel>(serviceProvider);
 
-        var consoleView = new ListView(new DynamicListWrapper(viewModel.ConsoleMessages))
+        var observableCollectionDataSource = new ObservableCollectionDataSource<string>(ViewModel.ConsoleMessages);
+        _disposable.Add(observableCollectionDataSource);
+
+        ConsoleView = new ListView(observableCollectionDataSource)
         {
             Width = Dim.Fill(),
             Height = Dim.Fill(1)
         };
 
-        var inputField = new TextField
+        CommandInputField = new TextField
         {
-            Y = Pos.Bottom(consoleView),
+            Y = Pos.Bottom(ConsoleView),
             Width = Dim.Fill()
         };
+
+        Add(ConsoleView, CommandInputField);
+
+        ScrollBarView = new ScrollBarView(ConsoleView, true);
+        Add(ScrollBarView);
         
-        Add(consoleView, inputField);
+        Observable.FromEvent<Rect>(
+                action => ConsoleView.DrawContent += action, 
+                action => ConsoleView.DrawContent -= action)
+            .Subscribe(_ =>
+            {
+                ScrollBarView.Size = ConsoleView.Source.Count + 1;
+                ScrollBarView.OtherScrollBarView.Size = ConsoleView.Maxlength;
+                ScrollBarView.Refresh();
+            }).DisposeWith(_disposable);
+
+        Observable.FromEvent(
+                action => ScrollBarView.ChangedPosition += action,
+                action => ScrollBarView.ChangedPosition -= action)
+            .Subscribe(_ =>
+            {
+                ConsoleView.TopItem = Math.Min(ScrollBarView.Position, ConsoleView.Source.Count - 1);
+            }).DisposeWith(_disposable);
         
-        viewModel.ConsoleMessages
+        Observable.FromEvent(
+                action => ScrollBarView.OtherScrollBarView.ChangedPosition += action,
+                action => ScrollBarView.OtherScrollBarView.ChangedPosition -= action)
+            .Subscribe(_ =>
+            {
+                ConsoleView.LeftItem = Math.Min(ScrollBarView.OtherScrollBarView.Position, ConsoleView.Maxlength - 1);
+            }).DisposeWith(_disposable);
+
+        ViewModel.ConsoleMessages
             .ToObservableChangeSet()
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ =>
             {
-                if (consoleView.HasFocus)
-                {
-                    consoleView.SetNeedsDisplay();
-                    consoleView.EnsureSelectedItemVisible();
-                }
-                else
-                {
-                    consoleView.MoveEnd();
-                }
+                ConsoleView.SetNeedsDisplay();
+
+                if (ConsoleView.HasFocus) return;
+                
+                ConsoleView.MoveEnd();
+                ScrollBarView.Position = ScrollBarView.Size;
             }).DisposeWith(_disposable);
     }
 

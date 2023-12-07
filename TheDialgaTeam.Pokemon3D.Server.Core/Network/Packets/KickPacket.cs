@@ -18,14 +18,14 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct KickPacket(string Reason) : IPacket
+public sealed record KickPacket(string Reason) : IPacket
 {
-    public KickPacket(RawPacket rawPacket) : this(rawPacket.DataItems[0])
+    public KickPacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
     {
     }
     
-    public RawPacket ToRawPacket()
+    public IRawPacket ToRawPacket()
     {
-        return new RawPacket(PacketType.Kicked, -1, new[] { Reason });
+        return new RawPacket(PacketType.Kicked, Origin.Server, new[] { Reason });
     }
 }

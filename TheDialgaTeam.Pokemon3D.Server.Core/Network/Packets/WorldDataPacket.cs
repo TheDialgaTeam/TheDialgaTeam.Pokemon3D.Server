@@ -20,18 +20,18 @@ using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct WorldDataPacket(Season Season, Weather Weather, TimeOnly Time) : IPacket
+public sealed record WorldDataPacket(Season Season, Weather Weather, TimeOnly Time) : IPacket
 {
-    public WorldDataPacket(RawPacket rawPacket) : this(
+    public WorldDataPacket(IRawPacket rawPacket) : this(
         Enum.Parse<Season>(rawPacket.DataItems[0]), 
         Enum.Parse<Weather>(rawPacket.DataItems[1]), 
         TimeOnly.ParseExact(rawPacket.DataItems[2], "H,m,s"))
     {
     }
 
-    public RawPacket ToRawPacket()
+    public IRawPacket ToRawPacket()
     {
-        return new RawPacket(PacketType.WorldData, -1, new[]
+        return new RawPacket(PacketType.WorldData, Origin.Server, new[]
         {
             ((int) Season).ToString(CultureInfo.InvariantCulture),
             ((int) Weather).ToString(CultureInfo.InvariantCulture),

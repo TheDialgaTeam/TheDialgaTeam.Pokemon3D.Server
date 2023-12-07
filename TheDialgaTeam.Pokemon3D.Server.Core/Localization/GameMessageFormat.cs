@@ -23,8 +23,10 @@ public sealed class GameMessageFormat
     public string ServerWhitelistedGameModes { get; set; } = "This server require you to play the following GameMode(s): {0}";
     public string ServerBlacklistedGameModes { get; set; } = "This server do not allow this GameMode to join.";
 
-    public string ServerError { get; set; } = "This server has faced an unrecoverable error. Please try again later.";
+    public string ServerError { get; set; } = "This server has thrown an error when handling packet data.";
 
     public string PlayerJoin { get; set; } = "{0} join the server.";
     public string PlayerLeft { get; set; } = "{0} left the server.";
+
+    public string GameStateMessage { get; set; } = "The player {0} {1}";
 }

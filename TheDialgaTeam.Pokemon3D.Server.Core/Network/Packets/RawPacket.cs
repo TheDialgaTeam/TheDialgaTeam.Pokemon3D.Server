@@ -15,27 +15,32 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct RawPacket(PacketType PacketType, int Origin, string[] DataItems) : IRawPacket
+public sealed record RawPacket(PacketType PacketType, Origin Origin, string[] DataItems) : IRawPacket
 {
     private const string ProtocolVersion = "0.5";
 
     [ThreadStatic]
     private static StringBuilder? t_stringBuilder;
 
-    private static RawPacket Empty => new(PacketType.Unknown, -1, Array.Empty<string>());
-
-    public static bool TryParse(ReadOnlySpan<char> rawData, out RawPacket rawPacket)
+    public static bool TryParse(ReadOnlySpan<char> rawData, [MaybeNullWhen(false)] out IRawPacket rawPacket)
     {
+        if (rawData.IsEmpty)
+        {
+            rawPacket = null;
+            return false;
+        }
+        
         var currentPacketIndex = 0;
         var maxPacketIndex = 3;
 
         var packetType = PacketType.Unknown;
-        var origin = -1;
+        var origin = Origin.Server;
 
         var dataItemIndexLength = 0;
         var dataItemIndexes = Array.Empty<int>();
@@ -52,7 +57,7 @@ public readonly record struct RawPacket(PacketType PacketType, int Origin, strin
 
                 if (nextDataLength == -1)
                 {
-                    rawPacket = Empty;
+                    rawPacket = null;
                     return false;
                 }
 
@@ -65,7 +70,7 @@ public readonly record struct RawPacket(PacketType PacketType, int Origin, strin
                     {
                         if (!data.SequenceEqual(ProtocolVersion.AsSpan()))
                         {
-                            rawPacket = Empty;
+                            rawPacket = null;
                             return false;
                         }
 
@@ -77,7 +82,7 @@ public readonly record struct RawPacket(PacketType PacketType, int Origin, strin
                     {
                         if (!Enum.TryParse(data, out packetType))
                         {
-                            rawPacket = Empty;
+                            rawPacket = null;
                             return false;
                         }
 
@@ -87,12 +92,13 @@ public readonly record struct RawPacket(PacketType PacketType, int Origin, strin
                     // Origin
                     case 2:
                     {
-                        if (!int.TryParse(data, out origin))
+                        if (!int.TryParse(data, out var originId))
                         {
-                            rawPacket = Empty;
+                            rawPacket = null;
                             return false;
                         }
 
+                        origin = originId;
                         break;
                     }
 
@@ -101,7 +107,7 @@ public readonly record struct RawPacket(PacketType PacketType, int Origin, strin
                     {
                         if (!int.TryParse(data, out dataItemIndexLength))
                         {
-                            rawPacket = Empty;
+                            rawPacket = null;
                             return false;
                         }
 
@@ -117,7 +123,7 @@ public readonly record struct RawPacket(PacketType PacketType, int Origin, strin
                     {
                         if (!int.TryParse(data, out var dataIndex))
                         {
-                            rawPacket = Empty;
+                            rawPacket = null;
                             return false;
                         }
 

@@ -14,28 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
-using Microsoft.Extensions.Hosting;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Cli;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-internal sealed class ServerHostedService : IHostedService
+public sealed record GamestateMessagePacket(Origin Origin, string Message) : IPacket
 {
-    private readonly IMediator _mediator;
-
-    public ServerHostedService(IMediator mediator)
+    public GamestateMessagePacket(IRawPacket rawPacket) : this(rawPacket.Origin, rawPacket.DataItems[0])
     {
-        _mediator = mediator;
     }
     
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public IRawPacket ToRawPacket()
     {
-        await _mediator.Send(new StartServer(), cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        await _mediator.Send(new StopServer(), cancellationToken).ConfigureAwait(false);
+        return new RawPacket(PacketType.GamestateMessage, Origin, new[] { Message });
     }
 }

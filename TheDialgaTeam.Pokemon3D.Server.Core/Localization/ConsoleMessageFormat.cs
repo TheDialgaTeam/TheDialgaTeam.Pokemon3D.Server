@@ -58,17 +58,15 @@ public sealed class ConsoleMessageFormat
 
     #region PokemonServerClient
 
-    public string ClientReceiveRawPacket { get; set; } = "[Client {0}] Receive raw packet data: {1}";
-    
-    public string ClientSendRawPacket { get; set; } = "[Client {0}] Send raw packet data: {1}";
+    public string ClientReceivedRawPacket { get; set; } = "Received raw packet data: {0}";
+    public string ClientSentRawPacket { get; set; } = "Sent raw packet data: {0}";
+    public string ClientReadSocketIssue { get; set; } = "Unable to read data from this client.";
+    public string ClientWriteSocketIssue { get; set; } = "Unable to write data to this client.";
+    public string ClientReceivedInvalidPacket { get; set; } = "Invalid packet received.";
+    public string ClientReceivedNoPing { get; set; } = "Client did not send a valid ping for too long.";
+    public string ClientDisconnected { get; set; } = "Client is disconnected.";
 
-    public string ClientReadSocketIssue { get; set; } = "[Client {0}] Unable to read data from this network.";
-    
-    public string ClientWriteSocketIssue { get; set; } = "[Client {0}] Unable to write data from this network.";
-    
-    public string ClientReceiveInvalidPacket { get; set; } = "[Client {0}] Invalid packet received.";
-
-    public string ClientDisconnected { get; set; } = "[Client {0}] Disconnected.";
+    public string ServerUncaughtExceptionThrown { get; set; } = "Server has thrown an error when handling packet data.";
 
     #endregion
 
@@ -80,6 +78,8 @@ public sealed class ConsoleMessageFormat
     
     public string PlayerUnableToJoin { get; set; } = "[Server] {0} is unable to join the server with the following reason: {1}";
 
+    public string GameStateMessage { get; set; } = "[Server] The player {0} {1}";
+    
     #endregion
 
     #region World

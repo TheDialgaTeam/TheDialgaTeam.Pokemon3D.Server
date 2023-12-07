@@ -20,5 +20,5 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 public interface IPokemonServerClientFactory
 {
-    IPokemonServerClient CreateTcpClientNetwork(TcpClient client);
+    public IPokemonServerClient CreateTcpClientNetwork(TcpClient client);
 }

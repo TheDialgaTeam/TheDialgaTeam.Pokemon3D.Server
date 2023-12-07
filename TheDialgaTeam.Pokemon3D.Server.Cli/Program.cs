@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
+using TheDialgaTeam.Pokemon3D.Server.Cli.Services;
 using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 using TheDialgaTeam.Serilog.Extensions;
 using TheDialgaTeam.Serilog.Sinks.Action;

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using DynamicData;
 using Terminal.Gui;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
@@ -22,19 +21,25 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
 internal sealed class MainConsoleView : Window
 {
+    public PlayerListView PlayerListView { get; }
+    
+    public ConsoleMessageView ConsoleMessageView { get; }
+    
+    public StatusBar StatusBar { get; }
+    
     public MainConsoleView(IServiceProvider serviceProvider)
     {
         Title = $"{ApplicationUtility.Name} v{ApplicationUtility.Version} ({ApplicationUtility.FrameworkVersion})";
 
-        var playerViewList = new PlayerListView(serviceProvider)
+        PlayerListView = new PlayerListView(serviceProvider)
         {
             Width = Dim.Percent(20),
             Height = Dim.Fill(1)
         };
 
-        var consoleMessageView = new ConsoleMessageView(serviceProvider)
+        ConsoleMessageView = new ConsoleMessageView(serviceProvider)
         {
-            X = Pos.Right(playerViewList),
+            X = Pos.Right(PlayerListView),
             Width = Dim.Fill(),
             Height = Dim.Fill(1)
         };
@@ -44,12 +49,14 @@ internal sealed class MainConsoleView : Window
             new StatusItem(Application.QuitKey, $"~{Enum.GetName(Application.QuitKey)}~ Quit", Application.Shutdown)
         };
 
-        var statusBar = new StatusBar(statusItems)
+        StatusBar = new StatusBar(statusItems)
         {
-            Y = Pos.Bottom(playerViewList),
+            Y = Pos.Bottom(PlayerListView),
             Width = Dim.Fill()
         };
         
-        Add(playerViewList, consoleMessageView, statusBar);
+        Add(PlayerListView, ConsoleMessageView, StatusBar);
+        
+        ConsoleMessageView.CommandInputField.SetFocus();
     }
 }
