@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.ComponentModel.DataAnnotations.Schema;
 using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
 public sealed class LocalWorld : BaseTable
 {
-    [ForeignKey(nameof(PlayerProfile))]
-    public int PlayerProfileId { get; init; }
-
     public PlayerProfile PlayerProfile { get; init; } = null!;
-    
+
     public bool? DoDayCycle { get; set; }
     
     public Season? Season { get; set; }

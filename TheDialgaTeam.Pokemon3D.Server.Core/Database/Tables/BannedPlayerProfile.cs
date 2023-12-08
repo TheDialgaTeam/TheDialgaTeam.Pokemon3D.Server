@@ -14,28 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Globalization;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-
-public readonly record struct Origin(int Id)
+public sealed class BannedPlayerProfile : BaseTable
 {
-    public static Origin Server => new(-1);
+    public PlayerProfile PlayerProfile { get; init; } = null!;
     
-    public static Origin NewPlayer => new(0);
+    public string? Reason { get; set; }
     
-    public static implicit operator int(Origin origin)
-    {
-        return origin.Id;
-    }
+    public required DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
     
-    public static implicit operator Origin(int id)
-    {
-        return new Origin(id);
-    }
+    public required TimeSpan Duration { get; set; } = Timeout.InfiniteTimeSpan;
 
-    public string ToRawString()
-    {
-        return Id.ToString(CultureInfo.InvariantCulture);
-    }
+    public bool IsExpired => Duration != Timeout.InfiniteTimeSpan && DateTimeOffset.Now > StartTime.Add(Duration);
 }

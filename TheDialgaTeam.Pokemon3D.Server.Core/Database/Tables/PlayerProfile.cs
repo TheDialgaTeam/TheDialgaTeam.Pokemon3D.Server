@@ -14,17 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
+[Index(nameof(DisplayName), IsUnique = true)]
 public sealed class PlayerProfile : BaseTable
 {
-    public string GameJoltId { get; set; } = string.Empty;
-
-    public string Name { get; set; } = string.Empty;
+    public required string DisplayName { get; set; }
     
-    public PlayerType PlayerType { get; set; }
+    public string? GameJoltId { get; set; }
+    
+    public string? Password { get; set; }
+    
+    public required PlayerType PlayerType { get; set; }
+    
+    public BannedPlayerProfile? Blacklist { get; set; }
 
-    public LocalWorld LocalWorld { get; set; } = null!;
+    public List<BlockedPlayerProfile> BlockProfiles { get; set; } = [];
+    
+    public required LocalWorld LocalWorld { get; set; }
 }

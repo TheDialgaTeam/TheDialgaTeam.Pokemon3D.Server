@@ -14,28 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct Origin(int Id)
+public sealed record ServerMessagePacket(string Message) : IPacket
 {
-    public static Origin Server => new(-1);
-    
-    public static Origin NewPlayer => new(0);
-    
-    public static implicit operator int(Origin origin)
+    public ServerMessagePacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
     {
-        return origin.Id;
     }
     
-    public static implicit operator Origin(int id)
+    public IRawPacket ToRawPacket()
     {
-        return new Origin(id);
-    }
-
-    public string ToRawString()
-    {
-        return Id.ToString(CultureInfo.InvariantCulture);
+        return new RawPacket(PacketType.ServerMessage, Origin.Server, new[] { Message });
     }
 }

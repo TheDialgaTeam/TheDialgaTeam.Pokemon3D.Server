@@ -16,7 +16,9 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 
-public class Whitelist : BaseTable
+public sealed class BlockedPlayerProfile : BaseTable
 {
-    public required PlayerProfile Player { get; init; }
+    public PlayerProfile PlayerProfile { get; init; } = null!;
+    
+    public required PlayerProfile BlockedProfile { get; init; }
 }

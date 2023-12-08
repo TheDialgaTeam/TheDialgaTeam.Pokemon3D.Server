@@ -106,13 +106,13 @@ public enum PacketType
 
     /// <summary>
     ///     Trade Join
-    ///     <para>{Origin = PlayerID | DataItem[0] = TradePartnerId | To trade player}</para>
+    ///     <para>{Origin = PlayerID | DataItem = null | To trade player}</para>
     /// </summary>
     TradeJoin = 31,
 
     /// <summary>
     ///     Trade Quit
-    ///     <para>{Origin = PlayerID | DataItem[0] = TradePartnerId | To trade player}</para>
+    ///     <para>{Origin = PlayerID | DataItem = null | To trade player}</para>
     /// </summary>
     TradeQuit = 32,
 

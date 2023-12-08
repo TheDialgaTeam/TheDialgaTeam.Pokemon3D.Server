@@ -23,7 +23,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
 public sealed class DatabaseQueryHandler :
-    IQueryHandler<GetPlayerProfile, PlayerProfile>
+    IQueryHandler<GetPlayerProfile, PlayerProfile?>
 {
     private readonly IDbContextFactory<DatabaseContext> _contextFactory;
 
@@ -35,31 +35,38 @@ public sealed class DatabaseQueryHandler :
         context.Database.Migrate();
     }
 
-    public async ValueTask<PlayerProfile> Handle(GetPlayerProfile query, CancellationToken cancellationToken)
+    public async ValueTask<PlayerProfile?> Handle(GetPlayerProfile query, CancellationToken cancellationToken)
     {
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-        if (query.Player.IsGameJoltPlayer)
+        var player = query.Player;
+        
+        if (player.IsGameJoltPlayer)
         {
-            var isExists = await context.PlayerProfiles
-                .CountAsync(profile => profile.GameJoltId == query.Player.GameJoltId, cancellationToken)
-                .ConfigureAwait(false) > 0;
+            var playerProfile = await context.PlayerProfiles.SingleOrDefaultAsync(profile => profile.GameJoltId == player.GameJoltId, cancellationToken).ConfigureAwait(false);
 
-            if (isExists)
+            if (playerProfile is not null)
             {
-                return await context.PlayerProfiles
-                    .Include(profile => profile.LocalWorld)
-                    .SingleAsync(profile => profile.GameJoltId == query.Player.GameJoltId, cancellationToken)
-                    .ConfigureAwait(false);
+                return playerProfile;
             }
+            
+            // Check if there is any reserved names.
+            var isNameConflict = await context.PlayerProfiles.AnyAsync(profile => profile.DisplayName == player.Name, cancellationToken).ConfigureAwait(false);
 
-            var playerProfile = new PlayerProfile
+            if (isNameConflict)
             {
-                GameJoltId = query.Player.GameJoltId,
-                PlayerType = PlayerType.GameJoltPlayer,
+                return null;
+            }
+            
+            // If there is no conflict, make this name reserved.
+            playerProfile = new PlayerProfile
+            {
+                DisplayName = player.Name, 
+                GameJoltId = player.GameJoltId, 
+                PlayerType = PlayerType.GameJoltPlayer, 
                 LocalWorld = new LocalWorld()
             };
-            
+
             context.Add(playerProfile);
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
@@ -67,29 +74,10 @@ public sealed class DatabaseQueryHandler :
         }
         else
         {
-            var isExists = await context.PlayerProfiles
-                .CountAsync(profile => profile.Name == query.Player.Name, cancellationToken)
-                .ConfigureAwait(false) > 0;
-
-            if (isExists)
-            {
-                return await context.PlayerProfiles
-                    .Include(profile => profile.LocalWorld)
-                    .SingleAsync(profile => profile.Name == query.Player.Name, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            var playerProfile = new PlayerProfile
-            {
-                Name = query.Player.Name,
-                PlayerType = PlayerType.OfflinePlayer,
-                LocalWorld = new LocalWorld()
-            };
-            
-            context.Add(playerProfile);
-            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-            return playerProfile;
+            var displayName = query.RequestName;
+            var password = query.Password;
         }
+
+        return null;
     }
 }

@@ -41,6 +41,6 @@ internal sealed class ConsoleGuiService : BackgroundService
             RxApp.MainThreadScheduler = TerminalScheduler.Default;
             RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
             Application.Run(new MainConsoleView(_serviceProvider));
-        }, stoppingToken);
+        }, stoppingToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 }

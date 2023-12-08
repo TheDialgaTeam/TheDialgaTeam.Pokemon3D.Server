@@ -17,8 +17,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GameJoltId = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    DisplayName = table.Column<string>(type: "TEXT", nullable: false),
+                    GameJoltId = table.Column<string>(type: "TEXT", nullable: true),
+                    Password = table.Column<string>(type: "TEXT", nullable: true),
                     PlayerType = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
@@ -27,29 +28,55 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BlacklistAccounts",
+                name: "BannedPlayerProfiles",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    PlayerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Reason = table.Column<string>(type: "TEXT", nullable: false),
+                    PlayerProfileId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Reason = table.Column<string>(type: "TEXT", nullable: true),
                     StartTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     Duration = table.Column<TimeSpan>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BlacklistAccounts", x => x.Id);
+                    table.PrimaryKey("PK_BannedPlayerProfiles", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BlacklistAccounts_PlayerProfiles_PlayerId",
-                        column: x => x.PlayerId,
+                        name: "FK_BannedPlayerProfiles_PlayerProfiles_PlayerProfileId",
+                        column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "LocalWorldSettings",
+                name: "BlockedPlayerProfiles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    PlayerProfileId = table.Column<int>(type: "INTEGER", nullable: false),
+                    BlockedProfileId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BlockedPlayerProfiles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BlockedPlayerProfiles_PlayerProfiles_BlockedProfileId",
+                        column: x => x.BlockedProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BlockedPlayerProfiles_PlayerProfiles_PlayerProfileId",
+                        column: x => x.PlayerProfileId,
+                        principalTable: "PlayerProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LocalWorlds",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -62,62 +89,55 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LocalWorldSettings", x => x.Id);
+                    table.PrimaryKey("PK_LocalWorlds", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_LocalWorldSettings_PlayerProfiles_PlayerProfileId",
+                        name: "FK_LocalWorlds_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "WhitelistAccounts",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    PlayerId = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WhitelistAccounts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_WhitelistAccounts_PlayerProfiles_PlayerId",
-                        column: x => x.PlayerId,
-                        principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
-                name: "IX_BlacklistAccounts_PlayerId",
-                table: "BlacklistAccounts",
-                column: "PlayerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LocalWorldSettings_PlayerProfileId",
-                table: "LocalWorldSettings",
+                name: "IX_BannedPlayerProfiles_PlayerProfileId",
+                table: "BannedPlayerProfiles",
                 column: "PlayerProfileId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_WhitelistAccounts_PlayerId",
-                table: "WhitelistAccounts",
-                column: "PlayerId");
+                name: "IX_BlockedPlayerProfiles_BlockedProfileId",
+                table: "BlockedPlayerProfiles",
+                column: "BlockedProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BlockedPlayerProfiles_PlayerProfileId",
+                table: "BlockedPlayerProfiles",
+                column: "PlayerProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LocalWorlds_PlayerProfileId",
+                table: "LocalWorlds",
+                column: "PlayerProfileId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlayerProfiles_DisplayName",
+                table: "PlayerProfiles",
+                column: "DisplayName",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "BlacklistAccounts");
+                name: "BannedPlayerProfiles");
 
             migrationBuilder.DropTable(
-                name: "LocalWorldSettings");
+                name: "BlockedPlayerProfiles");
 
             migrationBuilder.DropTable(
-                name: "WhitelistAccounts");
+                name: "LocalWorlds");
 
             migrationBuilder.DropTable(
                 name: "PlayerProfiles");

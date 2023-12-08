@@ -61,16 +61,6 @@ internal sealed class ConsoleMessageView : FrameView
         ScrollBarView = new ScrollBarView(ConsoleView, true);
         Add(ScrollBarView);
         
-        Observable.FromEvent<Rect>(
-                action => ConsoleView.DrawContent += action, 
-                action => ConsoleView.DrawContent -= action)
-            .Subscribe(_ =>
-            {
-                ScrollBarView.Size = ConsoleView.Source.Count + 1;
-                ScrollBarView.OtherScrollBarView.Size = ConsoleView.Maxlength;
-                ScrollBarView.Refresh();
-            }).DisposeWith(_disposable);
-
         Observable.FromEvent(
                 action => ScrollBarView.ChangedPosition += action,
                 action => ScrollBarView.ChangedPosition -= action)
@@ -92,12 +82,14 @@ internal sealed class ConsoleMessageView : FrameView
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ =>
             {
-                ConsoleView.SetNeedsDisplay();
+                ScrollBarView.Size = ConsoleView.Source.Count;
+                ScrollBarView.OtherScrollBarView.Size = ConsoleView.Maxlength;
+                ScrollBarView.Refresh();
 
                 if (ConsoleView.HasFocus) return;
-                
-                ConsoleView.MoveEnd();
-                ScrollBarView.Position = ScrollBarView.Size;
+
+                ConsoleView.SelectedItem = ConsoleView.Source.Count - 1;
+                ScrollBarView.Position = ConsoleView.Source.Count;
             }).DisposeWith(_disposable);
     }
 

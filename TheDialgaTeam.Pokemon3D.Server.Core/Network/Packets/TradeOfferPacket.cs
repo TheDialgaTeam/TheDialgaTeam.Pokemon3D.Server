@@ -15,27 +15,18 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public readonly record struct Origin(int Id)
+public sealed record TradeOfferPacket(Origin Origin, Origin TradePartner, string PokemonData) : IPacket
 {
-    public static Origin Server => new(-1);
-    
-    public static Origin NewPlayer => new(0);
-    
-    public static implicit operator int(Origin origin)
+    public TradeOfferPacket(IRawPacket rawPacket) : this(rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture), rawPacket.DataItems[1])
     {
-        return origin.Id;
     }
     
-    public static implicit operator Origin(int id)
+    public IRawPacket ToRawPacket()
     {
-        return new Origin(id);
-    }
-
-    public string ToRawString()
-    {
-        return Id.ToString(CultureInfo.InvariantCulture);
+        return new RawPacket(PacketType.TradeOffer, Origin, new[] { PokemonData });
     }
 }

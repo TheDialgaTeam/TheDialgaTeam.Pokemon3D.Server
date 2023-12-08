@@ -47,8 +47,8 @@ public sealed class ObservableCollectionDataSource<T> : IListDataSource, IDispos
     private static void RenderUstr(View container, ConsoleDriver driver, ustring ustr, int col, int line, int width, int start = 0)
     {
         container.Move(col, line);
-        
-        var u = TextFormatter.ClipAndJustify(ustr.RuneSubstring(start), width, TextAlignment.Left);
+
+        var u = TextFormatter.ClipAndJustify(ustr[start, null], width, TextAlignment.Left);
         driver.AddStr(u);
 
         width -= TextFormatter.GetTextWidth(u);

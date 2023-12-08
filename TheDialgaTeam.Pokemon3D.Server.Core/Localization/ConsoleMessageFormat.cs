@@ -18,6 +18,22 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 public sealed class ConsoleMessageFormat
 {
+    public string NatSearchForUpnpDevices { get; set; } = "Searching for UPnP devices. This will take {0:F0} seconds.";
+    public string NatFoundUpnpDevices { get; set; } = "Found {0} UPnP devices.";
+    public string NatNatCreatedUpnpDeviceMapping { get; set; } = "Created new UPnP port mapping for interface {0}.";
+
+    public string ClientReceivedRawPacket { get; set; } = "Received raw packet data: {0}";
+    public string ClientSentRawPacket { get; set; } = "Sent raw packet data: {0}";
+    public string ClientReadSocketIssue { get; set; } = "Unable to read data from this client.";
+    public string ClientWriteSocketIssue { get; set; } = "Unable to write data to this client.";
+    public string ClientReceivedInvalidPacket { get; set; } = "Invalid packet received.";
+    public string ClientReceivedNoPing { get; set; } = "Client did not send a valid ping for too long.";
+    public string ClientDisconnected { get; set; } = "Client is disconnected.";
+
+    public string ServerUncaughtExceptionThrown { get; set; } = "Server has thrown an error when handling packet data.";
+
+    public string GlobalWorldStatus { get; set; } = "Current Season: {0} | Current Weather: {1} | Current Time: {2}";
+
     #region PokemonServerListener
 
     public string ServerIsStarting { get; set; } = "[Server] Starting Pokemon 3D Server.";
@@ -45,46 +61,16 @@ public sealed class ConsoleMessageFormat
     public string ServerError { get; set; } = "[Server] Error: {0}";
 
     #endregion
-    
-    #region NatDeviceUtility
-    
-    public string NatSearchForUpnpDevices { get; set; } = "[NAT] Searching for UPnP devices. This will take {0:F0} seconds.";
-
-    public string NatFoundUpnpDevices { get; set; } = "[NAT] Found {0} UPnP devices.";
-
-    public string NatNatCreatedUpnpDeviceMapping { get; set; } = "[NAT] Created new UPnP port mapping for interface {0}.";
-
-    #endregion
-
-    #region PokemonServerClient
-
-    public string ClientReceivedRawPacket { get; set; } = "Received raw packet data: {0}";
-    public string ClientSentRawPacket { get; set; } = "Sent raw packet data: {0}";
-    public string ClientReadSocketIssue { get; set; } = "Unable to read data from this client.";
-    public string ClientWriteSocketIssue { get; set; } = "Unable to write data to this client.";
-    public string ClientReceivedInvalidPacket { get; set; } = "Invalid packet received.";
-    public string ClientReceivedNoPing { get; set; } = "Client did not send a valid ping for too long.";
-    public string ClientDisconnected { get; set; } = "Client is disconnected.";
-
-    public string ServerUncaughtExceptionThrown { get; set; } = "Server has thrown an error when handling packet data.";
-
-    #endregion
 
     #region NetworkContainer
-    
+
     public string PlayerJoin { get; set; } = "[Server] {0} join the server.";
     public string PlayerLeft { get; set; } = "[Server] {0} left the server.";
     public string PlayerLeftWithReason { get; set; } = "[Server] {0} left the server with the following reason: {1}";
-    
+
     public string PlayerUnableToJoin { get; set; } = "[Server] {0} is unable to join the server with the following reason: {1}";
 
     public string GameStateMessage { get; set; } = "[Server] The player {0} {1}";
-    
-    #endregion
-
-    #region World
-
-    public string GlobalWorldStatus { get; set; } = "[World] Current Season: {0} | Current Weather: {1} | Current Time: {2}";
 
     #endregion
 }

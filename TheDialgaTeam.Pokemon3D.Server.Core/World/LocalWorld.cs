@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
@@ -24,7 +23,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-internal sealed class LocalWorld : ILocalWorld
+internal sealed partial class LocalWorld : ILocalWorld
 {
     public Season CurrentSeason { get; private set; }
 
@@ -39,8 +38,6 @@ internal sealed class LocalWorld : ILocalWorld
     public Weather TargetWeather { get; set; }
     
     public TimeSpan TargetOffset { get; set; }
-
-    public bool IsGlobalWorld => _world is null;
     
     private int WeekOfYear => (CurrentTime.DayOfYear - (CurrentTime.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
 
@@ -127,9 +124,9 @@ internal sealed class LocalWorld : ILocalWorld
         
         _player?.SendPacket(GetWorldDataPacket().ToRawPacket());
 
-        if (IsGlobalWorld)
+        if (_world is null)
         {
-            _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.GlobalWorldStatus, Enum.GetName(CurrentSeason), Enum.GetName(CurrentWeather), CurrentTime]);
+            PrintInformation(_stringLocalizer[s => s.ConsoleMessageFormat.GlobalWorldStatus, Enum.GetName(CurrentSeason), Enum.GetName(CurrentWeather), CurrentTime]);
         }
     }
 
@@ -245,6 +242,9 @@ internal sealed class LocalWorld : ILocalWorld
             }
         }
     }
+
+    [LoggerMessage(LogLevel.Information, "[World] {Message}")]
+    private partial void PrintInformation(string message);
     
     public void Dispose()
     {

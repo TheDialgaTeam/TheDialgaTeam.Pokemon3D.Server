@@ -23,7 +23,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed class NatDevicePortMapper : INatDevicePortMapper
+internal sealed partial class NatDevicePortMapper : INatDevicePortMapper
 {
     private readonly IPokemonServerOptions _options;
     private readonly ILogger _logger;
@@ -67,14 +67,14 @@ internal sealed class NatDevicePortMapper : INatDevicePortMapper
 
     public async Task CreatePortMappingAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.NatSearchForUpnpDevices, _options.NetworkOptions.UpnpDiscoveryTime]);
+        PrintInformation(_stringLocalizer[s => s.ConsoleMessageFormat.NatSearchForUpnpDevices, TimeSpan.FromSeconds(_options.NetworkOptions.UpnpDiscoveryTime).TotalSeconds]);
         
         using var upnpCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(_options.NetworkOptions.UpnpDiscoveryTime));
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, upnpCancellationTokenSource.Token);
 
         _natDevices = await DiscoverNatDevicesAsync(linkedCancellationTokenSource.Token).ConfigureAwait(false);
         
-        _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.NatFoundUpnpDevices, _natDevices.Length]);
+        PrintInformation(_stringLocalizer[s => s.ConsoleMessageFormat.NatFoundUpnpDevices, _natDevices.Length]);
 
         _targetEndPoint = IPEndPoint.Parse(_options.NetworkOptions.BindingInformation);
 
@@ -106,7 +106,7 @@ internal sealed class NatDevicePortMapper : INatDevicePortMapper
 
             await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, _targetEndPoint.Port, _targetEndPoint.Port)).ConfigureAwait(false);
             
-            _logger.LogInformation("{Message}", _stringLocalizer[token => token.ConsoleMessageFormat.NatNatCreatedUpnpDeviceMapping, natDevice.DeviceEndpoint.Address]);
+            PrintInformation(_stringLocalizer[s => s.ConsoleMessageFormat.NatNatCreatedUpnpDeviceMapping, natDevice.DeviceEndpoint.Address]);
         }
     }
 
@@ -126,4 +126,7 @@ internal sealed class NatDevicePortMapper : INatDevicePortMapper
             }
         }
     }
+
+    [LoggerMessage(LogLevel.Information, "[NAT] {Message}")]
+    private partial void PrintInformation(string message);
 }

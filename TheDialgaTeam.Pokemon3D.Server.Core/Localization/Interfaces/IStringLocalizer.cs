@@ -18,7 +18,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 
 public interface IStringLocalizer
 {
-    string this[Func<LocalizedString, string> localizedString] { get; }
+    public string this[Func<LocalizedString, string> localizedString] { get; }
     
-    string this[Func<LocalizedString, string> localizedString, params object?[] args] { get; }
+    public string this[Func<LocalizedString, string> localizedString, params object?[] args] { get; }
 }

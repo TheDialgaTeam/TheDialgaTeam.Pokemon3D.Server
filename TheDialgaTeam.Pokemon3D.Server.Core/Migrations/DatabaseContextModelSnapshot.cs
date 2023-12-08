@@ -17,7 +17,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
 
-            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.Blacklist", b =>
+            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.BannedPlayerProfile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -26,11 +26,10 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                     b.Property<TimeSpan>("Duration")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("PlayerId")
+                    b.Property<int>("PlayerProfileId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Reason")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("StartTime")
@@ -38,9 +37,31 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PlayerId");
+                    b.HasIndex("PlayerProfileId")
+                        .IsUnique();
 
-                    b.ToTable("BlacklistAccounts");
+                    b.ToTable("BannedPlayerProfiles");
+                });
+
+            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.BlockedPlayerProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BlockedProfileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PlayerProfileId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlockedProfileId");
+
+                    b.HasIndex("PlayerProfileId");
+
+                    b.ToTable("BlockedPlayerProfiles");
                 });
 
             modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.LocalWorld", b =>
@@ -69,7 +90,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                     b.HasIndex("PlayerProfileId")
                         .IsUnique();
 
-                    b.ToTable("LocalWorldSettings");
+                    b.ToTable("LocalWorlds");
                 });
 
             modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.PlayerProfile", b =>
@@ -78,12 +99,14 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("GameJoltId")
+                    b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
+                    b.Property<string>("GameJoltId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("PlayerType")
@@ -91,34 +114,40 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DisplayName")
+                        .IsUnique();
+
                     b.ToTable("PlayerProfiles");
                 });
 
-            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.Whitelist", b =>
+            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.BannedPlayerProfile", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlayerId");
-
-                    b.ToTable("WhitelistAccounts");
-                });
-
-            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.Blacklist", b =>
-                {
-                    b.HasOne("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.PlayerProfile", "Player")
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
+                    b.HasOne("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.PlayerProfile", "PlayerProfile")
+                        .WithOne("Blacklist")
+                        .HasForeignKey("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.BannedPlayerProfile", "PlayerProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Player");
+                    b.Navigation("PlayerProfile");
+                });
+
+            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.BlockedPlayerProfile", b =>
+                {
+                    b.HasOne("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.PlayerProfile", "BlockedProfile")
+                        .WithMany()
+                        .HasForeignKey("BlockedProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.PlayerProfile", "PlayerProfile")
+                        .WithMany("BlockProfiles")
+                        .HasForeignKey("PlayerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BlockedProfile");
+
+                    b.Navigation("PlayerProfile");
                 });
 
             modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.LocalWorld", b =>
@@ -132,19 +161,12 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                     b.Navigation("PlayerProfile");
                 });
 
-            modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.Whitelist", b =>
-                {
-                    b.HasOne("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.PlayerProfile", "Player")
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Player");
-                });
-
             modelBuilder.Entity("TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables.PlayerProfile", b =>
                 {
+                    b.Navigation("Blacklist");
+
+                    b.Navigation("BlockProfiles");
+
                     b.Navigation("LocalWorld")
                         .IsRequired();
                 });

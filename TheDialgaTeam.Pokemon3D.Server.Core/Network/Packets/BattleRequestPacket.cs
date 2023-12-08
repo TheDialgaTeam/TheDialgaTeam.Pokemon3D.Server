@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
-public sealed class Blacklist : BaseTable
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+
+public sealed record BattleRequestPacket(Origin Origin, Origin BattlePartner) : IPacket
 {
-    public required PlayerProfile Player { get; init; }
+    public BattleRequestPacket(IRawPacket rawPacket) : this(rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
+    {
+    }
     
-    public string Reason { get; set; } = string.Empty;
-    
-    public required DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
-    
-    public required TimeSpan Duration { get; set; } = TimeSpan.MaxValue;
-
-    public bool IsExpired => DateTimeOffset.Now > StartTime.Add(Duration);
+    public IRawPacket ToRawPacket()
+    {
+        return new RawPacket(PacketType.BattleRequest, Origin, Array.Empty<string>());
+    }
 }

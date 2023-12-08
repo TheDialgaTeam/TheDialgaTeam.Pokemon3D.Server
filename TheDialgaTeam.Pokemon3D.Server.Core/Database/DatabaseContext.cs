@@ -25,17 +25,44 @@ public sealed class DatabaseContext : DbContext
 {
     public required DbSet<PlayerProfile> PlayerProfiles { get; init; }
 
-    public required DbSet<Blacklist> BlacklistAccounts { get; init; }
-
-    public required DbSet<Whitelist> WhitelistAccounts { get; init; }
+    public required DbSet<BannedPlayerProfile> BannedPlayerProfiles { get; init; }
     
-    public required DbSet<LocalWorld> LocalWorldSettings { get; init; }
+    public required DbSet<BlockedPlayerProfile> BlockedPlayerProfiles { get; init; }
+    
+    public required DbSet<LocalWorld> LocalWorlds { get; init; }
     
     private readonly IPokemonServerOptions _options;
 
     public DatabaseContext(IPokemonServerOptions options)
     {
         _options = options;
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder
+            .Entity<PlayerProfile>()
+            .HasMany<BlockedPlayerProfile>(profile => profile.BlockProfiles)
+            .WithOne(blocklist => blocklist.PlayerProfile)
+            .HasForeignKey("PlayerProfileId")
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<PlayerProfile>()
+            .HasOne<LocalWorld>(profile => profile.LocalWorld)
+            .WithOne(world => world.PlayerProfile)
+            .HasForeignKey<LocalWorld>("PlayerProfileId")
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<PlayerProfile>()
+            .HasOne<BannedPlayerProfile>(profile => profile.Blacklist)
+            .WithOne(blacklist => blacklist.PlayerProfile)
+            .HasForeignKey<BannedPlayerProfile>("PlayerProfileId")
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

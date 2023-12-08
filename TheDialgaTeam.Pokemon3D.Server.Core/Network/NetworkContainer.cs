@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Formats;
@@ -298,12 +299,39 @@ public sealed class NetworkContainer :
 
     private int GetPlayerCount()
     {
-        return _players.Values.Count(player => player is not null);
+        var count = 0;
+
+        foreach (var (_, value) in _players)
+        {
+            if (value is null) continue;
+            count++;
+        }
+        
+        return count;
+    }
+    
+    private bool TryGetPlayerById(int id, [MaybeNullWhen(false)] out IPlayer player)
+    {
+        foreach (var (_, value) in _players)
+        {
+            if (value?.Id != id) continue;
+            
+            player = value;
+            return true;
+        }
+
+        player = null;
+        return false;
     }
 
-    private IPlayer GetPlayerById(int id)
+    private IPlayer? GetPlayerById(int id)
     {
-        return _players.Values.Single(player => player is not null && player.Id == id)!;
+        foreach (var (_, value) in _players)
+        {
+            if (value?.Id == id) return value;
+        }
+
+        return null;
     }
 
     private string[] GetPlayerDisplayNames()
