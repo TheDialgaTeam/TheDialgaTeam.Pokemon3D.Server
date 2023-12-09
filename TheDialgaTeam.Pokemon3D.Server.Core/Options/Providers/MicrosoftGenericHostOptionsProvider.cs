@@ -26,6 +26,8 @@ internal sealed class MicrosoftGenericHostOptionsProvider : IPokemonServerOption
     public NetworkOptions NetworkOptions { get; private set; }
     
     public DatabaseOptions DatabaseOptions { get; private set; }
+    
+    public SecurityOptions SecurityOptions { get; private set; }
 
     public WorldOptions WorldOptions { get; private set; }
 
@@ -43,6 +45,7 @@ internal sealed class MicrosoftGenericHostOptionsProvider : IPokemonServerOption
         IOptionsMonitor<ServerOptions> serverOptions,
         IOptionsMonitor<NetworkOptions> networkOptions,
         IOptionsMonitor<DatabaseOptions> dataBaseOptions,
+        IOptionsMonitor<SecurityOptions> securityOptions,
         IOptionsMonitor<WorldOptions> worldOptions,
         IOptionsMonitor<ChatOptions> chatOptions,
         IOptionsMonitor<PvPOptions> pvpOptions,
@@ -52,6 +55,7 @@ internal sealed class MicrosoftGenericHostOptionsProvider : IPokemonServerOption
         ServerOptions = serverOptions.CurrentValue;
         NetworkOptions = networkOptions.CurrentValue;
         DatabaseOptions = dataBaseOptions.CurrentValue;
+        SecurityOptions = securityOptions.CurrentValue;
         WorldOptions = worldOptions.CurrentValue;
         ChatOptions = chatOptions.CurrentValue;
         PvpOptions = pvpOptions.CurrentValue;
@@ -63,6 +67,7 @@ internal sealed class MicrosoftGenericHostOptionsProvider : IPokemonServerOption
             serverOptions.OnChange(options => ServerOptions = options),
             networkOptions.OnChange(options => NetworkOptions = options),
             dataBaseOptions.OnChange(options => DatabaseOptions = options),
+            securityOptions.OnChange(options => SecurityOptions = options),
             worldOptions.OnChange(options => WorldOptions = options),
             chatOptions.OnChange(options => ChatOptions = options),
             pvpOptions.OnChange(options => PvpOptions = options),

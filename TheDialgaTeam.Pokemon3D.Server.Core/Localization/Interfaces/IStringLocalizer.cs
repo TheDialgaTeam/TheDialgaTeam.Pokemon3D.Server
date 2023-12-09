@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using TheDialgaTeam.Pokemon3D.Server.Core.Options;
+
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 
 public interface IStringLocalizer

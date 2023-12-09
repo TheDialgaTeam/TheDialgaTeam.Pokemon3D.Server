@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Security.PasswordHashing.Providers;
 
-public sealed class LocalizedString
+public interface IPasswordHashingProvider
 {
-    public PlayerNameDisplayFormat PlayerNameDisplayFormat { get; set; } = new();
-    
-    public ConsoleMessageFormat ConsoleMessageFormat { get; set; } = new();
-    
-    public GameMessageFormat GameMessageFormat { get; set; } = new();
+    bool ComparePassword(string password, string passwordHash);
+
+    string GeneratePasswordHash(string password);
 }

@@ -16,6 +16,7 @@
 
 using System.Globalization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;

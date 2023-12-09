@@ -14,25 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Data.Sqlite;
+using TheDialgaTeam.Pokemon3D.Server.Core.Security.PasswordHashing.Providers;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Security.PasswordHashing;
 
-public sealed class SqliteOptions
+public interface IPasswordHashingFactory
 {
-    public string DataSource { get; set; } = "data.db";
-
-    public SqliteOpenMode Mode { get; set; } = SqliteOpenMode.ReadWriteCreate;
-
-    public SqliteCacheMode Cache { get; set; } = SqliteCacheMode.Default;
-
-    public string Password { get; set; } = string.Empty;
-    
-    public bool? ForeignKeys { get; set; }
-    
-    public bool RecursiveTriggers { get; set; }
-
-    public int DefaultTimeout { get; set; } = 30;
-
-    public bool Pooling { get; set; } = true;
+    IPasswordHashingProvider GetProvider();
 }

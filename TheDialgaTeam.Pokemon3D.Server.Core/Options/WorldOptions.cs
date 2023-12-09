@@ -18,7 +18,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-public sealed record WorldOptions
+public sealed class WorldOptions
 {
     public bool DoDayCycle { get; set; } = true;
     

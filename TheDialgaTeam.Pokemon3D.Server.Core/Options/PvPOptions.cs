@@ -16,7 +16,7 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-public sealed record PvPOptions
+public sealed class PvPOptions
 {
     public bool AllowPvP { get; set; } = true;
 

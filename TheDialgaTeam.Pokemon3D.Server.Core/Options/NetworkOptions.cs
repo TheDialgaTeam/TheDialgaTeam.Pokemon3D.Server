@@ -18,7 +18,7 @@ using System.Net;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-public sealed record NetworkOptions
+public sealed class NetworkOptions
 {
     public string BindingInformation { get; set; } = new IPEndPoint(IPAddress.Any, 15124).ToString();
 

@@ -22,3 +22,12 @@ public sealed class LocalizationOptions
 {
     public Dictionary<string, LocalizedString> CultureInfo { get; set; } = new() { { "en", new LocalizedString() } };
 }
+
+public sealed class LocalizedString
+{
+    public PlayerNameDisplayFormat PlayerNameDisplayFormat { get; set; } = new();
+    
+    public ConsoleMessageFormat ConsoleMessageFormat { get; set; } = new();
+    
+    public GameMessageFormat GameMessageFormat { get; set; } = new();
+}

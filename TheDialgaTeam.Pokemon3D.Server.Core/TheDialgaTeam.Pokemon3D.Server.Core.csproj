@@ -5,7 +5,7 @@
     <PropertyGroup>
         <IsPublishable>false</IsPublishable>
         <IsTrimmable>true</IsTrimmable>
-        <EnableConfigurationBindingGenerator>false</EnableConfigurationBindingGenerator>
+        <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     </PropertyGroup>
 
     <ItemGroup>

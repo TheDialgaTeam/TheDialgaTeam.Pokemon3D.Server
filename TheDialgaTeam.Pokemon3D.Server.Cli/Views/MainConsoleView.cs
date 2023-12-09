@@ -21,25 +21,19 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
 internal sealed class MainConsoleView : Window
 {
-    public PlayerListView PlayerListView { get; }
-    
-    public ConsoleMessageView ConsoleMessageView { get; }
-    
-    public StatusBar StatusBar { get; }
-    
     public MainConsoleView(IServiceProvider serviceProvider)
     {
         Title = $"{ApplicationUtility.Name} v{ApplicationUtility.Version} ({ApplicationUtility.FrameworkVersion})";
 
-        PlayerListView = new PlayerListView(serviceProvider)
+        var playerListView = new PlayerListView(serviceProvider)
         {
             Width = Dim.Percent(20),
             Height = Dim.Fill(1)
         };
 
-        ConsoleMessageView = new ConsoleMessageView(serviceProvider)
+        var consoleMessageView = new ConsoleMessageView(serviceProvider)
         {
-            X = Pos.Right(PlayerListView),
+            X = Pos.Right(playerListView),
             Width = Dim.Fill(),
             Height = Dim.Fill(1)
         };
@@ -49,14 +43,14 @@ internal sealed class MainConsoleView : Window
             new StatusItem(Application.QuitKey, $"~{Enum.GetName(Application.QuitKey)}~ Quit", Application.Shutdown)
         };
 
-        StatusBar = new StatusBar(statusItems)
+        var statusBar = new StatusBar(statusItems)
         {
-            Y = Pos.Bottom(PlayerListView),
+            Y = Pos.Bottom(playerListView),
             Width = Dim.Fill()
         };
         
-        Add(PlayerListView, ConsoleMessageView, StatusBar);
+        Add(playerListView, consoleMessageView, statusBar);
         
-        ConsoleMessageView.CommandInputField.SetFocus();
+        consoleMessageView.CommandInputField.SetFocus();
     }
 }

@@ -15,7 +15,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
@@ -26,17 +25,16 @@ public sealed class SecurityOptions
         Argon2Options.ProviderName
     ];
 
-    public string PasswordHashingProvider { get; set; }
+    public string PasswordHashingProvider { get; set; } = Pbkdf2Options.ProviderName;
 
-    [JsonPropertyName("PBKDF2")]
-    public Pbkdf2Options? Pbkdf2 { get; set; }
+    public Pbkdf2Options Pbkdf2 { get; set; } = new();
     
-    public Argon2Options Argon2 { get; set; }
+    public Argon2Options Argon2 { get; set; } = new();
 }
 
 public sealed class Pbkdf2Options
 {
-    public const string ProviderName = "PBKDF2";
+    public const string ProviderName = "Pbkdf2";
 
     public static readonly string[] SupportedHashingAlgorithm = [ 
         nameof(HashAlgorithmName.SHA1),
@@ -48,11 +46,9 @@ public sealed class Pbkdf2Options
         nameof(HashAlgorithmName.SHA3_512)
     ];
 
-    public string HashingAlgorithm { get; set; } = "SHA256";
+    public string HashingAlgorithm { get; set; } = nameof(HashAlgorithmName.SHA256);
 
     public int Iterations { get; set; } = 600000;
-
-    public required string Salt { get; set; }
 }
 
 public sealed class Argon2Options
@@ -64,6 +60,4 @@ public sealed class Argon2Options
     public int MemorySize { get; set; } = 7168;
 
     public int Iterations { get; set; } = 5;
-    
-    public required string Salt { get; set; }
 }

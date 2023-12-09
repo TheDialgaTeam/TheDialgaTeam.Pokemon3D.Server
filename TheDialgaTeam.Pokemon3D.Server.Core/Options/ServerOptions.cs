@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Microsoft.Extensions.Configuration;
+
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-public sealed record ServerOptions
+public sealed class ServerOptions
 {
     public string ServerName { get; set; } = "Pokemon 3D Server";
 

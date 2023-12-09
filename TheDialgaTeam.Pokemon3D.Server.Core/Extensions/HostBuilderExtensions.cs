@@ -31,6 +31,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Options.Providers;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Security.PasswordHashing;
 using TheDialgaTeam.Pokemon3D.Server.Core.World;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
@@ -38,12 +39,6 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 
 public static class HostBuilderExtensions
 {
-    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(SqliteOptions))]
-    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(LocalizedString))]
-    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(PlayerNameDisplayFormat))]
-    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ConsoleMessageFormat))]
-    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(GameMessageFormat))]
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Dependent types have been preserved.")]
     public static IHostBuilder ConfigurePokemonServer(this IHostBuilder hostBuilder)
     {
         return hostBuilder.ConfigureServices(collection =>
@@ -55,27 +50,28 @@ public static class HostBuilderExtensions
             collection.TryAddSingleton<IStringLocalizer, StringLocalizer>();
             
             collection.AddOptions<ServerOptions>().BindConfiguration("Server");
-            collection.TryAddSingleton<ServerOptionsValidation>();
-            collection.TryAddSingleton<IValidateOptions<ServerOptions>>(static provider => provider.GetRequiredService<ServerOptionsValidation>());
+            collection.TryAddSingleton<IValidateOptions<ServerOptions>, ServerOptionsValidation>();
 
             collection.AddOptions<NetworkOptions>().BindConfiguration("Server:Network");
-            collection.TryAddSingleton<NetworkOptionsValidation>();
-            collection.TryAddSingleton<IValidateOptions<NetworkOptions>>(static provider => provider.GetRequiredService<NetworkOptionsValidation>());
+            collection.TryAddSingleton<IValidateOptions<NetworkOptions>, NetworkOptionsValidation>();
 
             collection.AddOptions<DatabaseOptions>().BindConfiguration("Server:Database");
-            collection.TryAddSingleton<DatabaseOptionsValidation>();
-            collection.TryAddSingleton<IValidateOptions<DatabaseOptions>>(static provider => provider.GetRequiredService<DatabaseOptionsValidation>());
+            collection.TryAddSingleton<IValidateOptions<DatabaseOptions>, DatabaseOptionsValidation>();
 
+            collection.AddOptions<SecurityOptions>().BindConfiguration("Server:Security");
+            collection.TryAddSingleton<IValidateOptions<SecurityOptions>, SecurityOptionsValidation>();
+            
             collection.AddOptions<WorldOptions>().BindConfiguration("Server:World");
             collection.AddOptions<ChatOptions>().BindConfiguration("Server:Chat");
             collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
             collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
             collection.AddOptions<LocalizationOptions>().BindConfiguration("Localization");
-
-            collection.TryAddSingleton<MicrosoftGenericHostOptionsProvider>();
-            collection.TryAddSingleton<IPokemonServerOptions>(static provider => provider.GetRequiredService<MicrosoftGenericHostOptionsProvider>());
+            
+            collection.TryAddSingleton<IPokemonServerOptions, MicrosoftGenericHostOptionsProvider>();
 
             collection.AddDbContextFactory<DatabaseContext>();
+            
+            collection.TryAddSingleton<IPasswordHashingFactory, PasswordHashingFactory>();
         }).ConfigureAppConfiguration(builder =>
         {
             builder.AddJsonFile("localization.json", true, true);

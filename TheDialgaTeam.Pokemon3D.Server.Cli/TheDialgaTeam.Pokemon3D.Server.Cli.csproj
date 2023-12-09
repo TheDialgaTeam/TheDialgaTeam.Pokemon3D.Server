@@ -31,10 +31,10 @@
         <PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
         <PackageReference Include="Terminal.Gui" Version="1.14.1" />
         <PackageReference Include="TheDialgaTeam.Microsoft.Extensions.Logging" Version="1.12.0" />
+        <PackageReference Include="TheDialgaTeam.Serilog" Version="1.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\TheDialgaTeam.Serilog\TheDialgaTeam.Serilog\TheDialgaTeam.Serilog.csproj" />
         <ProjectReference Include="..\TheDialgaTeam.Pokemon3D.Server.Core\TheDialgaTeam.Pokemon3D.Server.Core.csproj" />
     </ItemGroup>
 

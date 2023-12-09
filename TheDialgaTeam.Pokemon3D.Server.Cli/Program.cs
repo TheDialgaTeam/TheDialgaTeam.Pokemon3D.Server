@@ -1,8 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TheDialgaTeam.Pokemon3D.Server.Cli.Services;
 using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
@@ -14,16 +10,15 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli;
 
 internal static class Program
 {
-    [UnconditionalSuppressMessage("Trimming", "IL2026")]
     public static Task Main(string[] args)
     {
         AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainOnUnhandledException;
-
+        
         return Host.CreateDefaultBuilder(args)
             .ConfigurePokemonServer()
-            .ConfigureSerilog((context, provider, configuration) =>
+            .ConfigureSerilog(static (context, provider, configuration) =>
             {
-                if (context.Configuration.GetValue("TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode", false))
+                if (bool.Parse(context.Configuration["TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode"] ?? "false"))
                 {
                     configuration.MinimumLevel.Verbose().WriteTo.ActionSink(provider);
                 }
@@ -36,7 +31,7 @@ internal static class Program
             {
                 collection.AddMediator();
                 
-                if (context.Configuration.GetValue("TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode", false))
+                if (bool.Parse(context.Configuration["TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode"] ?? "false"))
                 {
                     collection.AddHostedService<ConsoleGuiService>();
                     collection.AddHostedService<ServerHostedService>();

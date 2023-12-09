@@ -24,6 +24,8 @@ public interface IPokemonServerOptions
     
     DatabaseOptions DatabaseOptions { get; }
     
+    SecurityOptions SecurityOptions { get; }
+    
     WorldOptions WorldOptions { get; }
     
     ChatOptions ChatOptions { get; }

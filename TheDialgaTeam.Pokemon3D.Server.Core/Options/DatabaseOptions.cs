@@ -14,15 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Database;
+using Microsoft.Data.Sqlite;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed class DatabaseOptions
 {
-    public static readonly string[] SupportedProviders = { nameof(Sqlite) };
-    
+    public static readonly string[] SupportedProviders = [nameof(Sqlite)];
+
     public string DatabaseProvider { get; set; } = nameof(Sqlite);
 
     public SqliteOptions Sqlite { get; set; } = new() { DataSource = "data.db" };
+}
+
+public sealed class SqliteOptions
+{
+    public string DataSource { get; set; } = "data.db";
+
+    public SqliteOpenMode Mode { get; set; } = SqliteOpenMode.ReadWriteCreate;
+
+    public SqliteCacheMode Cache { get; set; } = SqliteCacheMode.Default;
+
+    public string Password { get; set; } = string.Empty;
+    
+    public bool? ForeignKeys { get; set; }
+    
+    public bool RecursiveTriggers { get; set; }
+
+    public int DefaultTimeout { get; set; } = 30;
+
+    public bool Pooling { get; set; } = true;
 }
