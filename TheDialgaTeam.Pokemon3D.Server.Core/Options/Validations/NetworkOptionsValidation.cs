@@ -29,15 +29,17 @@ internal sealed class NetworkOptionsValidation : IValidateOptions<NetworkOptions
         {
             failureMessages.Add($"[Server:Network:{nameof(options.BindingInformation)}] Invalid format given.");
         }
-        
-        if (!Dns.GetHostAddresses(Dns.GetHostName())
-                .Append(IPAddress.Any)
-                .Append(IPAddress.Loopback)
-                .Any(address => ipEndPoint?.Address.Equals(address) ?? false))
+        else
         {
-            failureMessages.Add($"[Server:Network:{nameof(options.BindingInformation)}] Invalid IP address given.");
+            if (!Dns.GetHostAddresses(Dns.GetHostName())
+                    .Append(IPAddress.Any)
+                    .Append(IPAddress.Loopback)
+                    .Any(address => ipEndPoint.Address.Equals(address)))
+            {
+                failureMessages.Add($"[Server:Network:{nameof(options.BindingInformation)}] Invalid IP address given.");
+            }
         }
-
+        
         if (options.UpnpDiscoveryTime < 1)
         {
             failureMessages.Add($"[Server:Network:{nameof(options.UpnpDiscoveryTime)}] Upnp Discovery Time require at least 1 second.");

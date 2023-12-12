@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -43,7 +42,6 @@ public static class HostBuilderExtensions
     {
         return hostBuilder.ConfigureServices(collection =>
         {
-            collection.TryAddSingleton<INatDevicePortMapper, NatDevicePortMapper>();
             collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
             collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
             collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();

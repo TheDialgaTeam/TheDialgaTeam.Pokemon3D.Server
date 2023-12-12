@@ -14,11 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Commands.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-public sealed class PlayerNameDisplayFormat
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Commands;
+
+internal sealed class KickCommand : IGameCommand
 {
-    public string GameJoltNameDisplayFormat { get; set; } = "{0} ({1})";
+    public string Name => "Kick";
 
-    public string OfflineNameDisplayFormat { get; set; } = "{0}";
+    public string Description => "Kick a player off the server.";
+
+    public PlayerType RequiredPermission => PlayerType.Moderator;
+
+    public void ExecuteGameCommand(IServiceProvider provider, IPlayer player)
+    {
+        
+    }
 }

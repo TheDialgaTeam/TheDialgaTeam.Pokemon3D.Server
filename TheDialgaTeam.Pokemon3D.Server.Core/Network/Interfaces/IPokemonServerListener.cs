@@ -14,24 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Player;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Commands.Interfaces;
-
-public interface ICommand
+public interface IPokemonServerListener
 {
-    /// <summary>
-    /// Name of the command. [To use, add "/" before the name]
-    /// </summary>
-    string Name { get; }
-    
-    /// <summary>
-    /// Short Description of the command.
-    /// </summary>
-    string Description { get; }
-    
-    /// <summary>
-    /// Minimum Permission require to use this command.
-    /// </summary>
-    PlayerType RequiredPermission { get; }
+    Task StartAsync(CancellationToken cancellationToken);
+
+    Task StopAsync(CancellationToken cancellationToken);
 }
