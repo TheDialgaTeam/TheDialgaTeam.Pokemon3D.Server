@@ -42,6 +42,8 @@ public static class HostBuilderExtensions
     {
         return hostBuilder.ConfigureServices(collection =>
         {
+            collection.TryAddSingleton<HttpClient>(_ => new HttpClient());
+            
             collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
             collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
             collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();

@@ -14,9 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
+using System.Reflection;
+using System.Runtime.Versioning;
 
-public static class CommandUtility
+namespace TheDialgaTeam.Pokemon3D.Server.Cli.Utilities;
+
+public static class ApplicationUtility
 {
-    
+    public static string Name { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>()!.Product;
+
+    public static string Version { get; } = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+
+    public static string FrameworkVersion { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<TargetFrameworkAttribute>()!.FrameworkName;
 }

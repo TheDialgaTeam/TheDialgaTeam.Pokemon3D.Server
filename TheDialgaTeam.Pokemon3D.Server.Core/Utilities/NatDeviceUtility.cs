@@ -21,90 +21,70 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 public static class NatDeviceUtility
 {
-    public static async Task<INatDevice[]> DiscoverNatDevicesAsync(CancellationToken cancellationToken)
+    public static async Task<INatDevice?> DiscoverNatDeviceAsync(CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return Array.Empty<INatDevice>();
-        }
-        
         var devices = new List<INatDevice>();
+        var natDeviceFoundCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         NatUtility.DeviceFound += NatUtilityOnDeviceFound;
         NatUtility.StartDiscovery(NatProtocol.Upnp);
         
-        await Task.WhenAny(Task.Delay(-1, cancellationToken)).ConfigureAwait(false);
+        await Task.WhenAny(Task.Delay(-1, natDeviceFoundCts.Token)).ConfigureAwait(false);
         
         NatUtility.DeviceFound -= NatUtilityOnDeviceFound;
         NatUtility.StopDiscovery();
+        
+        natDeviceFoundCts.Dispose();
 
-        return devices.ToArray();
+        return devices.FirstOrDefault();
 
         void NatUtilityOnDeviceFound(object? sender, DeviceEventArgs e)
         {
             devices.Add(e.Device);
+            // ReSharper disable once AccessToDisposedClosure
+            natDeviceFoundCts.Cancel();
         }
     }
     
-    public static async Task<(INatDevice natDevice, Mapping mapping)[]> CreatePortMappingAsync(INatDevice[] natDevices, IPEndPoint targetIpEndPoint)
+    public static async Task<Mapping?> CreatePortMappingAsync(INatDevice natDevice, IPEndPoint targetIpEndPoint)
     {
-        var mappingsCreated = new List<(INatDevice natDevice, Mapping mapping)>();
-        
-        foreach (var natDevice in natDevices)
+        try
         {
-            if (!targetIpEndPoint.Address.Equals(IPAddress.Any) && 
-                !targetIpEndPoint.Address.Equals(natDevice.DeviceEndpoint.Address)) continue;
+            var natDeviceMapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, targetIpEndPoint.Port).ConfigureAwait(false);
 
-            var createMapping = true;
-
-            try
+            if (natDeviceMapping.IsExpired())
             {
-                var natDeviceMapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, targetIpEndPoint.Port).ConfigureAwait(false);
-
-                if (natDeviceMapping.IsExpired())
-                {
-                    await natDevice.DeletePortMapAsync(natDeviceMapping).ConfigureAwait(false);
-                }
-                else
-                {
-                    mappingsCreated.Add((natDevice, natDeviceMapping));
-                    createMapping = false;
-                }
-            }
-            catch (MappingException)
-            {
-            }
-
-            if (!createMapping) continue;
-
-            try
-            {
-                var mappingCreated = await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, targetIpEndPoint.Port, targetIpEndPoint.Port)).ConfigureAwait(false);
-                mappingsCreated.Add((natDevice, mappingCreated));
-            }
-            catch (MappingException)
-            {
-            }
-        }
-
-        return mappingsCreated.ToArray();
-    }
-
-    public static async Task DestroyPortMappingAsync(INatDevice[] natDevices, IPEndPoint targetIpEndPoint)
-    {
-        foreach (var natDevice in natDevices)
-        {
-            if (!targetIpEndPoint.Address.Equals(IPAddress.Any) && 
-                !targetIpEndPoint.Address.Equals(natDevice.DeviceEndpoint.Address)) continue;
-
-            try
-            {
-                var natDeviceMapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, targetIpEndPoint.Port).ConfigureAwait(false);
                 await natDevice.DeletePortMapAsync(natDeviceMapping).ConfigureAwait(false);
             }
-            catch (MappingException)
+            else
             {
+                return natDeviceMapping;
             }
+        }
+        catch (MappingException)
+        {
+        }
+
+        try
+        {
+            return await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, targetIpEndPoint.Port, targetIpEndPoint.Port)).ConfigureAwait(false);
+        }
+        catch (MappingException)
+        {
+        }
+
+        return null;
+    }
+
+    public static async Task DestroyPortMappingAsync(INatDevice natDevice, IPEndPoint targetIpEndPoint)
+    {
+        try
+        {
+            var natDeviceMapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, targetIpEndPoint.Port).ConfigureAwait(false);
+            await natDevice.DeletePortMapAsync(natDeviceMapping).ConfigureAwait(false);
+        }
+        catch (MappingException)
+        {
         }
     }
 }

@@ -37,6 +37,7 @@ public sealed partial class PokemonServerHandler(
     IPokemonServerOptions options,
     IStringLocalizer stringLocalizer,
     IMediator mediator,
+    HttpClient httpClient,
     IPokemonServerClientFactory pokemonServerClientFactory) :
     ICommandHandler<StartServer>,
     ICommandHandler<StopServer>
@@ -46,11 +47,9 @@ public sealed partial class PokemonServerHandler(
     private int _serverActiveStatus;
     
     private IPEndPoint _targetEndPoint = IPEndPoint.Parse(options.NetworkOptions.BindingInformation);
-    private INatDevice[] _natDevices = Array.Empty<INatDevice>();
+    private INatDevice? _natDevice;
 
     private CancellationTokenSource? _serverListenerCts;
-    
-    private readonly HttpClient _httpClient = new();
     
     public async ValueTask<Unit> Handle(StartServer command, CancellationToken cancellationToken)
     {
@@ -79,7 +78,7 @@ public sealed partial class PokemonServerHandler(
 
         if (cancellationToken.IsCancellationRequested) return;
         
-        var serverListenerTask = ServerListenerTask();
+        var serverListenerTask = ServerListenerTask(cancellationToken);
 
         if (serverListenerTask.IsFaulted)
         {
@@ -90,36 +89,38 @@ public sealed partial class PokemonServerHandler(
     private async Task CreatePortMappingTask(CancellationToken cancellationToken)
     {
         var natDiscoveryTime = TimeSpan.FromSeconds(options.NetworkOptions.UpnpDiscoveryTime);
+        
+        using var upnpMaxDiscoveryTimeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        upnpMaxDiscoveryTimeCts.CancelAfter(natDiscoveryTime);
             
-        using var natDeviceDiscoveryCts = new CancellationTokenSource(natDiscoveryTime);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(natDeviceDiscoveryCts.Token, cancellationToken);
+        PrintNatInformation(stringLocalizer[s => s.ConsoleMessageFormat.NatSearchForUpnpDevice, natDiscoveryTime.TotalSeconds]);
             
-        PrintNatInformation(stringLocalizer[s => s.ConsoleMessageFormat.NatSearchForUpnpDevices, natDiscoveryTime.TotalSeconds]);
-            
-        _natDevices = await NatDeviceUtility.DiscoverNatDevicesAsync(linkedCts.Token).ConfigureAwait(false);
-            
-        PrintNatInformation(stringLocalizer[s => s.ConsoleMessageFormat.NatFoundUpnpDevices, _natDevices.Length]);
+        _natDevice = await NatDeviceUtility.DiscoverNatDeviceAsync(upnpMaxDiscoveryTimeCts.Token).ConfigureAwait(false);
+        if (_natDevice == null) return;
+        
+        PrintNatInformation(stringLocalizer[s => s.ConsoleMessageFormat.NatFoundUpnpDevice, _natDevice.DeviceEndpoint.Address]);
 
         if (cancellationToken.IsCancellationRequested) return;
             
-        var natDevicesMappings = await NatDeviceUtility.CreatePortMappingAsync(_natDevices, _targetEndPoint).ConfigureAwait(false);
+        var natDevicesMapping = await NatDeviceUtility.CreatePortMappingAsync(_natDevice, _targetEndPoint).ConfigureAwait(false);
 
-        foreach (var (natDevice, mapping) in natDevicesMappings)
+        if (natDevicesMapping != null && natDevicesMapping.PrivatePort == _targetEndPoint.Port && natDevicesMapping.PublicPort == _targetEndPoint.Port)
         {
-            if (cancellationToken.IsCancellationRequested) break;
-            PrintNatInformation(stringLocalizer[s => s.ConsoleMessageFormat.NatCreatedUpnpDeviceMapping, natDevice.DeviceEndpoint.Address]);
+            PrintNatInformation(stringLocalizer[s => s.ConsoleMessageFormat.NatCreatedUpnpDeviceMapping, _natDevice.DeviceEndpoint.Address]);
         }
 
         if (cancellationToken.IsCancellationRequested)
         {
-            await NatDeviceUtility.DestroyPortMappingAsync(_natDevices, _targetEndPoint).ConfigureAwait(false);
+            await NatDeviceUtility.DestroyPortMappingAsync(_natDevice, _targetEndPoint).ConfigureAwait(false);
         }
     }
     
-    private async Task ServerListenerTask()
+    private async Task ServerListenerTask(CancellationToken cancellationToken)
     {
         try
         {
+            if (cancellationToken.IsCancellationRequested) return;
+            
             using var tcpListener = new TcpListener(_targetEndPoint);
             tcpListener.Start();
 
@@ -145,17 +146,17 @@ public sealed partial class PokemonServerHandler(
                     break;
             }
 
-            await mediator.Send(new StartGlobalWorld()).ConfigureAwait(false);
+            await mediator.Send(new StartGlobalWorld(), cancellationToken).ConfigureAwait(false);
 
             _ = ServerPortCheckingTask(default);
 
             _serverListenerCts = new CancellationTokenSource();
-            var cancellationToken = _serverListenerCts.Token;
+            var serverListenerToken = _serverListenerCts.Token;
 
-            while (!cancellationToken.IsCancellationRequested)
+            while (!serverListenerToken.IsCancellationRequested)
             {
-                var tcpClient = await tcpListener.AcceptTcpClientAsync(cancellationToken).ConfigureAwait(false);
-                await mediator.Publish(new ClientConnected(pokemonServerClientFactory.CreateTcpClientNetwork(tcpClient)), cancellationToken).ConfigureAwait(false);
+                var tcpClient = await tcpListener.AcceptTcpClientAsync(serverListenerToken).ConfigureAwait(false);
+                await mediator.Publish(new ClientConnected(pokemonServerClientFactory.CreateTcpClientNetwork(tcpClient)), serverListenerToken).ConfigureAwait(false);
             }
         }
         catch (SocketException socketException)
@@ -167,7 +168,10 @@ public sealed partial class PokemonServerHandler(
         {
             if (options.NetworkOptions.UseUpnp)
             {
-                await NatDeviceUtility.DestroyPortMappingAsync(_natDevices, _targetEndPoint).ConfigureAwait(false);
+                if (_natDevice != null)
+                {
+                    await NatDeviceUtility.DestroyPortMappingAsync(_natDevice, _targetEndPoint).ConfigureAwait(false);
+                }
             }
             
             PrintServerInformation(stringLocalizer[s => s.ConsoleMessageFormat.ServerStoppedListening]);
@@ -176,37 +180,46 @@ public sealed partial class PokemonServerHandler(
 
     private async Task ServerPortCheckingTask(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("{Message}", stringLocalizer[token => token.ConsoleMessageFormat.ServerRunningPortCheck, _targetEndPoint.Port]);
+        PrintServerInformation(stringLocalizer[token => token.ConsoleMessageFormat.ServerRunningPortCheck, _targetEndPoint.Port]);
         
         try
         {
-            var publicIpAddress = IPAddress.Parse(await _httpClient.GetStringAsync("https://api.ipify.org", cancellationToken).ConfigureAwait(false));
-
+            IPAddress publicIpAddress;
+            
+            if (options.NetworkOptions.UseUpnp && _natDevice != null)
+            {
+                publicIpAddress = await _natDevice.GetExternalIPAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                publicIpAddress = IPAddress.Parse(await httpClient.GetStringAsync(new Uri("https://api.ipify.org", UriKind.Absolute), cancellationToken).ConfigureAwait(false));
+            }
+            
             try
             {
-                using var noPingCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(options.ServerOptions.NoPingKickTime));
-                using var globalCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(noPingCancellationTokenSource.Token, cancellationToken);
-
+                using var connectionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                connectionCts.CancelAfter(TimeSpan.FromSeconds(options.ServerOptions.NoPingKickTime));
+                
                 using var tcpClient = new TcpClient();
-                await tcpClient.ConnectAsync(publicIpAddress, _targetEndPoint.Port, globalCancellationTokenSource.Token).ConfigureAwait(false);
+                await tcpClient.ConnectAsync(publicIpAddress, _targetEndPoint.Port, connectionCts.Token).ConfigureAwait(false);
 
                 await using var streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize);
                 streamWriter.AutoFlush = true;
-                await streamWriter.WriteLineAsync(new ServerRequestPacket("r").ToRawPacket().ToRawPacketString().AsMemory(), globalCancellationTokenSource.Token).ConfigureAwait(false);
+                await streamWriter.WriteLineAsync(new ServerRequestPacket("r").ToRawPacket().ToRawPacketString().AsMemory(), connectionCts.Token).ConfigureAwait(false);
 
                 using var streamReader = new StreamReader(tcpClient.GetStream(), Encoding.UTF8, false, tcpClient.ReceiveBufferSize);
-                var data = await streamReader.ReadLineAsync(globalCancellationTokenSource.Token).ConfigureAwait(false);
+                var data = await streamReader.ReadLineAsync(connectionCts.Token).ConfigureAwait(false);
 
-                _logger.LogInformation("{Message}", RawPacket.TryParse(data, out var _) ? stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsOpened, _targetEndPoint.Port, new IPEndPoint(publicIpAddress, _targetEndPoint.Port)] : stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsClosed, _targetEndPoint.Port]);
+                PrintServerInformation(RawPacket.TryParse(data, out var _) ? stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsOpened, _targetEndPoint.Port, new IPEndPoint(publicIpAddress, _targetEndPoint.Port)] : stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsClosed, _targetEndPoint.Port]);
             }
             catch
             {
-                _logger.LogInformation("{Message}", stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsClosed, _targetEndPoint.Port]);
+                PrintServerInformation(stringLocalizer[token => token.ConsoleMessageFormat.ServerPortIsClosed, _targetEndPoint.Port]);
             }
         }
         catch
         {
-            _logger.LogInformation("{Message}", stringLocalizer[token => token.ConsoleMessageFormat.ServerPortCheckFailed, _targetEndPoint.Port]);
+            PrintServerInformation(stringLocalizer[token => token.ConsoleMessageFormat.ServerPortCheckFailed, _targetEndPoint.Port]);
         }
     }
     

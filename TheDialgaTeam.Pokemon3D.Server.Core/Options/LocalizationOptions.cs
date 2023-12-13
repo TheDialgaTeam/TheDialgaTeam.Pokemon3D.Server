@@ -52,12 +52,12 @@ public sealed class ConsoleMessageFormat
     
     public string ServerRunningPortCheck { get; set; } = "Checking port {0} is open.";
     public string ServerPortCheckFailed { get; set; } = "Unable to check port {0} due to error getting public ip address.";
-    public string ServerPortIsOpened { get; set; } = "Port {0} is opened. Players will be able to join via {1}.";
+    public string ServerPortIsOpened { get; set; } = "Port {0} is opened. Players will be able to join via {1}";
     public string ServerPortIsClosed { get; set; } = "Port {0} is closed. Players will not be able to join using public ip address.";
     
-    public string NatSearchForUpnpDevices { get; set; } = "Searching for UPnP devices. This will take {0:F0} seconds.";
-    public string NatFoundUpnpDevices { get; set; } = "Found {0} UPnP devices.";
-    public string NatCreatedUpnpDeviceMapping { get; set; } = "Created new UPnP port mapping for interface {0}.";
+    public string NatSearchForUpnpDevice { get; set; } = "Searching for UPnP device. This will take up to {0:F0} seconds.";
+    public string NatFoundUpnpDevice { get; set; } = "Found UPnP device at {0}";
+    public string NatCreatedUpnpDeviceMapping { get; set; } = "Created new UPnP port mapping for interface {0}";
 
     public string ClientReceivedRawPacket { get; set; } = "Received raw packet data: {0}";
     public string ClientSentRawPacket { get; set; } = "Sent raw packet data: {0}";

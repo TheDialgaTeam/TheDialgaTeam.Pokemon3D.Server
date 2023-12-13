@@ -16,6 +16,7 @@
 
 using Terminal.Gui;
 using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
+using ApplicationUtility = TheDialgaTeam.Pokemon3D.Server.Cli.Utilities.ApplicationUtility;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
