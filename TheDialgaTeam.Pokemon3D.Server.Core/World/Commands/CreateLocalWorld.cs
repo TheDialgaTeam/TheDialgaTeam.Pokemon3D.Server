@@ -15,7 +15,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
 
-public sealed record StartGlobalWorld : ICommand;
+public sealed record CreateLocalWorld(IPlayer Player) : ICommand<ILocalWorld>;

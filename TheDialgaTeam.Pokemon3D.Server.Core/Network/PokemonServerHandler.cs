@@ -61,7 +61,6 @@ public sealed partial class PokemonServerHandler(
     public async ValueTask<Unit> Handle(StopServer command, CancellationToken cancellationToken)
     {
         if (Interlocked.Exchange(ref _serverActiveStatus, 0) == 0) return Unit.Value;
-        
         return Unit.Value;
     }
 
@@ -77,6 +76,8 @@ public sealed partial class PokemonServerHandler(
         }
 
         if (cancellationToken.IsCancellationRequested) return;
+        
+        await mediator.Send(new StartLocalWorld(), cancellationToken).ConfigureAwait(false);
         
         var serverListenerTask = ServerListenerTask(cancellationToken);
 
@@ -145,8 +146,6 @@ public sealed partial class PokemonServerHandler(
                     PrintServerInformation(stringLocalizer[s => s.ConsoleMessageFormat.ServerAllowOnlyGameModes, new ArrayStringFormat<string>(options.ServerOptions.WhitelistedGameModes)]);
                     break;
             }
-
-            await mediator.Send(new StartGlobalWorld(), cancellationToken).ConfigureAwait(false);
 
             _ = ServerPortCheckingTask(default);
 

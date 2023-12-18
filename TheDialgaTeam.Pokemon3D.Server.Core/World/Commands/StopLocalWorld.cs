@@ -14,21 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
+using Mediator;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
 
-internal sealed class LocalWorldFactory(IServiceProvider serviceProvider) : ILocalWorldFactory
-{
-    public ILocalWorld CreateLocalWorld()
-    {
-        return ActivatorUtilities.CreateInstance<LocalWorld>(serviceProvider);
-    }
-
-    public ILocalWorld CreateLocalWorld(ILocalWorld world, IPlayer player)
-    {
-        return ActivatorUtilities.CreateInstance<LocalWorld>(serviceProvider, world, player);
-    }
-}
+public sealed record StopLocalWorld : ICommand;

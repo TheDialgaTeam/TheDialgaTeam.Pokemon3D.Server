@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using Mediator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-internal sealed partial class LocalWorld : ILocalWorld
+internal sealed class LocalWorld : ILocalWorld
 {
     public Season CurrentSeason { get; private set; }
 
@@ -38,29 +38,23 @@ internal sealed partial class LocalWorld : ILocalWorld
     public Weather TargetWeather { get; set; }
     
     public TimeSpan TargetOffset { get; set; }
-    
+
+    public IPlayer? Player { get; }
+
     private int WeekOfYear => (CurrentTime.DayOfYear - (CurrentTime.DayOfWeek - DayOfWeek.Monday)) / 7 + 1;
 
-    private readonly ILogger _logger;
+    private readonly IMediator _mediator;
     private readonly IPokemonServerOptions _options;
-    private readonly IStringLocalizer _stringLocalizer;
     private readonly ILocalWorld? _world;
-    private readonly IPlayer? _player;
 
     private readonly Timer _timer;
 
-    public LocalWorld(
-        ILogger<LocalWorld> logger,
-        IPokemonServerOptions options,
-        IStringLocalizer stringLocalizer,
-        ILocalWorld? world = null, 
-        IPlayer? player = null)
+    public LocalWorld(IMediator mediator, IPokemonServerOptions options, ILocalWorld? world = null, IPlayer? player = null)
     {
-        _logger = logger;
+        _mediator = mediator;
         _options = options;
-        _stringLocalizer = stringLocalizer;
         _world = world;
-        _player = player;
+        Player = player;
         _timer = new Timer(TimerCallback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
 
@@ -90,10 +84,10 @@ internal sealed partial class LocalWorld : ILocalWorld
         }
         else
         {
-            DoDayCycle = _player?.PlayerProfile?.LocalWorld.DoDayCycle ?? _options.WorldOptions.DoDayCycle;
-            TargetSeason = _player?.PlayerProfile?.LocalWorld.Season ?? _options.WorldOptions.Season;
-            TargetWeather = _player?.PlayerProfile?.LocalWorld.Weather ?? _options.WorldOptions.Weather;
-            TargetOffset = TimeSpan.FromMinutes(_player?.PlayerProfile?.LocalWorld.TimeOffset ?? _options.WorldOptions.TimeOffset);
+            DoDayCycle = Player?.PlayerProfile?.LocalWorld.DoDayCycle ?? _options.WorldOptions.DoDayCycle;
+            TargetSeason = Player?.PlayerProfile?.LocalWorld.Season ?? _options.WorldOptions.Season;
+            TargetWeather = Player?.PlayerProfile?.LocalWorld.Weather ?? _options.WorldOptions.Weather;
+            TargetOffset = TimeSpan.FromMinutes(Player?.PlayerProfile?.LocalWorld.TimeOffset ?? _options.WorldOptions.TimeOffset);
         }
 
         if (!DoDayCycle)
@@ -101,6 +95,8 @@ internal sealed partial class LocalWorld : ILocalWorld
             CurrentSeason = TargetSeason > Season.Default ? TargetSeason : Season.Winter;
             CurrentWeather = TargetWeather > Weather.Default ? TargetWeather : Weather.Clear;
             CurrentTime = DateTime.Today.AddHours(12);
+            
+            Task.Run(() => _mediator.Publish(new LocalWorldUpdate(this)).AsTask());
             return;
         }
 
@@ -121,13 +117,8 @@ internal sealed partial class LocalWorld : ILocalWorld
         }
 
         if (!generatedNewWorld) return;
-        
-        _player?.SendPacket(GetWorldDataPacket().ToRawPacket());
 
-        if (_world is null)
-        {
-            PrintInformation(_stringLocalizer[s => s.ConsoleMessageFormat.GlobalWorldStatus, Enum.GetName(CurrentSeason), Enum.GetName(CurrentWeather), CurrentTime]);
-        }
+        Task.Run(() => _mediator.Publish(new LocalWorldUpdate(this)).AsTask());
     }
 
     private void GenerateNewSeason(Season targetSeason)
@@ -164,7 +155,7 @@ internal sealed partial class LocalWorld : ILocalWorld
                 GenerateNewSeason((Season) _options.WorldOptions.SeasonMonth[CurrentTime.Month]);
                 break;
             }
-
+            
             default:
             {
                 CurrentSeason = targetSeason;
@@ -243,9 +234,6 @@ internal sealed partial class LocalWorld : ILocalWorld
         }
     }
 
-    [LoggerMessage(LogLevel.Information, "[World] {Message}")]
-    private partial void PrintInformation(string message);
-    
     public void Dispose()
     {
         _timer.Dispose();

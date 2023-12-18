@@ -26,8 +26,6 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
@@ -37,9 +35,7 @@ public sealed class NetworkContainer :
     INotificationHandler<NewPacketReceived>,
     INotificationHandler<PlayerJoin>,
     INotificationHandler<PlayerUpdated>,
-    INotificationHandler<PlayerLeft>,
-    ICommandHandler<StartGlobalWorld>,
-    ICommandHandler<StopGlobalWorld>
+    INotificationHandler<PlayerLeft>
 {
     private readonly ILogger _logger;
     private readonly IMediator _mediator;
@@ -48,7 +44,6 @@ public sealed class NetworkContainer :
     private readonly IPlayerFactory _playerFactory;
 
     private readonly ConcurrentDictionary<IPokemonServerClient, IPlayer?> _players = new();
-    private readonly ILocalWorld _globalWorld;
 
     private int _nextRunningId = 1;
     private readonly SortedSet<int> _runningIds = [];
@@ -59,15 +54,13 @@ public sealed class NetworkContainer :
         IMediator mediator,
         IPokemonServerOptions options,
         IStringLocalizer stringLocalizer,
-        IPlayerFactory playerFactory,
-        ILocalWorldFactory worldFactory)
+        IPlayerFactory playerFactory)
     {
         _logger = logger;
         _mediator = mediator;
         _options = options;
         _stringLocalizer = stringLocalizer;
         _playerFactory = playerFactory;
-        _globalWorld = worldFactory.CreateLocalWorld();
     }
 
     #region Client Events
@@ -225,7 +218,7 @@ public sealed class NetworkContainer :
 
         player.SendPacket(new IdPacket(player.Id));
 
-        await player.InitializePlayer(_globalWorld, cancellationToken).ConfigureAwait(false);
+        await player.InitializePlayer(cancellationToken).ConfigureAwait(false);
 
         foreach (var otherPlayer in GetPlayersEnumerable(null, true))
         {
@@ -346,22 +339,6 @@ public sealed class NetworkContainer :
     private IEnumerable<IPlayer> GetPlayersEnumerable(IPlayer? excludePlayer = null, bool includeNonReady = false)
     {
         return (includeNonReady ? _players.Values.Where(player => player is not null && player != excludePlayer) : _players.Values.Where(player => player is not null && player.IsReady && player != excludePlayer))!;
-    }
-
-    #endregion
-
-    #region World Events
-
-    public ValueTask<Unit> Handle(StartGlobalWorld command, CancellationToken cancellationToken)
-    {
-        _globalWorld.StartWorld();
-        return Unit.ValueTask;
-    }
-
-    public ValueTask<Unit> Handle(StopGlobalWorld command, CancellationToken cancellationToken)
-    {
-        _globalWorld.StopWorld();
-        return Unit.ValueTask;
     }
 
     #endregion

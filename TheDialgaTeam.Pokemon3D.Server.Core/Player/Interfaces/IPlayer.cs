@@ -46,7 +46,7 @@ public interface IPlayer
     
     public PlayerProfile? PlayerProfile { get; }
 
-    public ValueTask InitializePlayer(ILocalWorld globalWorld, CancellationToken cancellationToken);
+    public ValueTask InitializePlayer(CancellationToken cancellationToken);
     
     public ValueTask ApplyGameDataAsync(IRawPacket rawPacket);
 

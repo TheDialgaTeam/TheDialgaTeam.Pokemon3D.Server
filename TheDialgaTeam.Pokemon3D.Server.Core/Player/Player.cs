@@ -24,6 +24,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
@@ -72,14 +73,14 @@ internal sealed class Player : IPlayer, IDisposable
         _gameDataPacket = gameDataPacket with { Origin = id };
     }
 
-    public async ValueTask InitializePlayer(ILocalWorld globalWorld, CancellationToken cancellationToken)
+    public async ValueTask InitializePlayer(CancellationToken cancellationToken)
     {
         if (IsGameJoltPlayer)
         {
             PlayerProfile = await _mediator.Send(new GetPlayerProfile(this), cancellationToken).ConfigureAwait(false);
         }
 
-        _localWorld = _localWorldFactory.CreateLocalWorld(globalWorld, this);
+        _localWorld = await _mediator.Send(new CreateLocalWorld(this), cancellationToken).ConfigureAwait(false);
         _localWorld.StartWorld();
         
         IsReady = true;

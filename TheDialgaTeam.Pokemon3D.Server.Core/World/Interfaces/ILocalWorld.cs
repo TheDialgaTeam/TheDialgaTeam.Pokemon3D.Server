@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
@@ -33,6 +34,8 @@ public interface ILocalWorld : IDisposable
     public Weather TargetWeather { get; set; }
     
     public TimeSpan TargetOffset { get; set; }
+    
+    public IPlayer? Player { get; }
 
     public void StartWorld();
 

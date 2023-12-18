@@ -18,4 +18,4 @@ using Mediator;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
 
-public sealed record StopGlobalWorld : ICommand;
+public sealed record StartLocalWorld : ICommand;
