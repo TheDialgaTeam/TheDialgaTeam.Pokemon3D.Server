@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Gui", "TheDialgaTeam.Pokemon3D.Server.Gui\TheDialgaTeam.Pokemon3D.Server.Gui.csproj", "{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Test", "TheDialgaTeam.Pokemon3D.Server.Test\TheDialgaTeam.Pokemon3D.Server.Test.csproj", "{EFB0482A-6012-479C-A225-44BE34547E18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,5 +28,9 @@ Global
 		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D1E19B60-CF7B-42C6-9C7A-9BDE7D0A0361}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{EFB0482A-6012-479C-A225-44BE34547E18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFB0482A-6012-479C-A225-44BE34547E18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFB0482A-6012-479C-A225-44BE34547E18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFB0482A-6012-479C-A225-44BE34547E18}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

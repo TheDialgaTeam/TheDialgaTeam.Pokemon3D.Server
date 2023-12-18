@@ -20,6 +20,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 public interface IRawPacket
 {
+    public string Version { get; }
+    
     public PacketType PacketType { get; }
 
     public Origin Origin { get; }

@@ -25,8 +25,13 @@ public sealed record CreatePlayerPacket(int Id) : IPacket
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.CreatePlayer, Origin.Server, new[] { Id.ToString(CultureInfo.InvariantCulture) });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.CreatePlayer, Origin.Server, new[] { Id.ToString(CultureInfo.InvariantCulture) });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        throw new NotSupportedException();
     }
 }

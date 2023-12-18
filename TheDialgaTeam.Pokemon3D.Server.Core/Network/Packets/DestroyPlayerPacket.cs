@@ -25,8 +25,13 @@ public sealed record DestroyPlayerPacket(int Id) : IPacket
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.DestroyPlayer, Origin.Server, new[] { Id.ToString(CultureInfo.InvariantCulture) });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.DestroyPlayer, Origin.Server, new[] { Id.ToString(CultureInfo.InvariantCulture) });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        throw new NotSupportedException();
     }
 }

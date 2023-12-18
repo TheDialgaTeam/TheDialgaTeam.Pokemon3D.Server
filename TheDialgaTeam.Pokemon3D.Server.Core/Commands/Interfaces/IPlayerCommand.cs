@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-public interface INatDevicePortMapper
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Commands.Interfaces;
+
+public interface IPlayerCommand : ICommand
 {
-    public Task CreatePortMappingAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Minimum Permission require to use this command.
+    /// </summary>
+    PlayerType RequiredPermission { get; }
 
-    public Task DestroyPortMappingAsync();
+    /// <summary>
+    /// Execute the command.
+    /// </summary>
+    /// <param name="player">The player executing the command.</param>
+    CommandExecuteResult ExecutePlayerCommand(IPlayer player);
 }

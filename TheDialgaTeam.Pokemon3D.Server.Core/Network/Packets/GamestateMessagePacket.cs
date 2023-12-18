@@ -24,8 +24,13 @@ public sealed record GamestateMessagePacket(Origin Origin, string Message) : IPa
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.GamestateMessage, Origin, new[] { Message });
+        throw new NotSupportedException();
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.GamestateMessage, Origin, new[] { Message });
     }
 }

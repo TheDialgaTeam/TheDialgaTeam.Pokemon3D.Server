@@ -19,19 +19,19 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public sealed record TradeOfferPacket(Origin Origin, Origin TradePartner, string PokemonData) : IPacket
+public sealed record PlayerIdPacket(int Id) : IPacket
 {
-    public TradeOfferPacket(IRawPacket rawPacket) : this(rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture), rawPacket.DataItems[1])
+    public PlayerIdPacket(IRawPacket rawPacket) : this(int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
     {
     }
-    
+
     public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeOffer, Origin, new[] { PokemonData });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Id, Origin.Server, new[] { Id.ToString(CultureInfo.InvariantCulture) });
     }
 
     public IRawPacket ToClientRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeOffer, Origin, new[] { TradePartner.ToRawString(), PokemonData });
+        throw new NotSupportedException();
     }
 }

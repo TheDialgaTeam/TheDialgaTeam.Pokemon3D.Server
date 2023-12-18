@@ -25,8 +25,13 @@ public sealed record TradeQuitPacket(Origin Origin, Origin TradePartner) : IPack
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.TradeQuit, Origin, Array.Empty<string>());
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeQuit, Origin, Array.Empty<string>());
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeQuit, Origin, new[] { TradePartner.ToRawString() });
     }
 }

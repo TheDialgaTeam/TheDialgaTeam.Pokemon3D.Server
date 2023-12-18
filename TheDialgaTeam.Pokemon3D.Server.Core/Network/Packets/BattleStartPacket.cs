@@ -25,8 +25,13 @@ public record BattleStartPacket(Origin Origin, Origin BattlePartner) : IPacket
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.BattleStart, Origin, Array.Empty<string>());
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleStart, Origin, Array.Empty<string>());
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleStart, Origin, new[] { BattlePartner.ToRawString() });
     }
 }

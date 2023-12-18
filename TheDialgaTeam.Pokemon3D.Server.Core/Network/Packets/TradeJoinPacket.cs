@@ -25,8 +25,13 @@ public sealed record TradeJoinPacket(Origin Origin, Origin TradePartner) : IPack
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.TradeJoin, Origin, Array.Empty<string>());
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeJoin, Origin, Array.Empty<string>());
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeJoin, Origin, new[] { TradePartner.ToRawString() });
     }
 }

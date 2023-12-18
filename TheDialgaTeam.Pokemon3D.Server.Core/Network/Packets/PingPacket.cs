@@ -18,14 +18,19 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public sealed record PingPacket() : IPacket
+public sealed record PingPacket(Origin Origin) : IPacket
 {
-    public PingPacket(IRawPacket rawPacket) : this()
+    public PingPacket(IRawPacket rawPacket) : this(rawPacket.Origin)
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.Ping, Origin.Server, Array.Empty<string>());
+        throw new NotSupportedException();
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Ping, Origin, Array.Empty<string>());
     }
 }

@@ -84,9 +84,31 @@ public sealed record GameDataPacket(
         return rawPacket.Origin == Origin.NewPlayer;
     }
 
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.GameData, Origin, new[]
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.GameData, Origin, new[]
+        {
+            GameMode,
+            IsGameJoltPlayer ? "1" : "0",
+            GameJoltId.ToString(CultureInfo.InvariantCulture),
+            NumberDecimalSeparator,
+            Name,
+            MapFile,
+            PlayerPosition.ToRawPacketString(NumberDecimalSeparator),
+            PlayerFacing.ToString(CultureInfo.InvariantCulture),
+            IsMoving ? "1" : "0",
+            PlayerSkin,
+            ((int) BusyType).ToString(CultureInfo.InvariantCulture),
+            PokemonVisible ? "1" : "0",
+            PokemonPosition.ToRawPacketString(NumberDecimalSeparator),
+            PokemonSkin,
+            PokemonFacing.ToString(CultureInfo.InvariantCulture)
+        });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.GameData, Origin, new[]
         {
             GameMode,
             IsGameJoltPlayer ? "1" : "0",

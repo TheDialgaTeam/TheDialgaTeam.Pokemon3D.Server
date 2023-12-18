@@ -14,23 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Commands;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-
-public sealed record ChatMessagePacket(Origin Origin, string Message) : IPacket
+public readonly record struct CommandExecuteResult(bool IsSuccess, Exception? Exception = null)
 {
-    public ChatMessagePacket(IRawPacket rawPacket) : this(rawPacket.Origin, rawPacket.DataItems[0])
+    public static CommandExecuteResult Success()
     {
+        return new CommandExecuteResult(true);
     }
 
-    public IRawPacket ToServerRawPacket()
+    public static CommandExecuteResult Fail(Exception exception)
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ChatMessage, Origin, new[] { Message });
-    }
-
-    public IRawPacket ToClientRawPacket()
-    {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ChatMessage, Origin, new[] { Message });
+        return new CommandExecuteResult(false, exception);
     }
 }

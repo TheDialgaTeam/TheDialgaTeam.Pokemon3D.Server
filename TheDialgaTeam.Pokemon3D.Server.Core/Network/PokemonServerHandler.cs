@@ -61,6 +61,7 @@ public sealed partial class PokemonServerHandler(
     public async ValueTask<Unit> Handle(StopServer command, CancellationToken cancellationToken)
     {
         if (Interlocked.Exchange(ref _serverActiveStatus, 0) == 0) return Unit.Value;
+        await StopServerTask(cancellationToken).ConfigureAwait(false);
         return Unit.Value;
     }
 
@@ -204,7 +205,7 @@ public sealed partial class PokemonServerHandler(
 
                 await using var streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize);
                 streamWriter.AutoFlush = true;
-                await streamWriter.WriteLineAsync(new ServerRequestPacket("r").ToRawPacket().ToRawPacketString().AsMemory(), connectionCts.Token).ConfigureAwait(false);
+                await streamWriter.WriteLineAsync(new ServerRequestPacket("r").ToClientRawPacket().ToRawPacketString().AsMemory(), connectionCts.Token).ConfigureAwait(false);
 
                 using var streamReader = new StreamReader(tcpClient.GetStream(), Encoding.UTF8, false, tcpClient.ReceiveBufferSize);
                 var data = await streamReader.ReadLineAsync(connectionCts.Token).ConfigureAwait(false);
@@ -220,6 +221,12 @@ public sealed partial class PokemonServerHandler(
         {
             PrintServerInformation(stringLocalizer[token => token.ConsoleMessageFormat.ServerPortCheckFailed, _targetEndPoint.Port]);
         }
+    }
+
+    private Task StopServerTask(CancellationToken cancellationToken)
+    {
+        _serverListenerCts?.Cancel();
+        return Task.CompletedTask;
     }
     
     [LoggerMessage(LogLevel.Information, "[NAT] {Message}")]

@@ -25,8 +25,13 @@ public sealed record TradeStartPacket(Origin Origin, Origin TradePartner) : IPac
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.TradeStart, Origin, Array.Empty<string>());
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeStart, Origin, Array.Empty<string>());
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeStart, Origin, new[] { TradePartner.ToRawString() });
     }
 }

@@ -25,8 +25,13 @@ public sealed record TradeRequestPacket(Origin Origin, Origin TradePartner) : IP
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.TradeRequest, Origin, Array.Empty<string>());
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeRequest, Origin, Array.Empty<string>());
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeRequest, Origin, new[] { TradePartner.ToRawString() });
     }
 }

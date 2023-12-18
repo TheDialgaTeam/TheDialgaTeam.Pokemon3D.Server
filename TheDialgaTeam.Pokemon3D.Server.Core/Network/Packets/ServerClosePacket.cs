@@ -24,8 +24,13 @@ public sealed record ServerClosePacket(string Reason) : IPacket
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.ServerClose, Origin.Server, new[] { Reason });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerClose, Origin.Server, new[] { Reason });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        throw new NotSupportedException();
     }
 }

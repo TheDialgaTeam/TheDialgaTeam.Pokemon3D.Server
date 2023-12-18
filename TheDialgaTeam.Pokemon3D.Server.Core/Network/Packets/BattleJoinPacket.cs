@@ -25,8 +25,13 @@ public sealed record BattleJoinPacket(Origin Origin, Origin BattlePartner) : IPa
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.BattleJoin, Origin, Array.Empty<string>());
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleJoin, Origin, Array.Empty<string>());
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleJoin, Origin, new[] { BattlePartner.ToRawString() });
     }
 }

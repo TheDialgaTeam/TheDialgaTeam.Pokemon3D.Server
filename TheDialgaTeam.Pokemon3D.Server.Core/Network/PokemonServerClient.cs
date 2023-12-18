@@ -79,7 +79,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
 
     public void SendPacket(IPacket packet)
     {
-        SendPacket(packet.ToRawPacket());
+        SendPacket(packet.ToServerRawPacket());
     }
 
     public void SendPacket(IRawPacket rawPacket)
@@ -166,7 +166,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
         {
             foreach (var rawPacket in _handleGameDataPacketQueue.GetConsumingEnumerable())
             {
-                Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask(), DisconnectedToken).GetAwaiter().GetResult();
+                _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask().Wait(DisconnectedToken);
             }
         }
         catch (OperationCanceledException)

@@ -25,8 +25,13 @@ public sealed record BattleClientDataPacket(Origin Origin, Origin BattlePartner,
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.BattleClientData, Origin, new[] { Data });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleClientData, Origin, new[] { Data });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleClientData, Origin, new[] { BattlePartner.ToRawString(), Data });
     }
 }

@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Player;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Commands.Interfaces;
 
-public interface IGameCommand
+public interface ICommand
 {
     /// <summary>
     /// Name of the command. [To use, add "/" before the name]
@@ -31,15 +28,5 @@ public interface IGameCommand
     /// </summary>
     string Description { get; }
     
-    /// <summary>
-    /// Minimum Permission require to use this command.
-    /// </summary>
-    PlayerType RequiredPermission { get; }
-
-    /// <summary>
-    /// Execute the command.
-    /// </summary>
-    /// <param name="provider">The service provider to resolve required service to execute the command.</param>
-    /// <param name="player">The player executing the command.</param>
-    void ExecuteGameCommand(IServiceProvider provider, IPlayer player);
+    CommandOption[] Options { get; }
 }

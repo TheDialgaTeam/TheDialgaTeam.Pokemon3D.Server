@@ -15,26 +15,34 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Commands.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Commands;
 
-internal sealed class KickCommand : IPlayerCommand
+public sealed class CommandProcessor(IPlayerCommand[] playerCommands)
 {
-    public string Name => "Kick";
+    private const string CommandPrefix = "/";
 
-    public string Description => "Kick a player off the server.";
-
-    public PlayerType RequiredPermission => PlayerType.Moderator;
-
-    public CommandOption[] Options => new[]
+    public bool TryExecuteCommand(ReadOnlySpan<char> message, IPlayer? player, out CommandExecuteResult result)
     {
-        new CommandOption("Player", "Selected player to kick.", true, CommandOptionType.Player)
-    };
+        if (!message.StartsWith(CommandPrefix))
+        {
+            result = CommandExecuteResult.Fail(new ArgumentException("Message is not a command"));
+            return false;
+        }
 
-    public CommandExecuteResult ExecutePlayerCommand(IPlayer player)
-    {
-        return CommandExecuteResult.Success();
+        message = message[CommandPrefix.Length..];
+
+        if (player is not null)
+        {
+            foreach (var playerCommand in playerCommands)
+            {
+                if (!message.StartsWith(playerCommand.Name)) continue;
+                
+            }
+        }
+        
+        result = CommandExecuteResult.Fail(new ArgumentException("Command does not exists."));
+        return false;
     }
 }

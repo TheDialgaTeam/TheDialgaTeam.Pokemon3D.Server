@@ -21,9 +21,9 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public sealed record RawPacket(PacketType PacketType, Origin Origin, string[] DataItems) : IRawPacket
+public sealed record RawPacket(string Version, PacketType PacketType, Origin Origin, string[] DataItems) : IRawPacket
 {
-    private const string ProtocolVersion = "0.5";
+    internal const string ProtocolVersion = "0.5";
 
     [ThreadStatic]
     private static StringBuilder? t_stringBuilder;
@@ -39,6 +39,7 @@ public sealed record RawPacket(PacketType PacketType, Origin Origin, string[] Da
         var currentPacketIndex = 0;
         var maxPacketIndex = 3;
 
+        var version = ProtocolVersion;
         var packetType = PacketType.Unknown;
         var origin = Origin.Server;
 
@@ -68,12 +69,7 @@ public sealed record RawPacket(PacketType PacketType, Origin Origin, string[] Da
                     // Protocol Version
                     case 0:
                     {
-                        if (!data.SequenceEqual(ProtocolVersion.AsSpan()))
-                        {
-                            rawPacket = null;
-                            return false;
-                        }
-
+                        version = data.ToString();
                         break;
                     }
 
@@ -146,7 +142,7 @@ public sealed record RawPacket(PacketType PacketType, Origin Origin, string[] Da
                 dataItems[dataItemIndex] = rawData[dataItemIndexes[dataItemIndex]..].ToString();
             }
 
-            rawPacket = new RawPacket(packetType, origin, dataItems);
+            rawPacket = new RawPacket(version, packetType, origin, dataItems);
             return true;
         }
         finally
@@ -163,7 +159,7 @@ public sealed record RawPacket(PacketType PacketType, Origin Origin, string[] Da
         t_stringBuilder ??= new StringBuilder();
         t_stringBuilder.Clear();
 
-        t_stringBuilder.Append(ProtocolVersion);
+        t_stringBuilder.Append(Version);
         t_stringBuilder.Append('|');
         t_stringBuilder.Append((int) PacketType);
         t_stringBuilder.Append('|');

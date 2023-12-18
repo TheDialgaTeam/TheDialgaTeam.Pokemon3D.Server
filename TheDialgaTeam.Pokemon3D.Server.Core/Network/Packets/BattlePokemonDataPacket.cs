@@ -25,8 +25,13 @@ public sealed record BattlePokemonDataPacket(Origin Origin, Origin BattlePartner
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.BattlePokemonData, Origin, new[] { Data });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattlePokemonData, Origin, new[] { Data });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattlePokemonData, Origin, new[] { BattlePartner.ToRawString(), Data });
     }
 }

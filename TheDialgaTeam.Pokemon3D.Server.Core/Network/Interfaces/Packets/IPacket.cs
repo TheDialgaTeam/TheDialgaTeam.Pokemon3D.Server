@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 public interface IPacket
 {
-    public IRawPacket ToRawPacket();
+    public IRawPacket ToServerRawPacket();
+
+    public IRawPacket ToClientRawPacket();
 }

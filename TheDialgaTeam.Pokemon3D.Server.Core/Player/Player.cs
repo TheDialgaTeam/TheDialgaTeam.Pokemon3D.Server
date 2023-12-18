@@ -58,17 +58,15 @@ internal sealed class Player : IPlayer, IDisposable
 
     private readonly IStringLocalizer _stringLocalizer;
     private readonly IMediator _mediator;
-    private readonly ILocalWorldFactory _localWorldFactory;
     private readonly IPokemonServerClient _client;
     private GameDataPacket _gameDataPacket;
 
     private ILocalWorld? _localWorld;
 
-    public Player(IStringLocalizer stringLocalizer, IMediator mediator, ILocalWorldFactory localWorldFactory, IPokemonServerClient client, int id, GameDataPacket gameDataPacket)
+    public Player(IStringLocalizer stringLocalizer, IMediator mediator, IPokemonServerClient client, int id, GameDataPacket gameDataPacket)
     {
         _stringLocalizer = stringLocalizer;
         _mediator = mediator;
-        _localWorldFactory = localWorldFactory;
         _client = client;
         _gameDataPacket = gameDataPacket with { Origin = id };
     }

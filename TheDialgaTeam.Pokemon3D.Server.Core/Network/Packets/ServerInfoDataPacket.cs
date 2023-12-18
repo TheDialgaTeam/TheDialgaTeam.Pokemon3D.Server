@@ -37,7 +37,7 @@ public sealed record ServerInfoDataPacket(
         rawPacket.DataItems.AsSpan(4).CopyTo(PlayerNames);
     }
 
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
         var dataItems = new string[4 + Math.Min(PlayerCount, 21)];
         dataItems[0] = PlayerCount.ToString(CultureInfo.InvariantCulture);
@@ -52,6 +52,11 @@ public sealed record ServerInfoDataPacket(
             dataItems[^1] = $"({PlayerCount - 20} more...)";
         }
 
-        return new RawPacket(PacketType.ServerInfoData, Origin.Server, dataItems);
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerInfoData, Origin.Server, dataItems);
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        throw new NotSupportedException();
     }
 }

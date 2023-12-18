@@ -24,8 +24,13 @@ public sealed record ServerMessagePacket(string Message) : IPacket
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.ServerMessage, Origin.Server, new[] { Message });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerMessage, Origin.Server, new[] { Message });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        throw new NotSupportedException();
     }
 }

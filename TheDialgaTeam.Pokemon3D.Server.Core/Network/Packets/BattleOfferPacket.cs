@@ -25,8 +25,13 @@ public sealed record BattleOfferPacket(Origin Origin, Origin BattlePartner, stri
     {
     }
     
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.BattleOffer, Origin, new[] { PokemonData });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleOffer, Origin, new[] { PokemonData });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleOffer, Origin, new[] { BattlePartner.ToRawString(), PokemonData });
     }
 }

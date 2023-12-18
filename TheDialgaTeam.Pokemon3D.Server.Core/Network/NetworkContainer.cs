@@ -114,14 +114,19 @@ public sealed class NetworkContainer :
     {
         if (!GameDataPacket.IsFullGameData(notification.RawPacket))
         {
-            return GetPlayerById(notification.RawPacket.Origin).ApplyGameDataAsync(notification.RawPacket);
+            if (TryGetPlayerById(notification.RawPacket.Origin, out var player))
+            {
+                return player.ApplyGameDataAsync(notification.RawPacket);
+            }
+
+            throw new InvalidOperationException("Player does not exist.");
         }
 
         // This is a new player joining.
         var gameDataPacket = new GameDataPacket(notification.RawPacket);
 
-        var player = _playerFactory.CreatePlayer(notification.Network, GetNextRunningId(), gameDataPacket);
-        _players[notification.Network] = player;
+        var newPlayer = _playerFactory.CreatePlayer(notification.Network, GetNextRunningId(), gameDataPacket);
+        _players[notification.Network] = newPlayer;
 
         var playerCanJoin = true;
         var reason = string.Empty;
@@ -162,11 +167,11 @@ public sealed class NetworkContainer :
 
         if (playerCanJoin)
         {
-            return _mediator.Publish(new PlayerJoin(player), cancellationToken);
+            return _mediator.Publish(new PlayerJoin(newPlayer), cancellationToken);
         }
 
-        player.Kick(reason);
-        _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerUnableToJoin, player.DisplayName, reason]);
+        newPlayer.Kick(reason);
+        _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerUnableToJoin, newPlayer.DisplayName, reason]);
         
         return ValueTask.CompletedTask;
     }
@@ -216,7 +221,7 @@ public sealed class NetworkContainer :
     {
         var player = notification.Player;
 
-        player.SendPacket(new IdPacket(player.Id));
+        player.SendPacket(new PlayerIdPacket(player.Id));
 
         await player.InitializePlayer(cancellationToken).ConfigureAwait(false);
 

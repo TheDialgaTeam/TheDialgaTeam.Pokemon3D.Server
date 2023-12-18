@@ -14,19 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Globalization;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+using System.Runtime.CompilerServices;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-
-public sealed record IdPacket(int Id) : IPacket
-{
-    public IdPacket(IRawPacket rawPacket) : this(int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
-    {
-    }
-
-    public IRawPacket ToRawPacket()
-    {
-        return new RawPacket(PacketType.Id, Origin.Server, new[] { Id.ToString(CultureInfo.InvariantCulture) });
-    }
-}
+[assembly: InternalsVisibleTo("TheDialgaTeam.Pokemon3D.Server.Test")]

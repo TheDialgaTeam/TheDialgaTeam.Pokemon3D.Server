@@ -29,13 +29,18 @@ public sealed record WorldDataPacket(Season Season, Weather Weather, TimeOnly Ti
     {
     }
 
-    public IRawPacket ToRawPacket()
+    public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(PacketType.WorldData, Origin.Server, new[]
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.WorldData, Origin.Server, new[]
         {
             ((int) Season).ToString(CultureInfo.InvariantCulture),
             ((int) Weather).ToString(CultureInfo.InvariantCulture),
             Time.ToString("H,m,s")
         });
+    }
+
+    public IRawPacket ToClientRawPacket()
+    {
+        throw new NotSupportedException();
     }
 }
