@@ -27,25 +27,23 @@ public sealed partial class LocalWorldHandler(
     ILogger<LocalWorldHandler> logger,
     IStringLocalizer stringLocalizer,
     ILocalWorldFactory localWorldFactory) :
-    ICommandHandler<StartLocalWorld>,
-    ICommandHandler<StopLocalWorld>,
+    ICommandHandler<StartLocalWorld, bool>,
+    ICommandHandler<StopLocalWorld, bool>,
     ICommandHandler<CreateLocalWorld, ILocalWorld>,
     INotificationHandler<LocalWorldUpdate>,
     IDisposable
 {
     private readonly ILogger _logger = logger;
     private readonly ILocalWorld _localWorld = localWorldFactory.CreateLocalWorld();
-
-    public ValueTask<Unit> Handle(StartLocalWorld command, CancellationToken cancellationToken)
+    
+    public ValueTask<bool> Handle(StartLocalWorld command, CancellationToken cancellationToken)
     {
-        _localWorld.StartWorld();
-        return Unit.ValueTask;
+        return ValueTask.FromResult(_localWorld.StartWorld());
     }
 
-    public ValueTask<Unit> Handle(StopLocalWorld command, CancellationToken cancellationToken)
+    public ValueTask<bool> Handle(StopLocalWorld command, CancellationToken cancellationToken)
     {
-        _localWorld.StopWorld();
-        return Unit.ValueTask;
+        return ValueTask.FromResult(_localWorld.StopWorld());
     }
 
     public ValueTask<ILocalWorld> Handle(CreateLocalWorld command, CancellationToken cancellationToken)

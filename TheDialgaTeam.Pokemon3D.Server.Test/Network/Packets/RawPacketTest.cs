@@ -20,8 +20,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Test.Network.Packets;
 
 public sealed class RawPacketTest
 {
-    private static readonly string[] DataItems = {"Test", "Test"};
-    private static readonly string[] ServerRequestPacketDataItems = { "r" };
+    private static readonly string[] DataItems = ["Test", "Test"];
+    private static readonly string[] ServerRequestPacketDataItems = ["r"];
 
     [Fact]
     public void SimpleRawPacketWithDataItemsParsingTest()
@@ -34,9 +34,9 @@ public sealed class RawPacketTest
     public void ServerRequestPacketTest()
     {
         var serverRequestPacket = new ServerRequestPacket("r");
-        var expectedRawPacket = new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerDataRequest, Origin.Server, ServerRequestPacketDataItems);
+        var expectedRawPacket = new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerDataRequest, Origin.NewPlayer, ServerRequestPacketDataItems);
         
-        Assert.Equal(expectedRawPacket.ToRawPacketString(), serverRequestPacket.ToServerRawPacket().ToRawPacketString());
+        Assert.Equal(expectedRawPacket.ToRawPacketString(), serverRequestPacket.ToClientRawPacket().ToRawPacketString());
         Assert.True(RawPacket.TryParse($"{RawPacket.ProtocolVersion}|{(int) PacketType.ServerDataRequest}|{(int) Origin.Server}|1|0|r", out var rawPacket));
         Assert.Equal(serverRequestPacket, new ServerRequestPacket(rawPacket));
     }

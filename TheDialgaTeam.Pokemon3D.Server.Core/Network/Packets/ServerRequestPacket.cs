@@ -31,6 +31,6 @@ public sealed record ServerRequestPacket(string Data) : IPacket
 
     public IRawPacket ToClientRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerDataRequest, Origin.NewPlayer, new[] { Data });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerDataRequest, Origin.NewPlayer, [Data]);
     }
 }

@@ -21,28 +21,25 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 public static class NatDeviceUtility
 {
-    public static async Task<INatDevice?> DiscoverNatDeviceAsync(CancellationToken cancellationToken)
+    public static async Task<INatDevice?> DiscoverNatDeviceAsync(CancellationToken cancellationToken = default)
     {
-        var devices = new List<INatDevice>();
-        var natDeviceFoundCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
+        INatDevice? devices = null;
+        var natDeviceFoundTcs = new TaskCompletionSource();
+        
         NatUtility.DeviceFound += NatUtilityOnDeviceFound;
         NatUtility.StartDiscovery(NatProtocol.Upnp);
-        
-        await Task.WhenAny(Task.Delay(-1, natDeviceFoundCts.Token)).ConfigureAwait(false);
+
+        await Task.WhenAny(natDeviceFoundTcs.Task, Task.Delay(-1, cancellationToken)).ConfigureAwait(false);
         
         NatUtility.DeviceFound -= NatUtilityOnDeviceFound;
         NatUtility.StopDiscovery();
-        
-        natDeviceFoundCts.Dispose();
 
-        return devices.FirstOrDefault();
+        return devices;
 
         void NatUtilityOnDeviceFound(object? sender, DeviceEventArgs e)
         {
-            devices.Add(e.Device);
-            // ReSharper disable once AccessToDisposedClosure
-            natDeviceFoundCts.Cancel();
+            devices = e.Device;
+            natDeviceFoundTcs.SetResult();
         }
     }
     

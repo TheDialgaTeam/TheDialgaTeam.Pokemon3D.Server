@@ -32,7 +32,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public sealed partial class PokemonServerHandler(
+internal sealed partial class PokemonServerHandler(
     ILogger<PokemonServerHandler> logger,
     IPokemonServerOptions options,
     IStringLocalizer stringLocalizer,
@@ -44,8 +44,6 @@ public sealed partial class PokemonServerHandler(
 {
     private readonly ILogger _logger = logger;
     
-    private int _serverActiveStatus;
-    
     private IPEndPoint _targetEndPoint = IPEndPoint.Parse(options.NetworkOptions.BindingInformation);
     private INatDevice? _natDevice;
 
@@ -53,22 +51,20 @@ public sealed partial class PokemonServerHandler(
     
     public async ValueTask<Unit> Handle(StartServer command, CancellationToken cancellationToken)
     {
-        if (Interlocked.Exchange(ref _serverActiveStatus, 1) == 1) return Unit.Value;
         await StartServerTask(cancellationToken).ConfigureAwait(false);
         return Unit.Value;
     }
 
-    public async ValueTask<Unit> Handle(StopServer command, CancellationToken cancellationToken)
+    public ValueTask<Unit> Handle(StopServer command, CancellationToken cancellationToken)
     {
-        if (Interlocked.Exchange(ref _serverActiveStatus, 0) == 0) return Unit.Value;
-        await StopServerTask(cancellationToken).ConfigureAwait(false);
-        return Unit.Value;
+        _serverListenerCts?.Cancel();
+        return Unit.ValueTask;
     }
 
     private async Task StartServerTask(CancellationToken cancellationToken)
     {
         PrintServerInformation(stringLocalizer[s => s.ConsoleMessageFormat.ServerIsStarting]);
-
+        
         _targetEndPoint = IPEndPoint.Parse(options.NetworkOptions.BindingInformation);
 
         if (options.NetworkOptions.UseUpnp)
@@ -77,8 +73,6 @@ public sealed partial class PokemonServerHandler(
         }
 
         if (cancellationToken.IsCancellationRequested) return;
-        
-        await mediator.Send(new StartLocalWorld(), cancellationToken).ConfigureAwait(false);
         
         var serverListenerTask = ServerListenerTask(cancellationToken);
 
@@ -147,8 +141,9 @@ public sealed partial class PokemonServerHandler(
                     PrintServerInformation(stringLocalizer[s => s.ConsoleMessageFormat.ServerAllowOnlyGameModes, new ArrayStringFormat<string>(options.ServerOptions.WhitelistedGameModes)]);
                     break;
             }
-
-            _ = ServerPortCheckingTask(default);
+            
+            await mediator.Send(new StartLocalWorld(), cancellationToken).ConfigureAwait(false);
+            _ = Task.Run(() => ServerPortCheckingTask(cancellationToken), cancellationToken);
 
             _serverListenerCts = new CancellationTokenSource();
             var serverListenerToken = _serverListenerCts.Token;
@@ -192,7 +187,7 @@ public sealed partial class PokemonServerHandler(
             }
             else
             {
-                publicIpAddress = IPAddress.Parse(await httpClient.GetStringAsync(new Uri("https://api.ipify.org", UriKind.Absolute), cancellationToken).ConfigureAwait(false));
+                publicIpAddress = IPAddress.Parse(await httpClient.GetStringAsync("https://api.ipify.org", cancellationToken).ConfigureAwait(false));
             }
             
             try
@@ -221,12 +216,6 @@ public sealed partial class PokemonServerHandler(
         {
             PrintServerInformation(stringLocalizer[token => token.ConsoleMessageFormat.ServerPortCheckFailed, _targetEndPoint.Port]);
         }
-    }
-
-    private Task StopServerTask(CancellationToken cancellationToken)
-    {
-        _serverListenerCts?.Cancel();
-        return Task.CompletedTask;
     }
     
     [LoggerMessage(LogLevel.Information, "[NAT] {Message}")]

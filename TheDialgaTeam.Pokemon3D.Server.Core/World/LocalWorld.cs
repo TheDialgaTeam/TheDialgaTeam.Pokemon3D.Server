@@ -58,14 +58,14 @@ internal sealed class LocalWorld : ILocalWorld
         _timer = new Timer(TimerCallback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
 
-    public void StartWorld()
+    public bool StartWorld()
     {
-        _timer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        return _timer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
     
-    public void StopWorld()
+    public bool StopWorld()
     {
-        _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        return _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
 
     public WorldDataPacket GetWorldDataPacket()

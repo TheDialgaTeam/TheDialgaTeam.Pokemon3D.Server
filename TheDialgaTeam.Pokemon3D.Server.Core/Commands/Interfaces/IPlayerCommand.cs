@@ -30,5 +30,6 @@ public interface IPlayerCommand : ICommand
     /// Execute the command.
     /// </summary>
     /// <param name="player">The player executing the command.</param>
-    CommandExecuteResult ExecutePlayerCommand(IPlayer player);
+    /// <param name="args">The command arguments.</param>
+    CommandExecuteResult ExecutePlayerCommand(IPlayer player, string[] args);
 }

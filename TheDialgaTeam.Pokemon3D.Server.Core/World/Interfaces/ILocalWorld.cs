@@ -37,9 +37,9 @@ public interface ILocalWorld : IDisposable
     
     public IPlayer? Player { get; }
 
-    public void StartWorld();
+    public bool StartWorld();
 
-    public void StopWorld();
+    public bool StopWorld();
 
     public WorldDataPacket GetWorldDataPacket();
 }

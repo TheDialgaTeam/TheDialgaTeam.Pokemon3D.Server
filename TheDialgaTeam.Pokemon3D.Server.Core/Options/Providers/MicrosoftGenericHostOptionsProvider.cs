@@ -62,8 +62,8 @@ internal sealed class MicrosoftGenericHostOptionsProvider : IPokemonServerOption
         TradeOptions = tradeOptions.CurrentValue;
         LocalizationOptions = localizationOptions.CurrentValue;
 
-        _disposables = new[]
-        {
+        _disposables =
+        [
             serverOptions.OnChange(options => ServerOptions = options),
             networkOptions.OnChange(options => NetworkOptions = options),
             dataBaseOptions.OnChange(options => DatabaseOptions = options),
@@ -73,7 +73,7 @@ internal sealed class MicrosoftGenericHostOptionsProvider : IPokemonServerOption
             pvpOptions.OnChange(options => PvpOptions = options),
             tradeOptions.OnChange(options => TradeOptions = options),
             localizationOptions.OnChange(options => LocalizationOptions = options)
-        };
+        ];
     }
 
     public void Dispose()

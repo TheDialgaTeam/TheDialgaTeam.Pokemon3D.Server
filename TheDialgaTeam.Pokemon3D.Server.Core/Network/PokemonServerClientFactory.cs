@@ -20,17 +20,10 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-internal sealed class PokemonServerClientFactory : IPokemonServerClientFactory
+internal sealed class PokemonServerClientFactory(IServiceProvider serviceProvider) : IPokemonServerClientFactory
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public PokemonServerClientFactory(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
     public IPokemonServerClient CreateTcpClientNetwork(TcpClient client)
     {
-        return ActivatorUtilities.CreateInstance<PokemonServerClient>(_serviceProvider, client);
+        return ActivatorUtilities.CreateInstance<PokemonServerClient>(serviceProvider, client);
     }
 }

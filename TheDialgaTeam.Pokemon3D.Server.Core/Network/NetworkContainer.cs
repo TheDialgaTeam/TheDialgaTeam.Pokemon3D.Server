@@ -29,39 +29,27 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
-public sealed class NetworkContainer :
-    INotificationHandler<ClientConnected>,
-    INotificationHandler<ClientDisconnected>,
-    INotificationHandler<NewPacketReceived>,
-    INotificationHandler<PlayerJoin>,
-    INotificationHandler<PlayerUpdated>,
-    INotificationHandler<PlayerLeft>
+public sealed class NetworkContainer(
+    ILogger<NetworkContainer> logger,
+    IMediator mediator,
+    IPokemonServerOptions options,
+    IStringLocalizer stringLocalizer,
+    IPlayerFactory playerFactory)
+    :
+        INotificationHandler<ClientConnected>,
+        INotificationHandler<ClientDisconnected>,
+        INotificationHandler<NewPacketReceived>,
+        INotificationHandler<PlayerJoin>,
+        INotificationHandler<PlayerUpdated>,
+        INotificationHandler<PlayerLeft>
 {
-    private readonly ILogger _logger;
-    private readonly IMediator _mediator;
-    private readonly IPokemonServerOptions _options;
-    private readonly IStringLocalizer _stringLocalizer;
-    private readonly IPlayerFactory _playerFactory;
+    private readonly ILogger _logger = logger;
 
     private readonly ConcurrentDictionary<IPokemonServerClient, IPlayer?> _players = new();
 
     private int _nextRunningId = 1;
     private readonly SortedSet<int> _runningIds = [];
     private readonly object _runningIdLock = new();
-
-    public NetworkContainer(
-        ILogger<NetworkContainer> logger,
-        IMediator mediator,
-        IPokemonServerOptions options,
-        IStringLocalizer stringLocalizer,
-        IPlayerFactory playerFactory)
-    {
-        _logger = logger;
-        _mediator = mediator;
-        _options = options;
-        _stringLocalizer = stringLocalizer;
-        _playerFactory = playerFactory;
-    }
 
     #region Client Events
 
@@ -87,7 +75,7 @@ public sealed class NetworkContainer :
                     _runningIds.Add(player.Id);
                 }
 
-                return _mediator.Publish(new PlayerLeft(player, notification.Reason), cancellationToken);
+                return mediator.Publish(new PlayerLeft(player, notification.Reason), cancellationToken);
             }
         }
 
@@ -125,7 +113,7 @@ public sealed class NetworkContainer :
         // This is a new player joining.
         var gameDataPacket = new GameDataPacket(notification.RawPacket);
 
-        var newPlayer = _playerFactory.CreatePlayer(notification.Network, GetNextRunningId(), gameDataPacket);
+        var newPlayer = playerFactory.CreatePlayer(notification.Network, GetNextRunningId(), gameDataPacket);
         _players[notification.Network] = newPlayer;
 
         var playerCanJoin = true;
@@ -134,44 +122,44 @@ public sealed class NetworkContainer :
         // Check Server Space Limit.
         var playerCount = GetPlayerCount();
 
-        if (playerCount >= _options.ServerOptions.MaxPlayers)
+        if (playerCount >= options.ServerOptions.MaxPlayers)
         {
             playerCanJoin = false;
-            reason = _stringLocalizer[s => s.GameMessageFormat.ServerIsFull];
+            reason = stringLocalizer[s => s.GameMessageFormat.ServerIsFull];
         }
 
         // Check Profile Type.
-        if (!_options.ServerOptions.OfflineMode && !gameDataPacket.IsGameJoltPlayer)
+        if (!options.ServerOptions.OfflineMode && !gameDataPacket.IsGameJoltPlayer)
         {
             playerCanJoin = false;
-            reason = _stringLocalizer[s => s.GameMessageFormat.ServerOnlyAllowGameJoltProfile];
+            reason = stringLocalizer[s => s.GameMessageFormat.ServerOnlyAllowGameJoltProfile];
         }
 
-        switch (_options.ServerOptions.AllowAnyGameModes)
+        switch (options.ServerOptions.AllowAnyGameModes)
         {
             // Check GameMode
-            case true when _options.ServerOptions.BlacklistedGameModes.Any(s => gameDataPacket.GameMode.Equals(s, StringComparison.OrdinalIgnoreCase)):
+            case true when options.ServerOptions.BlacklistedGameModes.Any(s => gameDataPacket.GameMode.Equals(s, StringComparison.OrdinalIgnoreCase)):
             {
                 playerCanJoin = false;
-                reason = _stringLocalizer[s => s.GameMessageFormat.ServerBlacklistedGameModes];
+                reason = stringLocalizer[s => s.GameMessageFormat.ServerBlacklistedGameModes];
                 break;
             }
 
-            case false when !_options.ServerOptions.WhitelistedGameModes.Any(s => gameDataPacket.GameMode.Equals(s, StringComparison.OrdinalIgnoreCase)):
+            case false when !options.ServerOptions.WhitelistedGameModes.Any(s => gameDataPacket.GameMode.Equals(s, StringComparison.OrdinalIgnoreCase)):
             {
                 playerCanJoin = false;
-                reason = _stringLocalizer[s => s.GameMessageFormat.ServerWhitelistedGameModes, new ArrayStringFormat<string>(_options.ServerOptions.WhitelistedGameModes)];
+                reason = stringLocalizer[s => s.GameMessageFormat.ServerWhitelistedGameModes, new ArrayStringFormat<string>(options.ServerOptions.WhitelistedGameModes)];
                 break;
             }
         }
 
         if (playerCanJoin)
         {
-            return _mediator.Publish(new PlayerJoin(newPlayer), cancellationToken);
+            return mediator.Publish(new PlayerJoin(newPlayer), cancellationToken);
         }
 
         newPlayer.Kick(reason);
-        _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerUnableToJoin, newPlayer.DisplayName, reason]);
+        _logger.LogInformation("{Message}", stringLocalizer[s => s.ConsoleMessageFormat.PlayerUnableToJoin, newPlayer.DisplayName, reason]);
         
         return ValueTask.CompletedTask;
     }
@@ -193,10 +181,10 @@ public sealed class NetworkContainer :
 
         foreach (var otherPlayer in GetPlayersEnumerable())
         {
-            otherPlayer.SendPacket(new ChatMessagePacket(Origin.Server, _stringLocalizer[s => s.GameMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]));
+            otherPlayer.SendPacket(new ChatMessagePacket(Origin.Server, stringLocalizer[s => s.GameMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]));
         }
         
-        _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]);
+        _logger.LogInformation("{Message}", stringLocalizer[s => s.ConsoleMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]);
         
         return ValueTask.CompletedTask;
     }
@@ -205,9 +193,9 @@ public sealed class NetworkContainer :
     {
         notification.Network.SendPacket(new ServerInfoDataPacket(
             GetPlayerCount(),
-            _options.ServerOptions.MaxPlayers,
-            _options.ServerOptions.ServerName,
-            _options.ServerOptions.ServerDescription,
+            options.ServerOptions.MaxPlayers,
+            options.ServerOptions.ServerName,
+            options.ServerOptions.ServerDescription,
             GetPlayerDisplayNames()));
 
         return ValueTask.CompletedTask;
@@ -235,15 +223,15 @@ public sealed class NetworkContainer :
 
             otherPlayer.SendPacket(new CreatePlayerPacket(player.Id));
             otherPlayer.SendPacket(player.ToGameDataPacket());
-            otherPlayer.SendPacket(new ChatMessagePacket(-1, _stringLocalizer[s => s.GameMessageFormat.PlayerJoin, player.DisplayName]));
+            otherPlayer.SendPacket(new ChatMessagePacket(-1, stringLocalizer[s => s.GameMessageFormat.PlayerJoin, player.DisplayName]));
         }
 
-        foreach (var welcomeMessage in _options.ServerOptions.WelcomeMessage)
+        foreach (var welcomeMessage in options.ServerOptions.WelcomeMessage)
         {
             player.SendPacket(new ChatMessagePacket(-1, welcomeMessage));
         }
 
-        _logger.LogInformation("{Message}", _stringLocalizer[s => s.ConsoleMessageFormat.PlayerJoin, player.DisplayName]);
+        _logger.LogInformation("{Message}", stringLocalizer[s => s.ConsoleMessageFormat.PlayerJoin, player.DisplayName]);
     }
 
     public ValueTask Handle(PlayerUpdated notification, CancellationToken cancellationToken)
@@ -266,10 +254,10 @@ public sealed class NetworkContainer :
         foreach (var otherPlayer in GetPlayersEnumerable(null, true))
         {
             otherPlayer.SendPacket(new DestroyPlayerPacket(player.Id));
-            otherPlayer.SendPacket(new ChatMessagePacket(-1, _stringLocalizer[s => s.GameMessageFormat.PlayerLeft, player.DisplayName]));
+            otherPlayer.SendPacket(new ChatMessagePacket(-1, stringLocalizer[s => s.GameMessageFormat.PlayerLeft, player.DisplayName]));
         }
         
-        _logger.LogInformation("{Message}", reason is null ? _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeft, player.DisplayName] : _stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeftWithReason, player.DisplayName, notification.Reason]);
+        _logger.LogInformation("{Message}", reason is null ? stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeft, player.DisplayName] : stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeftWithReason, player.DisplayName, notification.Reason]);
         
         if (notification.Player is IDisposable disposable)
         {

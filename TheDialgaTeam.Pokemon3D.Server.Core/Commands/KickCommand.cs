@@ -28,12 +28,12 @@ internal sealed class KickCommand : IPlayerCommand
 
     public PlayerType RequiredPermission => PlayerType.Moderator;
 
-    public CommandOption[] Options => new[]
-    {
+    public CommandOption[] Options =>
+    [
         new CommandOption("Player", "Selected player to kick.", true, CommandOptionType.Player)
-    };
+    ];
 
-    public CommandExecuteResult ExecutePlayerCommand(IPlayer player)
+    public CommandExecuteResult ExecutePlayerCommand(IPlayer player, string[] args)
     {
         return CommandExecuteResult.Success();
     }

@@ -48,7 +48,6 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
     private readonly Timer _pingCheckTimer;
 
     private readonly BlockingCollection<IRawPacket> _handleGameDataPacketQueue = new();
-    private readonly BlockingCollection<Task> _handlePacketHandlerExceptionQueue = new();
     private readonly BlockingCollection<IRawPacket> _sendingPacketQueue = new();
 
     public PokemonServerClient(
@@ -73,7 +72,6 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
 
         Task.Factory.StartNew(PacketDataProducer, TaskCreationOptions.LongRunning);
         Task.Factory.StartNew(HandleGameDataPacketQueue, TaskCreationOptions.LongRunning);
-        Task.Factory.StartNew(HandlePacketHandlerExceptionQueue, TaskCreationOptions.LongRunning);
         Task.Factory.StartNew(SendingQueueConsumer, TaskCreationOptions.LongRunning);
     }
 
@@ -90,6 +88,8 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
 
     public void Disconnect(string? reason = null, bool waitForCompletion = false)
     {
+        if (DisconnectedToken.IsCancellationRequested) return;
+        
         if (waitForCompletion)
         {
             _sendingPacketQueue.CompleteAdding();
@@ -100,14 +100,13 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
         _pingCheckTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
         _handleGameDataPacketQueue.CompleteAdding();
-        _handlePacketHandlerExceptionQueue.CompleteAdding();
         _sendingPacketQueue.CompleteAdding();
 
         _tcpClient.Close();
 
         PrintDebug(RemoteIpAddress, _stringLocalizer[s => s.ConsoleMessageFormat.ClientDisconnected]);
 
-        Task.Run(() => _mediator.Publish(new ClientDisconnected(this, reason), CancellationToken.None).AsTask(), CancellationToken.None).GetAwaiter().GetResult();
+        _mediator.Publish(new ClientDisconnected(this, reason), CancellationToken.None).AsTask().GetAwaiter().GetResult();
     }
 
     private void PingCheckTimerCallback(object? state)
@@ -119,7 +118,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
     {
         try
         {
-            using var streamReader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8, false, _tcpClient.ReceiveBufferSize, true);
+            using var streamReader = new StreamReader(new NetworkStream(_tcpClient.Client), Encoding.UTF8, false, _tcpClient.ReceiveBufferSize);
 
             while (_tcpClient.Connected)
             {
@@ -147,7 +146,14 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
                     }
                     else
                     {
-                        _handlePacketHandlerExceptionQueue.Add(Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask(), DisconnectedToken), DisconnectedToken);
+                        Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask(), DisconnectedToken)
+                            .ContinueWith(task =>
+                            {
+                                if (!task.IsFaulted) return;
+                                var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ServerUncaughtExceptionThrown];
+                                PrintDebugWithException(task.Exception, RemoteIpAddress, reason);
+                                Disconnect(reason);
+                            }, DisconnectedToken);
                     }
                 }
             }
@@ -164,16 +170,12 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
     {
         try
         {
-            foreach (var rawPacket in _handleGameDataPacketQueue.GetConsumingEnumerable())
+            foreach (var rawPacket in _handleGameDataPacketQueue.GetConsumingEnumerable(DisconnectedToken))
             {
                 _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask().Wait(DisconnectedToken);
             }
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception exception)
+        catch (Exception exception) when(exception is not OperationCanceledException && exception.InnerException is not OperationCanceledException)
         {
             var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ServerUncaughtExceptionThrown];
             PrintDebugWithException(exception, RemoteIpAddress, reason);
@@ -181,29 +183,11 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
         }
     }
 
-    private void HandlePacketHandlerExceptionQueue()
-    {
-        foreach (var task in _handlePacketHandlerExceptionQueue.GetConsumingEnumerable())
-        {
-            if (task.IsCanceled || task.IsCompletedSuccessfully) continue;
-
-            if (task.IsFaulted)
-            {
-                var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ServerUncaughtExceptionThrown];
-                PrintDebugWithException(task.Exception, RemoteIpAddress, reason);
-                Disconnect(reason);
-                return;
-            }
-
-            _handlePacketHandlerExceptionQueue.Add(task, DisconnectedToken);
-        }
-    }
-
     private void SendingQueueConsumer()
     {
         try
         {
-            using var streamWriter = new StreamWriter(_tcpClient.GetStream(), Encoding.UTF8, _tcpClient.SendBufferSize, true);
+            using var streamWriter = new StreamWriter(new NetworkStream(_tcpClient.Client), Encoding.UTF8, _tcpClient.SendBufferSize);
             streamWriter.AutoFlush = true;
 
             foreach (var rawPacket in _sendingPacketQueue.GetConsumingEnumerable(DisconnectedToken))
@@ -243,7 +227,6 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
         _disconnectedTokenSource.Dispose();
         _pingCheckTimer.Dispose();
         _handleGameDataPacketQueue.Dispose();
-        _handlePacketHandlerExceptionQueue.Dispose();
         _sendingPacketQueue.Dispose();
     }
 }
