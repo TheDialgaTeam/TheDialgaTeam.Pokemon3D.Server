@@ -16,29 +16,18 @@
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Formats;
 
-internal sealed class ArrayStringFormat<T> : IFormattable
+internal sealed class ArrayStringFormat<T>(IEnumerable<T> array) : IFormattable
 {
-    private readonly T[] _array;
-    private readonly string? _format;
-    private readonly IFormatProvider? _formatProvider;
-
-    public ArrayStringFormat(T[] array, string? format = null, IFormatProvider? formatProvider = null)
-    {
-        _array = array;
-        _format = format;
-        _formatProvider = formatProvider;
-    }
-    
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        return string.Join(",", _array.Select(arg =>
+        return string.Join(",", array.Select(arg =>
         {
-            if (arg is IFormattable spanFormattable)
+            if (arg is IFormattable spanFormatter)
             {
-                return spanFormattable.ToString(_format, _formatProvider);
+                return spanFormatter.ToString(format, formatProvider);
             }
 
-            return arg?.ToString();
+            return arg?.ToString() ?? string.Empty;
         }));
     }
 }

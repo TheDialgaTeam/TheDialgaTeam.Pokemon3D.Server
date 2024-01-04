@@ -24,7 +24,7 @@ public sealed class DatabaseOptions
 
     public string DatabaseProvider { get; set; } = nameof(Sqlite);
 
-    public SqliteOptions Sqlite { get; set; } = new() { DataSource = "data.db" };
+    public SqliteOptions Sqlite { get; set; } = new();
 }
 
 public sealed class SqliteOptions

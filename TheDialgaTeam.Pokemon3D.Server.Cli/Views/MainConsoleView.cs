@@ -15,7 +15,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Terminal.Gui;
-using TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 using ApplicationUtility = TheDialgaTeam.Pokemon3D.Server.Cli.Utilities.ApplicationUtility;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;

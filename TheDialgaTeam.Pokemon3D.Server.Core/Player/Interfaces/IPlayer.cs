@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using System.Net;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Entities;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
@@ -26,7 +26,7 @@ public interface IPlayer
     public int Id { get; }
     public string GameMode { get; }
     public bool IsGameJoltPlayer { get; }
-    public string GameJoltId { get; }
+    public ulong GameJoltId { get; }
     public string NumberDecimalSeparator { get; }
     public string Name { get; }
     public string MapFile { get; }
@@ -40,13 +40,17 @@ public interface IPlayer
     public string PokemonSkin { get; }
     public int PokemonFacing { get; }
     
-    public string DisplayName { get; }
+    public PlayerProfile? PlayerProfile { get; }
     
     public bool IsReady { get; }
     
-    public PlayerProfile? PlayerProfile { get; }
+    public string DisplayName { get; }
+    
+    public IPAddress RemoteIpAddress { get; }
 
-    public ValueTask InitializePlayer(CancellationToken cancellationToken);
+    public Task InitializePlayer(CancellationToken cancellationToken);
+
+    public Task<bool> AuthenticatePlayer(string? requestName = null, string? requestPassword = null, CancellationToken cancellationToken = default);
     
     public ValueTask ApplyGameDataAsync(IRawPacket rawPacket);
 

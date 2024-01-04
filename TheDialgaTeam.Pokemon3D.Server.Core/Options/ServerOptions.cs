@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Configuration;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 public sealed class ServerOptions
@@ -34,7 +32,7 @@ public sealed class ServerOptions
 
     public int MaxPlayers { get; set; } = 20;
 
-    public bool OfflineMode { get; set; }
+    public bool AllowOfflinePlayer { get; set; }
 
     public int AwayFromKeyboardKickTime { get; set; } = 60 * 5;
     

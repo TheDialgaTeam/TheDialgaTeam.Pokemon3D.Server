@@ -43,6 +43,8 @@ public sealed class CommandProcessor(IPlayerCommand[] playerCommands)
             {
                 if (!message.StartsWith(playerCommand.Name)) continue;
                 
+                result = playerCommand.ExecutePlayerCommand(player, GetCommandArgs(message.ToString()).ToArray());
+                return true;
             }
         }
         
@@ -50,7 +52,7 @@ public sealed class CommandProcessor(IPlayerCommand[] playerCommands)
         return false;
     }
     
-    internal static IEnumerable<string> GetCommandArgs(string message, int startIndex = 0)
+    internal static IEnumerable<string> GetCommandArgs(string args)
     {
         var skipPaddingSpace = true;
         var isQuotedString = false;
@@ -59,10 +61,8 @@ public sealed class CommandProcessor(IPlayerCommand[] playerCommands)
         t_stringBuilder ??= new StringBuilder();
         t_stringBuilder.Clear();
 
-        for (var i = startIndex; i < message.Length; i++)
+        foreach (var character in args)
         {
-            var character = message[i];
-
             if (skipPaddingSpace)
             {
                 if (character == ' ') continue;
@@ -75,7 +75,7 @@ public sealed class CommandProcessor(IPlayerCommand[] playerCommands)
                 {
                     if (character != '\"' && character != '\\')
                     {
-                        throw new ArgumentException("Invalid escape sequence.", nameof(message));
+                        throw new ArgumentException("Invalid escape sequence.", nameof(args));
                     }
 
                     t_stringBuilder.Append(character);
@@ -87,7 +87,7 @@ public sealed class CommandProcessor(IPlayerCommand[] playerCommands)
                 {
                     case '\\':
                         isEscapeString = true;
-                        continue;
+                        break;
 
                     case '\"':
                         yield return t_stringBuilder.ToString();
@@ -95,19 +95,21 @@ public sealed class CommandProcessor(IPlayerCommand[] playerCommands)
 
                         isQuotedString = false;
                         skipPaddingSpace = true;
-                        continue;
+                        break;
 
                     default:
                         t_stringBuilder.Append(character);
-                        continue;
+                        break;
                 }
+                
+                continue;
             }
 
             switch (character)
             {
                 case '\"':
                     isQuotedString = true;
-                    continue;
+                    break;
 
                 case ' ':
                     yield return t_stringBuilder.ToString();

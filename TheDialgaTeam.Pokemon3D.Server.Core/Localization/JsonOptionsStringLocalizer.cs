@@ -15,32 +15,25 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Globalization;
-using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
-internal sealed class StringLocalizer : IStringLocalizer
+internal sealed class JsonOptionsStringLocalizer(IOptionsMonitor<LocalizationOptions> localizationOptionsMonitor) : IStringLocalizer
 {
     public string this[Func<LocalizedString, string> localizedString] => GetLocalizedTemplate(localizedString);
 
     public string this[Func<LocalizedString, string> localizedString, params object?[] args] => string.Format(GetLocalizedTemplate(localizedString), args);
-
-    private readonly IPokemonServerOptions _options;
-
-    public StringLocalizer(IPokemonServerOptions options)
-    {
-        _options = options;
-    }
-
+    
     private string GetLocalizedTemplate(Func<LocalizedString, string> localizedString)
     {
         var currentCulture = CultureInfo.CurrentCulture;
+        var options = localizationOptionsMonitor.CurrentValue;
 
         do
         {
-            if (_options.LocalizationOptions.CultureInfo.TryGetValue(currentCulture.Name, out var result))
+            if (options.CultureInfo.TryGetValue(currentCulture.Name, out var result))
             {
                 return localizedString(result);
             }

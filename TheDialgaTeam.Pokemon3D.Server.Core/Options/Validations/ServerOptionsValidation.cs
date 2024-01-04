@@ -22,21 +22,23 @@ internal sealed class ServerOptionsValidation : IValidateOptions<ServerOptions>
 {
     public ValidateOptionsResult Validate(string? name, ServerOptions options)
     {
+        var failureMessages = new List<string>();
+        
         if (string.IsNullOrEmpty(options.ServerName))
         {
-            return ValidateOptionsResult.Fail($"[Server:{nameof(options.ServerName)}] Server name cannot be empty.");
+            failureMessages.Add($"[Server:{nameof(options.ServerName)}] Server name cannot be empty.");
         }
         
-        if (options.MaxPlayers <= 0)
+        if (options.MaxPlayers is 0 or < -1)
         {
-            return ValidateOptionsResult.Fail($"[Server:{nameof(options.MaxPlayers)}] Max player limit must be more than 0.");
+            failureMessages.Add($"[Server:{nameof(options.MaxPlayers)}] Max player limit must be more than 0.");
         }
         
         if (options.NoPingKickTime < 10)
         {
-            return ValidateOptionsResult.Fail($"[Server:{nameof(options.NoPingKickTime)}] NoPingKickTime must be at least 10 seconds.");
+            failureMessages.Add($"[Server:{nameof(options.NoPingKickTime)}] No ping kick time must be at least 10 seconds.");
         }
         
-        return ValidateOptionsResult.Success;
+        return failureMessages.Count > 0 ? ValidateOptionsResult.Fail(failureMessages) : ValidateOptionsResult.Success;
     }
 }

@@ -20,8 +20,8 @@ using System.Text;
 using Mediator;
 using Microsoft.Extensions.Logging;
 using Mono.Nat;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Formats;
-using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
@@ -122,7 +122,7 @@ internal sealed partial class PokemonServerHandler(
 
             PrintServerInformation(stringLocalizer[s => s.ConsoleMessageFormat.ServerStartedListening, _targetEndPoint]);
 
-            if (options.ServerOptions.OfflineMode)
+            if (options.ServerOptions.AllowOfflinePlayer)
             {
                 PrintServerInformation(stringLocalizer[s => s.ConsoleMessageFormat.ServerAllowOfflineProfile]);
             }

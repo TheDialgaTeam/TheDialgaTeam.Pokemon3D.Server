@@ -18,8 +18,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Mediator;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Formats;
-using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
@@ -55,7 +55,11 @@ public sealed class NetworkContainer(
 
     public ValueTask Handle(ClientConnected notification, CancellationToken cancellationToken)
     {
-        _players.TryAdd(notification.PokemonServerClient, null);
+        if (!_players.TryAdd(notification.PokemonServerClient, null))
+        {
+            notification.PokemonServerClient.Disconnect();
+        }
+        
         return ValueTask.CompletedTask;
     }
 
@@ -93,43 +97,45 @@ public sealed class NetworkContainer(
             PacketType.GameData => HandleGameDataPacket(notification, cancellationToken),
             PacketType.ChatMessage => HandleChatMessage(notification, cancellationToken),
             PacketType.GamestateMessage => HandleGamestateMessage(notification, cancellationToken),
-            PacketType.ServerDataRequest => HandleServerDataRequest(notification, cancellationToken),
+            PacketType.ServerDataRequest => HandleServerDataRequest(notification),
             var _ => ValueTask.CompletedTask
         };
     }
 
-    private ValueTask HandleGameDataPacket(NewPacketReceived notification, CancellationToken cancellationToken)
+    private async ValueTask HandleGameDataPacket(NewPacketReceived notification, CancellationToken cancellationToken)
     {
         if (!GameDataPacket.IsFullGameData(notification.RawPacket))
         {
-            if (TryGetPlayerById(notification.RawPacket.Origin, out var player))
-            {
-                return player.ApplyGameDataAsync(notification.RawPacket);
-            }
-
-            throw new InvalidOperationException("Player does not exist.");
+            if (!TryGetPlayerById(notification.RawPacket.Origin, out var player)) throw new InvalidOperationException("Player does not exist.");
+            
+            await player.ApplyGameDataAsync(notification.RawPacket).ConfigureAwait(false);
+            return;
         }
 
         // This is a new player joining.
         var gameDataPacket = new GameDataPacket(notification.RawPacket);
 
         var newPlayer = playerFactory.CreatePlayer(notification.Network, GetNextRunningId(), gameDataPacket);
+        await newPlayer.InitializePlayer(cancellationToken).ConfigureAwait(false);
+        await newPlayer.AuthenticatePlayer(null, null, cancellationToken).ConfigureAwait(false);
+        
         _players[notification.Network] = newPlayer;
 
         var playerCanJoin = true;
         var reason = string.Empty;
 
         // Check Server Space Limit.
-        var playerCount = GetPlayerCount();
+        var playerCount = GetPlayersEnumerable().Count();
+        var maxPlayers = options.ServerOptions.MaxPlayers == -1 ? int.MaxValue : options.ServerOptions.MaxPlayers;
 
-        if (playerCount >= options.ServerOptions.MaxPlayers)
+        if (playerCount >= maxPlayers)
         {
             playerCanJoin = false;
             reason = stringLocalizer[s => s.GameMessageFormat.ServerIsFull];
         }
 
         // Check Profile Type.
-        if (!options.ServerOptions.OfflineMode && !gameDataPacket.IsGameJoltPlayer)
+        if (!options.ServerOptions.AllowOfflinePlayer && !gameDataPacket.IsGameJoltPlayer)
         {
             playerCanJoin = false;
             reason = stringLocalizer[s => s.GameMessageFormat.ServerOnlyAllowGameJoltProfile];
@@ -155,13 +161,12 @@ public sealed class NetworkContainer(
 
         if (playerCanJoin)
         {
-            return mediator.Publish(new PlayerJoin(newPlayer), cancellationToken);
+            await mediator.Publish(new PlayerJoin(newPlayer), cancellationToken).ConfigureAwait(false);
+            return;
         }
 
         newPlayer.Kick(reason);
         _logger.LogInformation("{Message}", stringLocalizer[s => s.ConsoleMessageFormat.PlayerUnableToJoin, newPlayer.DisplayName, reason]);
-        
-        return ValueTask.CompletedTask;
     }
 
     private ValueTask HandleChatMessage(NewPacketReceived notification, CancellationToken cancellationToken)
@@ -176,6 +181,7 @@ public sealed class NetworkContainer(
 
     private ValueTask HandleGamestateMessage(NewPacketReceived notification, CancellationToken cancellationToken)
     {
+        /*
         var gamestateMessagePacket = new GamestateMessagePacket(notification.RawPacket);
         var player = GetPlayerById(gamestateMessagePacket.Origin);
 
@@ -185,18 +191,18 @@ public sealed class NetworkContainer(
         }
         
         _logger.LogInformation("{Message}", stringLocalizer[s => s.ConsoleMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]);
-        
+        */
         return ValueTask.CompletedTask;
     }
     
-    private ValueTask HandleServerDataRequest(NewPacketReceived notification, CancellationToken cancellationToken)
+    private ValueTask HandleServerDataRequest(NewPacketReceived notification)
     {
         notification.Network.SendPacket(new ServerInfoDataPacket(
-            GetPlayerCount(),
-            options.ServerOptions.MaxPlayers,
+            GetPlayersEnumerable().Count(),
+            options.ServerOptions.MaxPlayers == -1 ? int.MaxValue : options.ServerOptions.MaxPlayers,
             options.ServerOptions.ServerName,
             options.ServerOptions.ServerDescription,
-            GetPlayerDisplayNames()));
+            GetPlayersEnumerable().OrderBy(player => player.DisplayName).Take(20).Select(player => player.DisplayName).ToArray()));
 
         return ValueTask.CompletedTask;
     }
@@ -213,7 +219,7 @@ public sealed class NetworkContainer(
 
         await player.InitializePlayer(cancellationToken).ConfigureAwait(false);
 
-        foreach (var otherPlayer in GetPlayersEnumerable(null, true))
+        foreach (var otherPlayer in GetPlayersEnumerable())
         {
             if (otherPlayer != player)
             {
@@ -282,25 +288,13 @@ public sealed class NetworkContainer(
             return id;
         }
     }
-
-    private int GetPlayerCount()
-    {
-        var count = 0;
-
-        foreach (var (_, value) in _players)
-        {
-            if (value is null) continue;
-            count++;
-        }
-        
-        return count;
-    }
     
     private bool TryGetPlayerById(int id, [MaybeNullWhen(false)] out IPlayer player)
     {
         foreach (var (_, value) in _players)
         {
-            if (value?.Id != id) continue;
+            if (value is null) continue;
+            if (value.Id != id) continue;
             
             player = value;
             return true;
@@ -309,29 +303,16 @@ public sealed class NetworkContainer(
         player = null;
         return false;
     }
-
-    private IPlayer? GetPlayerById(int id)
-    {
-        foreach (var (_, value) in _players)
-        {
-            if (value?.Id == id) return value;
-        }
-
-        return null;
-    }
-
-    private string[] GetPlayerDisplayNames()
-    {
-        return _players.Values
-            .Where(player => player is not null)
-            .OrderBy(player => player!.Name)
-            .Select(player => player!.DisplayName)
-            .ToArray();
-    }
-
+    
     private IEnumerable<IPlayer> GetPlayersEnumerable(IPlayer? excludePlayer = null, bool includeNonReady = false)
     {
-        return (includeNonReady ? _players.Values.Where(player => player is not null && player != excludePlayer) : _players.Values.Where(player => player is not null && player.IsReady && player != excludePlayer))!;
+        foreach (var (_, player) in _players)
+        {
+            if (player is null) continue;
+            if (player == excludePlayer) continue;
+            if (!includeNonReady && !player.IsReady) continue;
+            yield return player;
+        }
     }
 
     #endregion

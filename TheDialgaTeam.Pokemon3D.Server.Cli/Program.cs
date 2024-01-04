@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using TheDialgaTeam.Pokemon3D.Server.Cli.Services;
 using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 using TheDialgaTeam.Serilog.Extensions;
+using TheDialgaTeam.Serilog.Formatting;
 using TheDialgaTeam.Serilog.Sinks.Action;
 using TheDialgaTeam.Serilog.Sinks.AnsiConsole;
 
@@ -16,23 +17,13 @@ internal static class Program
         
         return Host.CreateDefaultBuilder(args)
             .ConfigurePokemonServer()
-            .ConfigureSerilog(static (context, provider, configuration) =>
-            {
-                if (bool.Parse(context.Configuration["TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode"] ?? "false"))
-                {
-                    configuration.MinimumLevel.Verbose().WriteTo.ActionSink(provider);
-                }
-                else
-                {
-                    configuration.MinimumLevel.Verbose().WriteTo.AnsiConsoleSink(provider);
-                }
-            })
             .ConfigureServices(static (context, collection) =>
             {
                 collection.AddMediator();
                 
                 if (bool.Parse(context.Configuration["TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode"] ?? "false"))
                 {
+                    collection.AddSingleton<ActionSinkOptions>();
                     collection.AddHostedService<ConsoleGuiService>();
                     collection.AddHostedService<ServerHostedService>();
                 }
@@ -40,6 +31,17 @@ internal static class Program
                 {
                     collection.AddHostedService<ConsoleBackgroundService>();
                     collection.AddHostedService<ServerHostedService>();
+                }
+            })
+            .ConfigureSerilog(static (context, provider, configuration) =>
+            {
+                if (bool.Parse(context.Configuration["TheDialgaTeam.Pokemon3D.Server.Cli:GuiMode"] ?? "false"))
+                {
+                    configuration.WriteTo.ActionSink(new AnsiMessageTemplateTextFormatter(new LogLevelMessageTemplateOptions()), provider.GetRequiredService<ActionSinkOptions>());
+                }
+                else
+                {
+                    configuration.WriteTo.AnsiConsoleSink();
                 }
             })
             .RunConsoleAsync(static options => options.SuppressStatusMessages = true);

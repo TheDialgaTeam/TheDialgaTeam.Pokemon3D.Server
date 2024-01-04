@@ -21,7 +21,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Database;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
-using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options;
@@ -47,25 +46,26 @@ public static class HostBuilderExtensions
             collection.TryAddSingleton<IPokemonServerClientFactory, PokemonServerClientFactory>();
             collection.TryAddSingleton<IPlayerFactory, PlayerFactory>();
             collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();
-            collection.TryAddSingleton<IStringLocalizer, StringLocalizer>();
             
-            collection.AddOptions<ServerOptions>().BindConfiguration("Server");
+            collection.AddOptionsWithValidateOnStart<ServerOptions>().BindConfiguration("Server");
             collection.TryAddSingleton<IValidateOptions<ServerOptions>, ServerOptionsValidation>();
 
-            collection.AddOptions<NetworkOptions>().BindConfiguration("Server:Network");
+            collection.AddOptionsWithValidateOnStart<NetworkOptions>().BindConfiguration("Server:Network");
             collection.TryAddSingleton<IValidateOptions<NetworkOptions>, NetworkOptionsValidation>();
 
-            collection.AddOptions<DatabaseOptions>().BindConfiguration("Server:Database");
+            collection.AddOptionsWithValidateOnStart<DatabaseOptions>().BindConfiguration("Server:Database");
             collection.TryAddSingleton<IValidateOptions<DatabaseOptions>, DatabaseOptionsValidation>();
 
-            collection.AddOptions<SecurityOptions>().BindConfiguration("Server:Security");
+            collection.AddOptionsWithValidateOnStart<SecurityOptions>().BindConfiguration("Server:Security");
             collection.TryAddSingleton<IValidateOptions<SecurityOptions>, SecurityOptionsValidation>();
             
             collection.AddOptions<WorldOptions>().BindConfiguration("Server:World");
             collection.AddOptions<ChatOptions>().BindConfiguration("Server:Chat");
             collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
             collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
+            
             collection.AddOptions<LocalizationOptions>().BindConfiguration("Localization");
+            collection.TryAddSingleton<IStringLocalizer, JsonOptionsStringLocalizer>();
             
             collection.TryAddSingleton<IPokemonServerOptions, MicrosoftGenericHostOptionsProvider>();
 

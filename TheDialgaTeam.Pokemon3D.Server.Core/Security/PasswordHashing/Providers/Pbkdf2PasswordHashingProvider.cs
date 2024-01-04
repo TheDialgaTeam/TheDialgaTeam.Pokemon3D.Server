@@ -16,7 +16,6 @@
 
 using System.Buffers;
 using System.Security.Cryptography;
-using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Security.PasswordHashing.Providers;

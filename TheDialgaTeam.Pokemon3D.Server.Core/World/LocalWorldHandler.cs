@@ -16,7 +16,7 @@
 
 using Mediator;
 using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;

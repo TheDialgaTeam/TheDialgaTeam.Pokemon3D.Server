@@ -16,12 +16,12 @@
 
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Entities;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
-public sealed class DatabaseContext : DbContext
+public sealed class DatabaseContext(IPokemonServerOptions options) : DbContext
 {
     public required DbSet<PlayerProfile> PlayerProfiles { get; init; }
 
@@ -30,55 +30,56 @@ public sealed class DatabaseContext : DbContext
     public required DbSet<BlockedPlayerProfile> BlockedPlayerProfiles { get; init; }
     
     public required DbSet<LocalWorld> LocalWorlds { get; init; }
-    
-    private readonly IPokemonServerOptions _options;
-
-    public DatabaseContext(IPokemonServerOptions options)
-    {
-        _options = options;
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
             .Entity<PlayerProfile>()
-            .HasMany<BlockedPlayerProfile>(profile => profile.BlockProfiles)
-            .WithOne(blocklist => blocklist.PlayerProfile)
-            .HasForeignKey("PlayerProfileId")
-            .IsRequired()
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder
-            .Entity<PlayerProfile>()
             .HasOne<LocalWorld>(profile => profile.LocalWorld)
-            .WithOne(world => world.PlayerProfile)
-            .HasForeignKey<LocalWorld>("PlayerProfileId")
+            .WithOne()
+            .HasForeignKey<LocalWorld>(world => world.PlayerProfileId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder
+            .Entity<PlayerProfile>()
+            .HasOne<BannedPlayerProfile>()
+            .WithOne()
+            .HasForeignKey<BannedPlayerProfile>(profile => profile.PlayerProfileId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder
             .Entity<PlayerProfile>()
-            .HasOne<BannedPlayerProfile>(profile => profile.Blacklist)
-            .WithOne(blacklist => blacklist.PlayerProfile)
-            .HasForeignKey<BannedPlayerProfile>("PlayerProfileId")
+            .HasMany<BlockedPlayerProfile>(profile => profile.BlockProfiles)
+            .WithOne()
+            .HasForeignKey(profile => profile.PlayerProfileId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder
+            .Entity<BlockedPlayerProfile>()
+            .HasOne<PlayerProfile>()
+            .WithMany()
+            .HasForeignKey(profile => profile.BlockedProfileId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (_options.DatabaseOptions.DatabaseProvider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase))
+        if (options.DatabaseOptions.DatabaseProvider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase))
         {
             optionsBuilder.UseSqlite(new SqliteConnectionStringBuilder
             {
-                DataSource = _options.DatabaseOptions.Sqlite.DataSource,
-                Mode = _options.DatabaseOptions.Sqlite.Mode,
-                Cache = _options.DatabaseOptions.Sqlite.Cache,
-                Password = _options.DatabaseOptions.Sqlite.Password,
-                ForeignKeys = _options.DatabaseOptions.Sqlite.ForeignKeys,
-                RecursiveTriggers = _options.DatabaseOptions.Sqlite.RecursiveTriggers,
-                DefaultTimeout = _options.DatabaseOptions.Sqlite.DefaultTimeout,
-                Pooling = _options.DatabaseOptions.Sqlite.Pooling
+                DataSource = options.DatabaseOptions.Sqlite.DataSource,
+                Mode = options.DatabaseOptions.Sqlite.Mode,
+                Cache = options.DatabaseOptions.Sqlite.Cache,
+                Password = options.DatabaseOptions.Sqlite.Password,
+                ForeignKeys = options.DatabaseOptions.Sqlite.ForeignKeys,
+                RecursiveTriggers = options.DatabaseOptions.Sqlite.RecursiveTriggers,
+                DefaultTimeout = options.DatabaseOptions.Sqlite.DefaultTimeout,
+                Pooling = options.DatabaseOptions.Sqlite.Pooling
             }.ToString());
         }
     }

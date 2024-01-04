@@ -15,24 +15,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.EntityFrameworkCore;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Entities;
 
-[Index(nameof(DisplayName), IsUnique = true)]
-public sealed class PlayerProfile : BaseTable
+[PrimaryKey(nameof(PlayerProfileId), nameof(BlockedProfileId))]
+public sealed class BlockedPlayerProfile
 {
-    public required string DisplayName { get; set; }
+    public int PlayerProfileId { get; init; }
     
-    public string? GameJoltId { get; set; }
-    
-    public string? Password { get; set; }
-    
-    public required PlayerType PlayerType { get; set; }
-    
-    public BannedPlayerProfile? Blacklist { get; set; }
-
-    public List<BlockedPlayerProfile> BlockProfiles { get; set; } = [];
-    
-    public required LocalWorld LocalWorld { get; set; }
+    public required int BlockedProfileId { get; init; }
 }

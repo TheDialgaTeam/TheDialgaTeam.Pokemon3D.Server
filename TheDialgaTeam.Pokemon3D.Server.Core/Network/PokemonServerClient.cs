@@ -20,7 +20,7 @@ using System.Net.Sockets;
 using System.Text;
 using Mediator;
 using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
@@ -37,7 +37,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
     private readonly IPokemonServerOptions _options;
     private readonly IStringLocalizer _stringLocalizer;
     private readonly IMediator _mediator;
-    private readonly TcpClient _tcpClient;
+    private readonly NetworkStream _networkStream;
     
     private readonly CancellationTokenSource _sendCompleteTokenSource;
     private CancellationToken SendCompleteToken => _sendCompleteTokenSource.Token;
@@ -61,16 +61,16 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
         _options = options;
         _stringLocalizer = stringLocalizer;
         _mediator = mediator;
-        _tcpClient = tcpClient;
+        _networkStream = tcpClient.GetStream();
 
         _sendCompleteTokenSource = new CancellationTokenSource();
         _disconnectedTokenSource = new CancellationTokenSource();
-
-        RemoteIpAddress = (_tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
+        
+        RemoteIpAddress = (tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
 
         _pingCheckTimer = new Timer(PingCheckTimerCallback, null, TimeSpan.FromSeconds(_options.ServerOptions.NoPingKickTime), Timeout.InfiniteTimeSpan);
 
-        Task.Factory.StartNew(PacketDataProducer, TaskCreationOptions.LongRunning);
+        Task.Factory.StartNew(PacketDataReader, TaskCreationOptions.LongRunning);
         Task.Factory.StartNew(HandleGameDataPacketQueue, TaskCreationOptions.LongRunning);
         Task.Factory.StartNew(SendingQueueConsumer, TaskCreationOptions.LongRunning);
     }
@@ -90,23 +90,21 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
     {
         if (DisconnectedToken.IsCancellationRequested) return;
         
+        _pingCheckTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _sendingPacketQueue.CompleteAdding();
+        _handleGameDataPacketQueue.CompleteAdding();
+        
         if (waitForCompletion)
         {
-            _sendingPacketQueue.CompleteAdding();
             SendCompleteToken.WaitHandle.WaitOne();
         }
         
         _disconnectedTokenSource.Cancel();
-        _pingCheckTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-
-        _handleGameDataPacketQueue.CompleteAdding();
-        _sendingPacketQueue.CompleteAdding();
-
-        _tcpClient.Close();
+        _networkStream.Close();
 
         PrintDebug(RemoteIpAddress, _stringLocalizer[s => s.ConsoleMessageFormat.ClientDisconnected]);
 
-        _mediator.Publish(new ClientDisconnected(this, reason), CancellationToken.None).AsTask().GetAwaiter().GetResult();
+        Task.Run(() => _mediator.Publish(new ClientDisconnected(this, reason), CancellationToken.None).AsTask(), CancellationToken.None);
     }
 
     private void PingCheckTimerCallback(object? state)
@@ -114,13 +112,13 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
         Disconnect(_stringLocalizer[s => s.ConsoleMessageFormat.ClientReceivedNoPing]);
     }
 
-    private void PacketDataProducer()
+    private void PacketDataReader()
     {
         try
         {
-            using var streamReader = new StreamReader(new NetworkStream(_tcpClient.Client), Encoding.UTF8, false, _tcpClient.ReceiveBufferSize);
+            using var streamReader = new StreamReader(_networkStream, Encoding.UTF8, false, _networkStream.Socket.ReceiveBufferSize, true);
 
-            while (_tcpClient.Connected)
+            while (_networkStream.Socket.Connected)
             {
                 var rawData = streamReader.ReadLine();
 
@@ -146,14 +144,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
                     }
                     else
                     {
-                        Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask(), DisconnectedToken)
-                            .ContinueWith(task =>
-                            {
-                                if (!task.IsFaulted) return;
-                                var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ServerUncaughtExceptionThrown];
-                                PrintDebugWithException(task.Exception, RemoteIpAddress, reason);
-                                Disconnect(reason);
-                            }, DisconnectedToken);
+                        Task.Run(() => _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask(), DisconnectedToken);
                     }
                 }
             }
@@ -168,18 +159,9 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
 
     private void HandleGameDataPacketQueue()
     {
-        try
+        foreach (var rawPacket in _handleGameDataPacketQueue.GetConsumingEnumerable())
         {
-            foreach (var rawPacket in _handleGameDataPacketQueue.GetConsumingEnumerable(DisconnectedToken))
-            {
-                _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask().Wait(DisconnectedToken);
-            }
-        }
-        catch (Exception exception) when(exception is not OperationCanceledException && exception.InnerException is not OperationCanceledException)
-        {
-            var reason = _stringLocalizer[s => s.ConsoleMessageFormat.ServerUncaughtExceptionThrown];
-            PrintDebugWithException(exception, RemoteIpAddress, reason);
-            Disconnect(reason);
+            _mediator.Publish(new NewPacketReceived(this, rawPacket), DisconnectedToken).AsTask().Wait(DisconnectedToken);
         }
     }
 
@@ -187,12 +169,12 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
     {
         try
         {
-            using var streamWriter = new StreamWriter(new NetworkStream(_tcpClient.Client), Encoding.UTF8, _tcpClient.SendBufferSize);
+            using var streamWriter = new StreamWriter(_networkStream, Encoding.UTF8, _networkStream.Socket.SendBufferSize, true);
             streamWriter.AutoFlush = true;
 
-            foreach (var rawPacket in _sendingPacketQueue.GetConsumingEnumerable(DisconnectedToken))
+            foreach (var rawPacket in _sendingPacketQueue.GetConsumingEnumerable())
             {
-                if (!_tcpClient.Connected) return;
+                if (!_networkStream.Socket.Connected) return;
 
                 var packageData = rawPacket.ToRawPacketString();
                 streamWriter.WriteLine(packageData);
@@ -223,7 +205,8 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
 
     public void Dispose()
     {
-        _tcpClient.Dispose();
+        _networkStream.Dispose();
+        _sendCompleteTokenSource.Dispose();
         _disconnectedTokenSource.Dispose();
         _pingCheckTimer.Dispose();
         _handleGameDataPacketQueue.Dispose();

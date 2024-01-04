@@ -16,34 +16,31 @@
 
 using Mediator;
 using Microsoft.EntityFrameworkCore;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Entities;
 using TheDialgaTeam.Pokemon3D.Server.Core.Database.Queries;
-using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database;
 
 public sealed class DatabaseQueryHandler :
-    IQueryHandler<GetPlayerProfile, PlayerProfile?>
+    IQueryHandler<GetPlayerProfile, PlayerProfile?>,
+    IDisposable, IAsyncDisposable
 {
-    private readonly IDbContextFactory<DatabaseContext> _contextFactory;
-
+    private readonly DatabaseContext _context;
+    
     public DatabaseQueryHandler(IDbContextFactory<DatabaseContext> contextFactory)
     {
-        _contextFactory = contextFactory;
-
-        using var context = contextFactory.CreateDbContext();
-        context.Database.Migrate();
+        _context = contextFactory.CreateDbContext(); 
+        _context.Database.Migrate();
     }
 
     public async ValueTask<PlayerProfile?> Handle(GetPlayerProfile query, CancellationToken cancellationToken)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
         var player = query.Player;
         
         if (player.IsGameJoltPlayer)
         {
-            var playerProfile = await context.PlayerProfiles.SingleOrDefaultAsync(profile => profile.GameJoltId == player.GameJoltId, cancellationToken).ConfigureAwait(false);
+            var playerProfile = await _context.PlayerProfiles.SingleOrDefaultAsync(profile => profile.GameJoltId == player.GameJoltId, cancellationToken).ConfigureAwait(false);
 
             if (playerProfile is not null)
             {
@@ -51,7 +48,7 @@ public sealed class DatabaseQueryHandler :
             }
             
             // Check if there is any reserved names.
-            var isNameConflict = await context.PlayerProfiles.AnyAsync(profile => profile.DisplayName == player.Name, cancellationToken).ConfigureAwait(false);
+            var isNameConflict = await _context.PlayerProfiles.AnyAsync(profile => profile.DisplayName == player.Name, cancellationToken).ConfigureAwait(false);
 
             if (isNameConflict)
             {
@@ -63,21 +60,26 @@ public sealed class DatabaseQueryHandler :
             {
                 DisplayName = player.Name, 
                 GameJoltId = player.GameJoltId, 
-                PlayerType = PlayerType.GameJoltPlayer, 
+                PlayerType = PlayerType.Player,
                 LocalWorld = new LocalWorld()
             };
 
-            context.Add(playerProfile);
-            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            _context.Add(playerProfile);
+            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
             return playerProfile;
         }
-        else
-        {
-            var displayName = query.RequestName;
-            var password = query.Password;
-        }
 
         return null;
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _context.DisposeAsync().ConfigureAwait(false);
     }
 }

@@ -28,7 +28,7 @@ public sealed class WorldOptions
 
     public int TimeOffset { get; set; } = (int) DateTimeOffset.Now.Offset.TotalMinutes;
 
-    public int[] SeasonMonth { get; set; } = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    public int[] SeasonMonth { get; set; } = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
 
-    public int[] WeatherSeason { get; set; } = { -1, -1, -1, -1 };
+    public int[] WeatherSeason { get; set; } = [-1, -1, -1, -1];
 }

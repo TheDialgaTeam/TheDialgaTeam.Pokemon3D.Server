@@ -15,37 +15,36 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                 name: "PlayerProfiles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    PlayerProfileId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    DisplayName = table.Column<string>(type: "TEXT", nullable: false),
-                    GameJoltId = table.Column<string>(type: "TEXT", nullable: true),
-                    Password = table.Column<string>(type: "TEXT", nullable: true),
+                    DisplayName = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false),
+                    GameJoltId = table.Column<ulong>(type: "INTEGER", nullable: true),
+                    Password = table.Column<string>(type: "TEXT", maxLength: 512, nullable: true),
                     PlayerType = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlayerProfiles", x => x.Id);
+                    table.PrimaryKey("PK_PlayerProfiles", x => x.PlayerProfileId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "BannedPlayerProfiles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    PlayerProfileId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    PlayerProfileId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Reason = table.Column<string>(type: "TEXT", nullable: true),
+                    Reason = table.Column<string>(type: "TEXT", maxLength: 512, nullable: true),
                     StartTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     Duration = table.Column<TimeSpan>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BannedPlayerProfiles", x => x.Id);
+                    table.PrimaryKey("PK_BannedPlayerProfiles", x => x.PlayerProfileId);
                     table.ForeignKey(
                         name: "FK_BannedPlayerProfiles_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -53,25 +52,23 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                 name: "BlockedPlayerProfiles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
                     PlayerProfileId = table.Column<int>(type: "INTEGER", nullable: false),
                     BlockedProfileId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BlockedPlayerProfiles", x => x.Id);
+                    table.PrimaryKey("PK_BlockedPlayerProfiles", x => new { x.PlayerProfileId, x.BlockedProfileId });
                     table.ForeignKey(
                         name: "FK_BlockedPlayerProfiles_PlayerProfiles_BlockedProfileId",
                         column: x => x.BlockedProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_BlockedPlayerProfiles_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -79,9 +76,8 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                 name: "LocalWorlds",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    PlayerProfileId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    PlayerProfileId = table.Column<int>(type: "INTEGER", nullable: false),
                     DoDayCycle = table.Column<bool>(type: "INTEGER", nullable: true),
                     Season = table.Column<int>(type: "INTEGER", nullable: true),
                     Weather = table.Column<int>(type: "INTEGER", nullable: true),
@@ -89,20 +85,14 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LocalWorlds", x => x.Id);
+                    table.PrimaryKey("PK_LocalWorlds", x => x.PlayerProfileId);
                     table.ForeignKey(
                         name: "FK_LocalWorlds_PlayerProfiles_PlayerProfileId",
                         column: x => x.PlayerProfileId,
                         principalTable: "PlayerProfiles",
-                        principalColumn: "Id",
+                        principalColumn: "PlayerProfileId",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BannedPlayerProfiles_PlayerProfileId",
-                table: "BannedPlayerProfiles",
-                column: "PlayerProfileId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_BlockedPlayerProfiles_BlockedProfileId",
@@ -110,21 +100,15 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Migrations
                 column: "BlockedProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BlockedPlayerProfiles_PlayerProfileId",
-                table: "BlockedPlayerProfiles",
-                column: "PlayerProfileId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LocalWorlds_PlayerProfileId",
-                table: "LocalWorlds",
-                column: "PlayerProfileId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PlayerProfiles_DisplayName",
                 table: "PlayerProfiles",
                 column: "DisplayName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlayerProfiles_GameJoltId",
+                table: "PlayerProfiles",
+                column: "GameJoltId");
         }
 
         /// <inheritdoc />

@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
-using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Entities;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Queries;

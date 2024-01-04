@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2024 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
 
 using System.Net;
 using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Database.Entities;
 using TheDialgaTeam.Pokemon3D.Server.Core.Database.Queries;
-using TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
-using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
@@ -29,14 +29,17 @@ using TheDialgaTeam.Pokemon3D.Server.Core.World.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-internal sealed class Player : IPlayer, IDisposable
+internal sealed class Player(
+    IStringLocalizer stringLocalizer, 
+    IMediator mediator, 
+    IPokemonServerClient client, 
+    int id, 
+    GameDataPacket gameDataPacket) : IPlayer, IDisposable
 {
-    public IPAddress RemoteIpAddress => _client.RemoteIpAddress;
-    
     public int Id => _gameDataPacket.Origin;
     public string GameMode => _gameDataPacket.GameMode;
     public bool IsGameJoltPlayer => _gameDataPacket.IsGameJoltPlayer;
-    public string GameJoltId => _gameDataPacket.GameJoltId;
+    public ulong GameJoltId => _gameDataPacket.GameJoltId;
     public string NumberDecimalSeparator => _gameDataPacket.NumberDecimalSeparator;
     public string Name => _gameDataPacket.Name;
     public string MapFile => _gameDataPacket.MapFile;
@@ -49,66 +52,67 @@ internal sealed class Player : IPlayer, IDisposable
     public Position PokemonPosition => _gameDataPacket.PokemonPosition;
     public string PokemonSkin => _gameDataPacket.PokemonSkin;
     public int PokemonFacing => _gameDataPacket.PokemonFacing;
-
-    public string DisplayName => _gameDataPacket.IsGameJoltPlayer ? _stringLocalizer[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, Name, GameJoltId] : _stringLocalizer[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, Name];
-    
-    public bool IsReady { get; private set; }
     
     public PlayerProfile? PlayerProfile { get; private set; }
-
-    private readonly IStringLocalizer _stringLocalizer;
-    private readonly IMediator _mediator;
-    private readonly IPokemonServerClient _client;
-    private GameDataPacket _gameDataPacket;
-
-    private ILocalWorld? _localWorld;
-
-    public Player(IStringLocalizer stringLocalizer, IMediator mediator, IPokemonServerClient client, int id, GameDataPacket gameDataPacket)
+    
+    public bool IsReady => PlayerProfile is not null;
+    
+    public string DisplayName
     {
-        _stringLocalizer = stringLocalizer;
-        _mediator = mediator;
-        _client = client;
-        _gameDataPacket = gameDataPacket with { Origin = id };
+        get
+        {
+            if (IsReady)
+            {
+                return _gameDataPacket.IsGameJoltPlayer ? stringLocalizer[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, PlayerProfile!.DisplayName, GameJoltId] : stringLocalizer[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, PlayerProfile!.DisplayName];
+            }
+
+            return _gameDataPacket.IsGameJoltPlayer ? stringLocalizer[s => s.PlayerNameDisplayFormat.GameJoltNameDisplayFormat, Name, GameJoltId] : stringLocalizer[s => s.PlayerNameDisplayFormat.OfflineNameDisplayFormat, Name];
+        }
     }
 
-    public async ValueTask InitializePlayer(CancellationToken cancellationToken)
-    {
-        if (IsGameJoltPlayer)
-        {
-            PlayerProfile = await _mediator.Send(new GetPlayerProfile(this), cancellationToken).ConfigureAwait(false);
-        }
+    public IPAddress RemoteIpAddress => client.RemoteIpAddress;
 
-        _localWorld = await _mediator.Send(new CreateLocalWorld(this), cancellationToken).ConfigureAwait(false);
+    private GameDataPacket _gameDataPacket = gameDataPacket with { Origin = id };
+    private ILocalWorld? _localWorld;
+
+    public async Task InitializePlayer(CancellationToken cancellationToken)
+    {
+        _localWorld = await mediator.Send(new CreateLocalWorld(this), cancellationToken).ConfigureAwait(false);
         _localWorld.StartWorld();
-        
-        IsReady = true;
+    }
+
+    public async Task<bool> AuthenticatePlayer(string? requestName = null, string? requestPassword = null, CancellationToken cancellationToken = default)
+    {
+        PlayerProfile = await mediator.Send(new GetPlayerProfile(this, requestName, requestPassword), cancellationToken).ConfigureAwait(false);
+        return IsReady;
     }
 
     public ValueTask ApplyGameDataAsync(IRawPacket rawPacket)
     {
         _gameDataPacket = new GameDataPacket(this, rawPacket);
-        return _mediator.Publish(new PlayerUpdated(this));
+        return mediator.Publish(new PlayerUpdated(this));
     }
 
     public GameDataPacket ToGameDataPacket()
     {
-        return _gameDataPacket;
+        if (!IsReady) throw new Exception("Player is not ready.");
+        return _gameDataPacket with { Name = PlayerProfile!.DisplayName };
     }
 
     public void SendPacket(IPacket packet)
     {
-        _client.SendPacket(packet);
+        client.SendPacket(packet);
     }
-    
+
     public void SendPacket(IRawPacket rawPacket)
     {
-        _client.SendPacket(rawPacket);
+        client.SendPacket(rawPacket);
     }
 
     public void Kick(string reason)
     {
         SendPacket(new KickPacket(reason));
-        _client.Disconnect(reason, true);
+        client.Disconnect(reason, true);
     }
 
     public void Dispose()

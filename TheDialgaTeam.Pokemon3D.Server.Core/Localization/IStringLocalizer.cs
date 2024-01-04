@@ -16,7 +16,7 @@
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization.Interfaces;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 
 public interface IStringLocalizer
 {

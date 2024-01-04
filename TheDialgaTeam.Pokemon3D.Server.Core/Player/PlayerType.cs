@@ -18,8 +18,7 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
 public enum PlayerType
 {
-    OfflinePlayer,
-    GameJoltPlayer,
+    Player,
     Moderator,
     Administrator,
 }

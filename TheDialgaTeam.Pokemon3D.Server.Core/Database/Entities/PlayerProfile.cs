@@ -16,12 +16,30 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Entities;
 
-public abstract class BaseTable
+[Index(nameof(DisplayName), IsUnique = true)]
+[Index(nameof(GameJoltId))]
+public sealed class PlayerProfile
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; private set; }
+    public int PlayerProfileId { get; init; }
+    
+    [StringLength(512)]
+    public required string DisplayName { get; set; }
+    
+    public ulong? GameJoltId { get; init; }
+    
+    [StringLength(512)]
+    public string? Password { get; set; }
+    
+    public required PlayerType PlayerType { get; set; }
+    
+    public required LocalWorld LocalWorld { get; init; }
+
+    public List<BlockedPlayerProfile> BlockProfiles { get; init; } = [];
 }

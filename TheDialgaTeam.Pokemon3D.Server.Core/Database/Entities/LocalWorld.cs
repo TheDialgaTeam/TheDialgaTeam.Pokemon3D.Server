@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Tables;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
-public sealed class BannedPlayerProfile : BaseTable
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Database.Entities;
+
+public sealed class LocalWorld
 {
-    public PlayerProfile PlayerProfile { get; init; } = null!;
-    
-    public string? Reason { get; set; }
-    
-    public required DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
-    
-    public required TimeSpan Duration { get; set; } = Timeout.InfiniteTimeSpan;
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int PlayerProfileId { get; init; }
 
-    public bool IsExpired => Duration != Timeout.InfiniteTimeSpan && DateTimeOffset.Now > StartTime.Add(Duration);
+    public bool? DoDayCycle { get; set; }
+    
+    public Season? Season { get; set; }
+    
+    public Weather? Weather { get; set; }
+    
+    public int? TimeOffset { get; set; }
 }

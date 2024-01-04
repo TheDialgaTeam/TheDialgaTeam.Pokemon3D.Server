@@ -3,7 +3,6 @@
     <Import Project="..\TheDialgaTeam.Pokemon3D.Server.prop"/>
     
     <PropertyGroup>
-        <IsPublishable>false</IsPublishable>
         <IsTrimmable>true</IsTrimmable>
         <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     </PropertyGroup>
