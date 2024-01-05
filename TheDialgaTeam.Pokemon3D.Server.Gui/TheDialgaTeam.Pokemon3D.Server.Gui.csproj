@@ -12,10 +12,10 @@
         <Description>Pokemon 3D Server in graphical mode.</Description>
         
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-        <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
-        <PublishTrimmed>true</PublishTrimmed>
+        <PublishDir>..\bin\$(RuntimeIdentifier)</PublishDir>
+        <PublishTrimmed>false</PublishTrimmed>
         <PublishReadyToRun>false</PublishReadyToRun>
         <PublishSingleFile>true</PublishSingleFile>
     </PropertyGroup>

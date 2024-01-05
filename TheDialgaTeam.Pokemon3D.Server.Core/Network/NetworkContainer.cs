@@ -214,10 +214,7 @@ public sealed class NetworkContainer(
     public async ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
     {
         var player = notification.Player;
-
         player.SendPacket(new PlayerIdPacket(player.Id));
-
-        await player.InitializePlayer(cancellationToken).ConfigureAwait(false);
 
         foreach (var otherPlayer in GetPlayersEnumerable())
         {
@@ -281,7 +278,7 @@ public sealed class NetworkContainer(
     {
         lock (_runningIdLock)
         {
-            if (_runningIds.Count <= 0) return _nextRunningId++;
+            if (_runningIds.Count == 0) return _nextRunningId++;
 
             var id = _runningIds.Min;
             _runningIds.Remove(id);
@@ -315,5 +312,13 @@ public sealed class NetworkContainer(
         }
     }
 
+    private async Task AuthenticatePlayer(IPlayer player, CancellationToken cancellationToken)
+    {
+        if (player.IsGameJoltPlayer)
+        {
+            await player.AuthenticatePlayer(null, null, cancellationToken).ConfigureAwait(false);
+        }
+    }
+    
     #endregion
 }

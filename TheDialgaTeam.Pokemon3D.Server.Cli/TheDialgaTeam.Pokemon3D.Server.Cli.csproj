@@ -11,6 +11,7 @@
         <Product>Pokemon3D.Server.Cli</Product>
         <Description>Pokemon 3D Server in console mode.</Description>
 
+        <PublishDir>..\bin\$(RuntimeIdentifier)</PublishDir>
         <PublishTrimmed>true</PublishTrimmed>
         <PublishReadyToRun>false</PublishReadyToRun>
         <PublishSingleFile>true</PublishSingleFile>

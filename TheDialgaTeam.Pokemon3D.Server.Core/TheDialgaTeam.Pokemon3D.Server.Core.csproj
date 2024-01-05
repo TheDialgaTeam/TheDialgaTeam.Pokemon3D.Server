@@ -5,6 +5,8 @@
     <PropertyGroup>
         <IsTrimmable>true</IsTrimmable>
         <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+
+        <IsPublishable>false</IsPublishable>
     </PropertyGroup>
 
     <ItemGroup>
