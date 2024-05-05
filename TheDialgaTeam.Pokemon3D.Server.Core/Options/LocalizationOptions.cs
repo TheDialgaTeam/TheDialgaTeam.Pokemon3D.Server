@@ -69,8 +69,6 @@ public sealed class ConsoleMessageFormat
 
     public string GlobalWorldStatus { get; set; } = "Current Season: {0} | Current Weather: {1} | Current Time: {2}";
 
-    #region NetworkContainer
-
     public string PlayerJoin { get; set; } = "[Server] {0} join the server.";
     public string PlayerLeft { get; set; } = "[Server] {0} left the server.";
     public string PlayerLeftWithReason { get; set; } = "[Server] {0} left the server with the following reason: {1}";
@@ -78,8 +76,6 @@ public sealed class ConsoleMessageFormat
     public string PlayerUnableToJoin { get; set; } = "[Server] {0} is unable to join the server with the following reason: {1}";
 
     public string GameStateMessage { get; set; } = "[Server] The player {0} {1}";
-
-    #endregion
 }
 
 public sealed class GameMessageFormat
@@ -95,4 +91,8 @@ public sealed class GameMessageFormat
     public string PlayerLeft { get; set; } = "{0} left the server.";
 
     public string GameStateMessage { get; set; } = "The player {0} {1}";
+
+    public string AuthenticateGameJoltProfile { get; set; } = "Authenticating GameJolt Profile...";
+    
+    public string AuthenticateFailedConflict { get; set; } = "Authenticate failure. Reason: Display name conflict.";
 }

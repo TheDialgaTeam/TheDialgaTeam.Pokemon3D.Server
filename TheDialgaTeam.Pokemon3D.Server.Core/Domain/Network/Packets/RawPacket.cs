@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2024 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,24 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
-
-public sealed record KickPacket(string Reason) : IPacket
-{
-    public KickPacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
-    {
-    }
-    
-    public IRawPacket ToServerRawPacket()
-    {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Kicked, Origin.Server, new[] { Reason });
-    }
-
-    public IRawPacket ToClientRawPacket()
-    {
-        throw new NotSupportedException();
-    }
-}
+public readonly record struct RawPacket(PacketType PacketType, Origin Origin, string[] DataItems);

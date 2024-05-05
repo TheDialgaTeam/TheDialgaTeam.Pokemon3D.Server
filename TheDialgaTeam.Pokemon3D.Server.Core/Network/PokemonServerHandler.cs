@@ -179,17 +179,8 @@ internal sealed partial class PokemonServerHandler(
         
         try
         {
-            IPAddress publicIpAddress;
-            
-            if (options.NetworkOptions.UseUpnp && _natDevice != null)
-            {
-                publicIpAddress = await _natDevice.GetExternalIPAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                publicIpAddress = IPAddress.Parse(await httpClient.GetStringAsync("https://api.ipify.org", cancellationToken).ConfigureAwait(false));
-            }
-            
+            var publicIpAddress = IPAddress.Parse(await httpClient.GetStringAsync("https://api.ipify.org", cancellationToken).ConfigureAwait(false));
+                
             try
             {
                 using var connectionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -200,7 +191,7 @@ internal sealed partial class PokemonServerHandler(
 
                 await using var streamWriter = new StreamWriter(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize);
                 streamWriter.AutoFlush = true;
-                await streamWriter.WriteLineAsync(new ServerRequestPacket("r").ToClientRawPacket().ToRawPacketString().AsMemory(), connectionCts.Token).ConfigureAwait(false);
+                await streamWriter.WriteLineAsync(new ServerDataRequestPacket("r").ToClientRawPacket().ToRawPacketString().AsMemory(), connectionCts.Token).ConfigureAwait(false);
 
                 using var streamReader = new StreamReader(tcpClient.GetStream(), Encoding.UTF8, false, tcpClient.ReceiveBufferSize);
                 var data = await streamReader.ReadLineAsync(connectionCts.Token).ConfigureAwait(false);

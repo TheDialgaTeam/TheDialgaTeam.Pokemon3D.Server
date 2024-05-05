@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2024 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,8 +18,10 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Mediator;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization.Formats;
+using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
@@ -34,14 +36,14 @@ public sealed class NetworkContainer(
     IMediator mediator,
     IPokemonServerOptions options,
     IStringLocalizer stringLocalizer,
-    IPlayerFactory playerFactory)
-    :
-        INotificationHandler<ClientConnected>,
-        INotificationHandler<ClientDisconnected>,
-        INotificationHandler<NewPacketReceived>,
-        INotificationHandler<PlayerJoin>,
-        INotificationHandler<PlayerUpdated>,
-        INotificationHandler<PlayerLeft>
+    IPlayerFactory playerFactory) :
+    ICommandHandler<AddClient, bool>,
+    INotificationHandler<ClientConnected>,
+    INotificationHandler<ClientDisconnected>,
+    INotificationHandler<NewPacketReceived>,
+    INotificationHandler<PlayerJoined>,
+    INotificationHandler<PlayerUpdated>,
+    INotificationHandler<PlayerLeft>
 {
     private readonly ILogger _logger = logger;
 
@@ -53,13 +55,18 @@ public sealed class NetworkContainer(
 
     #region Client Events
 
+    public ValueTask<bool> Handle(AddClient command, CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(_players.TryAdd(command.PokemonServerClient, null));
+    }
+    
     public ValueTask Handle(ClientConnected notification, CancellationToken cancellationToken)
     {
         if (!_players.TryAdd(notification.PokemonServerClient, null))
         {
             notification.PokemonServerClient.Disconnect();
         }
-        
+
         return ValueTask.CompletedTask;
     }
 
@@ -107,7 +114,7 @@ public sealed class NetworkContainer(
         if (!GameDataPacket.IsFullGameData(notification.RawPacket))
         {
             if (!TryGetPlayerById(notification.RawPacket.Origin, out var player)) throw new InvalidOperationException("Player does not exist.");
-            
+
             await player.ApplyGameDataAsync(notification.RawPacket).ConfigureAwait(false);
             return;
         }
@@ -117,8 +124,7 @@ public sealed class NetworkContainer(
 
         var newPlayer = playerFactory.CreatePlayer(notification.Network, GetNextRunningId(), gameDataPacket);
         await newPlayer.InitializePlayer(cancellationToken).ConfigureAwait(false);
-        await newPlayer.AuthenticatePlayer(null, null, cancellationToken).ConfigureAwait(false);
-        
+
         _players[notification.Network] = newPlayer;
 
         var playerCanJoin = true;
@@ -161,7 +167,7 @@ public sealed class NetworkContainer(
 
         if (playerCanJoin)
         {
-            await mediator.Publish(new PlayerJoin(newPlayer), cancellationToken).ConfigureAwait(false);
+            await mediator.Publish(new PlayerJoined(newPlayer), cancellationToken).ConfigureAwait(false);
             return;
         }
 
@@ -175,7 +181,7 @@ public sealed class NetworkContainer(
         {
             otherPlayer.SendPacket(notification.RawPacket);
         }
-        
+
         return ValueTask.CompletedTask;
     }
 
@@ -189,12 +195,12 @@ public sealed class NetworkContainer(
         {
             otherPlayer.SendPacket(new ChatMessagePacket(Origin.Server, stringLocalizer[s => s.GameMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]));
         }
-        
+
         _logger.LogInformation("{Message}", stringLocalizer[s => s.ConsoleMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]);
         */
         return ValueTask.CompletedTask;
     }
-    
+
     private ValueTask HandleServerDataRequest(NewPacketReceived notification)
     {
         notification.Network.SendPacket(new ServerInfoDataPacket(
@@ -211,11 +217,18 @@ public sealed class NetworkContainer(
 
     #region Player Events
 
-    public async ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
+    public async ValueTask Handle(PlayerJoined notification, CancellationToken cancellationToken)
     {
         var player = notification.Player;
         player.SendPacket(new PlayerIdPacket(player.Id));
 
+        if (player.IsGameJoltPlayer)
+        {
+            player.SendPacket(new ChatMessagePacket(-1, stringLocalizer[s => s.GameMessageFormat.AuthenticateGameJoltProfile]));
+            await player.AuthenticatePlayer(null, null, cancellationToken).ConfigureAwait(false);
+        }
+        
+        /*
         foreach (var otherPlayer in GetPlayersEnumerable())
         {
             if (otherPlayer != player)
@@ -228,11 +241,12 @@ public sealed class NetworkContainer(
             otherPlayer.SendPacket(player.ToGameDataPacket());
             otherPlayer.SendPacket(new ChatMessagePacket(-1, stringLocalizer[s => s.GameMessageFormat.PlayerJoin, player.DisplayName]));
         }
-
+        
         foreach (var welcomeMessage in options.ServerOptions.WelcomeMessage)
         {
             player.SendPacket(new ChatMessagePacket(-1, welcomeMessage));
         }
+        */
 
         _logger.LogInformation("{Message}", stringLocalizer[s => s.ConsoleMessageFormat.PlayerJoin, player.DisplayName]);
     }
@@ -259,14 +273,14 @@ public sealed class NetworkContainer(
             otherPlayer.SendPacket(new DestroyPlayerPacket(player.Id));
             otherPlayer.SendPacket(new ChatMessagePacket(-1, stringLocalizer[s => s.GameMessageFormat.PlayerLeft, player.DisplayName]));
         }
-        
+
         _logger.LogInformation("{Message}", reason is null ? stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeft, player.DisplayName] : stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeftWithReason, player.DisplayName, notification.Reason]);
-        
+
         if (notification.Player is IDisposable disposable)
         {
             disposable.Dispose();
         }
-        
+
         return ValueTask.CompletedTask;
     }
 
@@ -285,14 +299,14 @@ public sealed class NetworkContainer(
             return id;
         }
     }
-    
+
     private bool TryGetPlayerById(int id, [MaybeNullWhen(false)] out IPlayer player)
     {
         foreach (var (_, value) in _players)
         {
             if (value is null) continue;
             if (value.Id != id) continue;
-            
+
             player = value;
             return true;
         }
@@ -300,7 +314,7 @@ public sealed class NetworkContainer(
         player = null;
         return false;
     }
-    
+
     private IEnumerable<IPlayer> GetPlayersEnumerable(IPlayer? excludePlayer = null, bool includeNonReady = false)
     {
         foreach (var (_, player) in _players)
@@ -319,6 +333,6 @@ public sealed class NetworkContainer(
             await player.AuthenticatePlayer(null, null, cancellationToken).ConfigureAwait(false);
         }
     }
-    
+
     #endregion
 }

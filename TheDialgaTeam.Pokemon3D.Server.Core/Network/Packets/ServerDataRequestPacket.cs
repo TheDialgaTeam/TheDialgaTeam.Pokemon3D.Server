@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
-public sealed record BattleClientDataPacket(Origin Origin, Origin BattlePartner, string Data) : IPacket
+public sealed record ServerDataRequestPacket(string Data) : IPacket
 {
-    public BattleClientDataPacket(IRawPacket rawPacket) : this(rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture), rawPacket.DataItems[1])
+    public ServerDataRequestPacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
     {
     }
-    
+
     public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleClientData, Origin, new[] { Data });
+        throw new NotSupportedException();
     }
 
     public IRawPacket ToClientRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleClientData, Origin, new[] { BattlePartner.ToRawString(), Data });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerDataRequest, Origin.NewPlayer, [Data]);
     }
 }

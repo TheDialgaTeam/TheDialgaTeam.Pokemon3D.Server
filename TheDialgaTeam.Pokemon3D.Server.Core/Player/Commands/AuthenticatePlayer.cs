@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2024 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,28 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Globalization;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Commands;
 
-public readonly record struct Origin(int Id)
-{
-    public static Origin Server => new(-1);
-    
-    public static Origin NewPlayer => new(0);
-    
-    public static implicit operator int(Origin origin)
-    {
-        return origin.Id;
-    }
-    
-    public static implicit operator Origin(int id)
-    {
-        return new Origin(id);
-    }
-
-    public string ToRawString()
-    {
-        return Id.ToString(CultureInfo.InvariantCulture);
-    }
-}
+public record AuthenticatePlayer(IPlayer Player, string? RequestName = null, string? Password = null) : ICommand<bool>;

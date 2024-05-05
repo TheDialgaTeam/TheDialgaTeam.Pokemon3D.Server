@@ -20,12 +20,13 @@ using System.Net.Sockets;
 using System.Text;
 using Mediator;
 using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Localization;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Options.Interfaces;
+using RawPacket = TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets.RawPacket;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network;
 
@@ -66,7 +67,7 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
         _sendCompleteTokenSource = new CancellationTokenSource();
         _disconnectedTokenSource = new CancellationTokenSource();
         
-        RemoteIpAddress = (tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
+        RemoteIpAddress = (tcpClient.Client.RemoteEndPoint as IPEndPoint)?.Address ?? IPAddress.None;
 
         _pingCheckTimer = new Timer(PingCheckTimerCallback, null, TimeSpan.FromSeconds(_options.ServerOptions.NoPingKickTime), Timeout.InfiniteTimeSpan);
 

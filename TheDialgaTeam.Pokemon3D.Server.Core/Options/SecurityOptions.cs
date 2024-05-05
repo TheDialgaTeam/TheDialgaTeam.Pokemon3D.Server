@@ -37,16 +37,16 @@ public sealed class Pbkdf2Options
     public const string ProviderName = "Pbkdf2";
 
     public static readonly string[] SupportedHashingAlgorithm = [ 
-        nameof(HashAlgorithmName.SHA1),
-        nameof(HashAlgorithmName.SHA256),
-        nameof(HashAlgorithmName.SHA384),
-        nameof(HashAlgorithmName.SHA512),
-        nameof(HashAlgorithmName.SHA3_256),
-        nameof(HashAlgorithmName.SHA3_384),
-        nameof(HashAlgorithmName.SHA3_512)
+        HashAlgorithmName.SHA1.Name,
+        HashAlgorithmName.SHA256.Name,
+        HashAlgorithmName.SHA384.Name,
+        HashAlgorithmName.SHA512.Name,
+        HashAlgorithmName.SHA3_256.Name,
+        HashAlgorithmName.SHA3_384.Name,
+        HashAlgorithmName.SHA3_512.Name
     ];
 
-    public string HashingAlgorithm { get; set; } = nameof(HashAlgorithmName.SHA256);
+    public string HashingAlgorithm { get; set; } = HashAlgorithmName.SHA256.Name ?? string.Empty;
 
     public int Iterations { get; set; } = 600000;
 }

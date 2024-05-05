@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2024 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
-using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 
-public record PlayerJoin(IPlayer Player) : INotification;
+public record PlayerJoining();

@@ -15,14 +15,25 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
+using Microsoft.Extensions.Configuration;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options;
 
-public sealed class NetworkOptions
+public sealed class NetworkOptions : BaseOptions
 {
     public string BindingInformation { get; set; } = new IPEndPoint(IPAddress.Any, 15124).ToString();
 
     public bool UseUpnp { get; set; }
     
     public int UpnpDiscoveryTime { get; set; } = 5;
+
+    public NetworkOptions(IConfiguration configuration) : base(configuration)
+    {
+    }
+
+    protected override void OnConfigurationChange(IConfiguration configuration)
+    {
+        var networkConfiguration = configuration.GetSection("Server:Network");
+        //BindingInformation = networkConfiguration.GetValue<string>(nameof(BindingInformation));
+    }
 }

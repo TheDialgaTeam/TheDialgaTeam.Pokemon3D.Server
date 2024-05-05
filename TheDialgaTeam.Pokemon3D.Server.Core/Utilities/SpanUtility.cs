@@ -18,6 +18,20 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Utilities;
 
 public static class SpanUtility
 {
+    public static ReadOnlySpan<char> SplitNext(this ReadOnlySpan<char> span, char separator, out ReadOnlySpan<char> next)
+    {
+        var nextIndex = span.IndexOf(separator);
+
+        if (nextIndex == -1)
+        {
+            next = ReadOnlySpan<char>.Empty;
+            return span;
+        }
+
+        next = span[(nextIndex + 1)..];
+        return span[..nextIndex];
+    }
+    
     public static ReadOnlySpan<char> SplitNext(this ReadOnlySpan<char> span, string separator, out ReadOnlySpan<char> next)
     {
         var nextIndex = span.IndexOf(separator);

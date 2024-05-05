@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
@@ -32,7 +33,7 @@ public sealed record PrivateMessagePacket(IPlayer? Player, Origin Origin, Origin
     
     public IRawPacket ToServerRawPacket(IPlayer player)
     {
-        return player.Id == Origin ? new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { ChatPartner.ToRawString(), Message }) : new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { Message });
+        return player.Id == Origin ? new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { ChatPartner.ToRawPacketString(), Message }) : new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { Message });
     }
     
     public IRawPacket ToServerRawPacket()
@@ -42,11 +43,11 @@ public sealed record PrivateMessagePacket(IPlayer? Player, Origin Origin, Origin
             return new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { Message });
         }
         
-        return Player.Id == Origin ? new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { ChatPartner.ToRawString(), Message }) : new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { Message });
+        return Player.Id == Origin ? new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { ChatPartner.ToRawPacketString(), Message }) : new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { Message });
     }
 
     public IRawPacket ToClientRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { ChatPartner.ToRawString(), Message });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { ChatPartner.ToRawPacketString(), Message });
     }
 }

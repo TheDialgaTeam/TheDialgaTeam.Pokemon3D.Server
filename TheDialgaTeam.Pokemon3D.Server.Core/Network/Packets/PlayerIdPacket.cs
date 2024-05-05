@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
@@ -27,7 +28,7 @@ public sealed record PlayerIdPacket(int Id) : IPacket
 
     public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Id, Origin.Server, new[] { Id.ToString(CultureInfo.InvariantCulture) });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Id, Origin.Server, [Id.ToString(CultureInfo.InvariantCulture)]);
     }
 
     public IRawPacket ToClientRawPacket()

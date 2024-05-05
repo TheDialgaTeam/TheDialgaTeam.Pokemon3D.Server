@@ -40,7 +40,7 @@ public sealed class DatabaseQueryHandler :
         
         if (player.IsGameJoltPlayer)
         {
-            var playerProfile = await _context.PlayerProfiles.SingleOrDefaultAsync(profile => profile.GameJoltId == player.GameJoltId, cancellationToken).ConfigureAwait(false);
+            var playerProfile = await _context.PlayerProfiles.Include(profile => profile.LocalWorld).SingleOrDefaultAsync(profile => profile.GameJoltId == player.GameJoltId, cancellationToken).ConfigureAwait(false);
 
             if (playerProfile is not null)
             {
@@ -75,11 +75,13 @@ public sealed class DatabaseQueryHandler :
 
     public void Dispose()
     {
+        _context.SaveChanges();
         _context.Dispose();
     }
 
     public async ValueTask DisposeAsync()
     {
+        await _context.SaveChangesAsync().ConfigureAwait(false);
         await _context.DisposeAsync().ConfigureAwait(false);
     }
 }

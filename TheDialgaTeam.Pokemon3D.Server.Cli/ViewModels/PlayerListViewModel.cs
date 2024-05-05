@@ -25,7 +25,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.ViewModels;
 
 public sealed class PlayerListViewModel :
-    INotificationHandler<PlayerJoin>,
+    INotificationHandler<PlayerJoined>,
     INotificationHandler<PlayerUpdated>,
     INotificationHandler<PlayerLeft>
 {
@@ -59,7 +59,7 @@ public sealed class PlayerListViewModel :
 
     private readonly object _syncLock = new();
 
-    public ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
+    public ValueTask Handle(PlayerJoined notification, CancellationToken cancellationToken)
     {
         lock (_syncLock)
         {

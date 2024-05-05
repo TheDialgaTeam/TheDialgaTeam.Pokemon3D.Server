@@ -14,24 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 
-public sealed record KickPacket(string Reason) : IPacket
-{
-    public KickPacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
-    {
-    }
-    
-    public IRawPacket ToServerRawPacket()
-    {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Kicked, Origin.Server, new[] { Reason });
-    }
-
-    public IRawPacket ToClientRawPacket()
-    {
-        throw new NotSupportedException();
-    }
-}
+public record PlayerJoined(IPlayer Player) : INotification;

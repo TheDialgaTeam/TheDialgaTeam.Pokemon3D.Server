@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Test.Network.Packets;
@@ -33,11 +34,11 @@ public sealed class RawPacketTest
     [Fact]
     public void ServerRequestPacketTest()
     {
-        var serverRequestPacket = new ServerRequestPacket("r");
+        var serverRequestPacket = new ServerDataRequestPacket("r");
         var expectedRawPacket = new RawPacket(RawPacket.ProtocolVersion, PacketType.ServerDataRequest, Origin.NewPlayer, ServerRequestPacketDataItems);
         
         Assert.Equal(expectedRawPacket.ToRawPacketString(), serverRequestPacket.ToClientRawPacket().ToRawPacketString());
         Assert.True(RawPacket.TryParse($"{RawPacket.ProtocolVersion}|{(int) PacketType.ServerDataRequest}|{(int) Origin.Server}|1|0|r", out var rawPacket));
-        Assert.Equal(serverRequestPacket, new ServerRequestPacket(rawPacket));
+        Assert.Equal(serverRequestPacket, new ServerDataRequestPacket(rawPacket));
     }
 }

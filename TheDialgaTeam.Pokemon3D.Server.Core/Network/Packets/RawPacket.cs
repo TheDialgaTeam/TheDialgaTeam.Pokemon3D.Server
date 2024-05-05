@@ -17,6 +17,7 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;

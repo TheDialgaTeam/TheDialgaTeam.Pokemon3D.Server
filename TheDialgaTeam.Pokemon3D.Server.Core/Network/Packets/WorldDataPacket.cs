@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.World;
 
@@ -31,12 +32,11 @@ public sealed record WorldDataPacket(Season Season, Weather Weather, TimeOnly Ti
 
     public IRawPacket ToServerRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.WorldData, Origin.Server, new[]
-        {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.WorldData, Origin.Server, [
             ((int) Season).ToString(CultureInfo.InvariantCulture),
             ((int) Weather).ToString(CultureInfo.InvariantCulture),
             Time.ToString("H,m,s")
-        });
+        ]);
     }
 
     public IRawPacket ToClientRawPacket()

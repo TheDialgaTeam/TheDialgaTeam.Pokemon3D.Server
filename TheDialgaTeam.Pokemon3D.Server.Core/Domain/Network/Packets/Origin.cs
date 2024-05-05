@@ -14,24 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
+using System.Globalization;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 
-public sealed record KickPacket(string Reason) : IPacket
+public readonly record struct Origin(int Id)
 {
-    public KickPacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
+    public static Origin Server => new(-1);
+    
+    public static Origin NewPlayer => new(0);
+    
+    public static implicit operator int(Origin origin)
     {
+        return origin.Id;
     }
     
-    public IRawPacket ToServerRawPacket()
+    public static implicit operator Origin(int id)
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Kicked, Origin.Server, new[] { Reason });
+        return new Origin(id);
     }
 
-    public IRawPacket ToClientRawPacket()
+    public string ToRawPacketString()
     {
-        throw new NotSupportedException();
+        return Id.ToString(CultureInfo.InvariantCulture);
     }
 }

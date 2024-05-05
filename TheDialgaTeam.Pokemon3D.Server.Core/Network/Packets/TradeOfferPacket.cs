@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Globalization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Interfaces.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Network.Packets;
@@ -32,6 +33,6 @@ public sealed record TradeOfferPacket(Origin Origin, Origin TradePartner, string
 
     public IRawPacket ToClientRawPacket()
     {
-        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeOffer, Origin, new[] { TradePartner.ToRawString(), PokemonData });
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.TradeOffer, Origin, new[] { TradePartner.ToRawPacketString(), PokemonData });
     }
 }
