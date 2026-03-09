@@ -17,6 +17,7 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using DynamicData;
 using DynamicData.Binding;
 using NStack;

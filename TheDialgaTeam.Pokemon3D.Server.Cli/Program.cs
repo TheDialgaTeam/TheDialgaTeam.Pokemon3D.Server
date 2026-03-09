@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ReactiveUI.Builder;
+using TheDialgaTeam.Pokemon3D.Server.Cli.Scheduler;
 using TheDialgaTeam.Pokemon3D.Server.Cli.Services;
 using TheDialgaTeam.Pokemon3D.Server.Core.Extensions;
 using TheDialgaTeam.Serilog.Extensions;
@@ -26,6 +28,7 @@ internal static class Program
                     collection.AddSingleton<ActionSinkOptions>();
                     collection.AddHostedService<ConsoleGuiService>();
                     collection.AddHostedService<ServerHostedService>();
+                    collection.AddSingleton(RxAppBuilder.CreateReactiveUIBuilder().WithMainThreadScheduler(TerminalScheduler.Default).BuildApp());
                 }
                 else
                 {

@@ -17,24 +17,24 @@
 using System.Collections.ObjectModel;
 using Mediator;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Events;
 using TheDialgaTeam.Pokemon3D.Server.Core.Player.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.ViewModels;
 
-public sealed class PlayerListViewModel :
+public sealed partial class PlayerListViewModel :
     INotificationHandler<PlayerJoin>,
     INotificationHandler<PlayerUpdated>,
     INotificationHandler<PlayerLeft>
 {
-    public class Player : ReactiveObject
+    public partial class Player : ReactiveObject
     {
         public int Id => _player.Id;
         
         [Reactive]
-        private string GetDisplayStatus { get; set; }
+        private partial string GetDisplayStatus { get; set; }
 
         private readonly IPlayer _player;
 
@@ -57,7 +57,7 @@ public sealed class PlayerListViewModel :
 
     public ObservableCollection<Player> Players { get; } = [];
 
-    private readonly object _syncLock = new();
+    private readonly Lock _syncLock = new();
 
     public ValueTask Handle(PlayerJoin notification, CancellationToken cancellationToken)
     {

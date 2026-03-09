@@ -31,5 +31,6 @@ public enum Weather
     Thunderstorm = 6,
     Sandstorm = 7,
     Ash = 8,
-    Blizzard = 9
+    Blizzard = 9,
+    Mist = 10
 }

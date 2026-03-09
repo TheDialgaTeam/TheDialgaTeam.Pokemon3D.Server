@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,7 +51,7 @@ internal sealed class PlayerListView : FrameView
         
         ViewModel.Players
             .ToObservableChangeSet()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(_ =>
             {
                 PlayerView.SetNeedsDisplay();

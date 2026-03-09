@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using DynamicData.Binding;
 using Microsoft.Extensions.DependencyInjection;
@@ -79,7 +80,7 @@ internal sealed class ConsoleMessageView : FrameView
 
         ViewModel.ConsoleMessages
             .ToObservableChangeSet()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(_ =>
             {
                 ScrollBarView.Size = ConsoleView.Source.Count;

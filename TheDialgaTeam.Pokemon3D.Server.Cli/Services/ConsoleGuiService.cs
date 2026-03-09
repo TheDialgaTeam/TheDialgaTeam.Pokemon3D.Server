@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Reactive.Concurrency;
 using Microsoft.Extensions.Hosting;
-using ReactiveUI;
 using Terminal.Gui;
-using TheDialgaTeam.Pokemon3D.Server.Cli.Scheduler;
 using TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.Services;
@@ -38,8 +35,6 @@ internal sealed class ConsoleGuiService : BackgroundService
         {
             Application.Init();
             Application.QuitKey = Key.F1;
-            RxApp.MainThreadScheduler = TerminalScheduler.Default;
-            RxApp.TaskpoolScheduler = TaskPoolScheduler.Default;
             Application.Run(new MainConsoleView(_serviceProvider));
         }, stoppingToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }

@@ -6,7 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using TheDialgaTeam.Microsoft.Extensions.Logging.Action;
 using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
 using Unit = System.Reactive.Unit;
@@ -22,17 +22,17 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ExitCommand { get; }
     
     [Reactive]
-    public string LogOutput { get; set; } = string.Empty;
+    public partial string LogOutput { get; set; } = string.Empty;
     
     [ObservableAsProperty]
-    public int LogOutputPosition { get; }
+    public partial int LogOutputPosition { get; }
 
     [Reactive]
-    private bool IsActive { get; set; }
+    private partial bool IsActive { get; set; }
     
     private readonly IMediator _mediator;
 
-    private readonly object _logToConsoleLock = new();
+    private readonly Lock _logToConsoleLock = new();
     private readonly StringBuilder _logEntries = new();
 
     public MainWindowViewModel()
@@ -42,11 +42,11 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         var actionLoggerConfiguration = Program.ServiceProvider.GetRequiredService<ActionLoggerConfiguration>();
         actionLoggerConfiguration.RegisteredActionLogger = LogToConsole;
 
-        StartServerCommand = ReactiveCommand.CreateFromTask(StartServer, this.WhenAnyValue(model => model.IsActive).Select(b => b == false));
+        StartServerCommand = ReactiveCommand.CreateFromTask(StartServer, this.WhenAnyValue(model => model.IsActive).Select(b => !b));
         StopServerCommand = ReactiveCommand.CreateFromTask(StopServer, this.WhenAnyValue(model => model.IsActive));
         ExitCommand = ReactiveCommand.CreateFromTask(Exit);
 
-        this.WhenAnyValue(model => model.LogOutput).Select(s => s.Length).ToPropertyEx(this, model => model.LogOutputPosition);
+        this.WhenAnyValue(model => model.LogOutput).Select(s => s.Length).ToProperty(this, model => model.LogOutputPosition, out _logOutputPositionHelper);
     }
 
     [GeneratedRegex("\x1B(?:[@-Z\\-_]|\\[[0-?]*[ -/]*[@-~])")]
