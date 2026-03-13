@@ -21,9 +21,9 @@ namespace TheDialgaTeam.Pokemon3D.Server.Cli.Utilities;
 
 public static class ApplicationUtility
 {
-    public static string Name { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>()!.Product;
+    public static string Name { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>()?.Product ?? throw new InvalidOperationException();
 
-    public static string Version { get; } = Assembly.GetExecutingAssembly().GetName().Version!.ToString();
+    public static string Version { get; } = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? throw new InvalidOperationException();
 
-    public static string FrameworkVersion { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<TargetFrameworkAttribute>()!.FrameworkName;
+    public static string FrameworkVersion { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<TargetFrameworkAttribute>()?.FrameworkName ?? throw new InvalidOperationException();
 }

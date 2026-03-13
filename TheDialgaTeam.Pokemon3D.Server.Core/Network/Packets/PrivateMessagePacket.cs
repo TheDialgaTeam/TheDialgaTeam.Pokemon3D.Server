@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2026 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,23 +25,23 @@ public sealed record PrivateMessagePacket(IPlayer? Player, Origin Origin, Origin
     public PrivateMessagePacket(IRawPacket rawPacket) : this(null, rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture), rawPacket.DataItems[1])
     {
     }
-    
+
     public PrivateMessagePacket(IPlayer player, IRawPacket rawPacket) : this(player, rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture), rawPacket.DataItems[1])
     {
     }
-    
+
     public IRawPacket ToServerRawPacket(IPlayer player)
     {
         return player.Id == Origin ? new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { ChatPartner.ToRawString(), Message }) : new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { Message });
     }
-    
+
     public IRawPacket ToServerRawPacket()
     {
         if (Player is null)
         {
             return new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { Message });
         }
-        
+
         return Player.Id == Origin ? new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { ChatPartner.ToRawString(), Message }) : new RawPacket(RawPacket.ProtocolVersion, PacketType.PrivateMessage, Origin, new[] { Message });
     }
 

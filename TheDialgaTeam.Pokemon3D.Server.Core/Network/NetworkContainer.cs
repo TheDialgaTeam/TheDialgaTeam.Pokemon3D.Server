@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2026 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ public sealed class NetworkContainer(
 
     private int _nextRunningId = 1;
     private readonly SortedSet<int> _runningIds = [];
-    private readonly object _runningIdLock = new();
+    private readonly Lock _runningIdLock = new();
 
     #region Client Events
 
@@ -59,7 +59,7 @@ public sealed class NetworkContainer(
         {
             notification.PokemonServerClient.Disconnect();
         }
-        
+
         return ValueTask.CompletedTask;
     }
 
@@ -107,7 +107,7 @@ public sealed class NetworkContainer(
         if (!GameDataPacket.IsFullGameData(notification.RawPacket))
         {
             if (!TryGetPlayerById(notification.RawPacket.Origin, out var player)) throw new InvalidOperationException("Player does not exist.");
-            
+
             await player.ApplyGameDataAsync(notification.RawPacket).ConfigureAwait(false);
             return;
         }
@@ -118,7 +118,7 @@ public sealed class NetworkContainer(
         var newPlayer = playerFactory.CreatePlayer(notification.Network, GetNextRunningId(), gameDataPacket);
         await newPlayer.InitializePlayer(cancellationToken).ConfigureAwait(false);
         await newPlayer.AuthenticatePlayer(null, null, cancellationToken).ConfigureAwait(false);
-        
+
         _players[notification.Network] = newPlayer;
 
         var playerCanJoin = true;
@@ -175,7 +175,7 @@ public sealed class NetworkContainer(
         {
             otherPlayer.SendPacket(notification.RawPacket);
         }
-        
+
         return ValueTask.CompletedTask;
     }
 
@@ -189,12 +189,12 @@ public sealed class NetworkContainer(
         {
             otherPlayer.SendPacket(new ChatMessagePacket(Origin.Server, stringLocalizer[s => s.GameMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]));
         }
-        
+
         _logger.LogInformation("{Message}", stringLocalizer[s => s.ConsoleMessageFormat.GameStateMessage, player.DisplayName, gamestateMessagePacket.Message]);
         */
         return ValueTask.CompletedTask;
     }
-    
+
     private ValueTask HandleServerDataRequest(NewPacketReceived notification)
     {
         notification.Network.SendPacket(new ServerInfoDataPacket(
@@ -259,14 +259,14 @@ public sealed class NetworkContainer(
             otherPlayer.SendPacket(new DestroyPlayerPacket(player.Id));
             otherPlayer.SendPacket(new ChatMessagePacket(-1, stringLocalizer[s => s.GameMessageFormat.PlayerLeft, player.DisplayName]));
         }
-        
+
         _logger.LogInformation("{Message}", reason is null ? stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeft, player.DisplayName] : stringLocalizer[s => s.ConsoleMessageFormat.PlayerLeftWithReason, player.DisplayName, notification.Reason]);
-        
+
         if (notification.Player is IDisposable disposable)
         {
             disposable.Dispose();
         }
-        
+
         return ValueTask.CompletedTask;
     }
 
@@ -285,14 +285,14 @@ public sealed class NetworkContainer(
             return id;
         }
     }
-    
+
     private bool TryGetPlayerById(int id, [MaybeNullWhen(false)] out IPlayer player)
     {
         foreach (var (_, value) in _players)
         {
             if (value is null) continue;
             if (value.Id != id) continue;
-            
+
             player = value;
             return true;
         }
@@ -300,7 +300,7 @@ public sealed class NetworkContainer(
         player = null;
         return false;
     }
-    
+
     private IEnumerable<IPlayer> GetPlayersEnumerable(IPlayer? excludePlayer = null, bool includeNonReady = false)
     {
         foreach (var (_, player) in _players)
@@ -319,6 +319,6 @@ public sealed class NetworkContainer(
             await player.AuthenticatePlayer(null, null, cancellationToken).ConfigureAwait(false);
         }
     }
-    
+
     #endregion
 }

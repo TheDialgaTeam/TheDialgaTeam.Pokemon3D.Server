@@ -50,19 +50,11 @@ public static class HostBuilderExtensions
             collection.AddOptionsWithValidateOnStart<ServerOptions>().BindConfiguration("Server");
             collection.TryAddSingleton<IValidateOptions<ServerOptions>, ServerOptionsValidation>();
 
-            collection.AddOptionsWithValidateOnStart<NetworkOptions>().BindConfiguration("Server:Network");
-            collection.TryAddSingleton<IValidateOptions<NetworkOptions>, NetworkOptionsValidation>();
-
             collection.AddOptionsWithValidateOnStart<DatabaseOptions>().BindConfiguration("Server:Database");
             collection.TryAddSingleton<IValidateOptions<DatabaseOptions>, DatabaseOptionsValidation>();
 
             collection.AddOptionsWithValidateOnStart<SecurityOptions>().BindConfiguration("Server:Security");
             collection.TryAddSingleton<IValidateOptions<SecurityOptions>, SecurityOptionsValidation>();
-            
-            collection.AddOptions<WorldOptions>().BindConfiguration("Server:World");
-            collection.AddOptions<ChatOptions>().BindConfiguration("Server:Chat");
-            collection.AddOptions<PvPOptions>().BindConfiguration("Server:PvP");
-            collection.AddOptions<TradeOptions>().BindConfiguration("Server:Trade");
             
             collection.AddOptions<LocalizationOptions>().BindConfiguration("Localization");
             collection.TryAddSingleton<IStringLocalizer, JsonOptionsStringLocalizer>();

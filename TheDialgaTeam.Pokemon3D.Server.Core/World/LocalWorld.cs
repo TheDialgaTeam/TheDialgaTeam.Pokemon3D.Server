@@ -77,17 +77,17 @@ internal sealed class LocalWorld : ILocalWorld
     {
         if (_world is null)
         {
-            DoDayCycle = _options.WorldOptions.DoDayCycle;
-            TargetSeason = _options.WorldOptions.Season;
-            TargetWeather = _options.WorldOptions.Weather;
-            TargetOffset = TimeSpan.FromMinutes(_options.WorldOptions.TimeOffset);
+            DoDayCycle = _options.ServerOptions.DoDayCycle;
+            TargetSeason = _options.ServerOptions.Season;
+            TargetWeather = _options.ServerOptions.Weather;
+            TargetOffset = _options.ServerOptions.TimeOffset;
         }
         else
         {
-            DoDayCycle = Player?.PlayerProfile?.LocalWorld.DoDayCycle ?? _options.WorldOptions.DoDayCycle;
-            TargetSeason = Player?.PlayerProfile?.LocalWorld.Season ?? _options.WorldOptions.Season;
-            TargetWeather = Player?.PlayerProfile?.LocalWorld.Weather ?? _options.WorldOptions.Weather;
-            TargetOffset = TimeSpan.FromMinutes(Player?.PlayerProfile?.LocalWorld.TimeOffset ?? _options.WorldOptions.TimeOffset);
+            DoDayCycle = Player?.PlayerProfile?.LocalWorld.DoDayCycle ?? _options.ServerOptions.DoDayCycle;
+            TargetSeason = Player?.PlayerProfile?.LocalWorld.Season ?? _options.ServerOptions.Season;
+            TargetWeather = Player?.PlayerProfile?.LocalWorld.Weather ?? _options.ServerOptions.Weather;
+            TargetOffset = TimeSpan.FromMinutes(Player?.PlayerProfile?.LocalWorld.TimeOffset ?? _options.ServerOptions.TimeOffset.TotalMinutes);
         }
 
         if (!DoDayCycle)
@@ -152,7 +152,7 @@ internal sealed class LocalWorld : ILocalWorld
 
             case Season.SeasonMonth:
             {
-                GenerateNewSeason((Season) _options.WorldOptions.SeasonMonth[CurrentTime.Month]);
+                GenerateNewSeason((Season) _options.ServerOptions.SeasonMonth[CurrentTime.Month]);
                 break;
             }
             
@@ -222,7 +222,7 @@ internal sealed class LocalWorld : ILocalWorld
 
             case Weather.WeatherSeason:
             {
-                GenerateNewWeather((Weather) _options.WorldOptions.WeatherSeason[(int) CurrentSeason]);
+                GenerateNewWeather((Weather) _options.ServerOptions.WeatherSeason[(int) CurrentSeason]);
                 break;
             }
 

@@ -65,9 +65,16 @@ internal sealed partial class PokemonServerClient : IPokemonServerClient, IDispo
 
         _sendCompleteTokenSource = new CancellationTokenSource();
         _disconnectedTokenSource = new CancellationTokenSource();
-        
-        RemoteIpAddress = (tcpClient.Client.RemoteEndPoint as IPEndPoint)!.Address;
 
+        if (tcpClient.Client.RemoteEndPoint is IPEndPoint ipEndPoint)
+        {
+            RemoteIpAddress = ipEndPoint.Address;
+        }
+        else
+        {
+            RemoteIpAddress = IPAddress.Loopback;
+        }
+        
         _pingCheckTimer = new Timer(PingCheckTimerCallback, null, TimeSpan.FromSeconds(_options.ServerOptions.NoPingKickTime), Timeout.InfiniteTimeSpan);
 
         Task.Factory.StartNew(PacketDataReader, TaskCreationOptions.LongRunning);

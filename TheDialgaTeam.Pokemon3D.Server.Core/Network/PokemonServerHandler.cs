@@ -43,8 +43,8 @@ internal sealed partial class PokemonServerHandler(
     ICommandHandler<StopServer>
 {
     private readonly ILogger _logger = logger;
-    
-    private IPEndPoint _targetEndPoint = IPEndPoint.Parse(options.NetworkOptions.BindingInformation);
+
+    private IPEndPoint _targetEndPoint = new IPEndPoint(IPAddress.Any, 15124);
     private INatDevice? _natDevice;
 
     private CancellationTokenSource? _serverListenerCts;
@@ -64,10 +64,18 @@ internal sealed partial class PokemonServerHandler(
     private async Task StartServerTask(CancellationToken cancellationToken)
     {
         PrintServerInformation(stringLocalizer[s => s.ConsoleMessageFormat.ServerIsStarting]);
-        
-        _targetEndPoint = IPEndPoint.Parse(options.NetworkOptions.BindingInformation);
 
-        if (options.NetworkOptions.UseUpnp)
+        if (IPEndPoint.TryParse(options.ServerOptions.BindingInformation, out var bindingInformation))
+        {
+            _targetEndPoint = bindingInformation;
+        }
+        else
+        {
+            var addresses = await Dns.GetHostAddressesAsync(options.ServerOptions.BindingInformation, AddressFamily.InterNetwork, cancellationToken).ConfigureAwait(false);
+            _targetEndPoint = new IPEndPoint(addresses[0], 15124);
+        }
+
+        if (options.ServerOptions.UseUpnp)
         {
             await CreatePortMappingTask(cancellationToken).ConfigureAwait(false);
         }
@@ -84,7 +92,7 @@ internal sealed partial class PokemonServerHandler(
 
     private async Task CreatePortMappingTask(CancellationToken cancellationToken)
     {
-        var natDiscoveryTime = TimeSpan.FromSeconds(options.NetworkOptions.UpnpDiscoveryTime);
+        var natDiscoveryTime = TimeSpan.FromSeconds(options.ServerOptions.UpnpDiscoveryTime);
         
         using var upnpMaxDiscoveryTimeCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         upnpMaxDiscoveryTimeCts.CancelAfter(natDiscoveryTime);
@@ -161,7 +169,7 @@ internal sealed partial class PokemonServerHandler(
         }
         finally
         {
-            if (options.NetworkOptions.UseUpnp)
+            if (options.ServerOptions.UseUpnp)
             {
                 if (_natDevice != null)
                 {
@@ -181,7 +189,7 @@ internal sealed partial class PokemonServerHandler(
         {
             IPAddress publicIpAddress;
             
-            if (options.NetworkOptions.UseUpnp && _natDevice != null)
+            if (options.ServerOptions.UseUpnp && _natDevice != null)
             {
                 publicIpAddress = await _natDevice.GetExternalIPAsync().ConfigureAwait(false);
             }

@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2026 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -27,17 +27,17 @@ public sealed class DatabaseQueryHandler :
     IDisposable, IAsyncDisposable
 {
     private readonly DatabaseContext _context;
-    
+
     public DatabaseQueryHandler(IDbContextFactory<DatabaseContext> contextFactory)
     {
-        _context = contextFactory.CreateDbContext(); 
+        _context = contextFactory.CreateDbContext();
         _context.Database.Migrate();
     }
 
     public async ValueTask<PlayerProfile?> Handle(GetPlayerProfile query, CancellationToken cancellationToken)
     {
         var player = query.Player;
-        
+
         if (player.IsGameJoltPlayer)
         {
             var playerProfile = await _context.PlayerProfiles.SingleOrDefaultAsync(profile => profile.GameJoltId == player.GameJoltId, cancellationToken).ConfigureAwait(false);
@@ -46,7 +46,7 @@ public sealed class DatabaseQueryHandler :
             {
                 return playerProfile;
             }
-            
+
             // Check if there is any reserved names.
             var isNameConflict = await _context.PlayerProfiles.AnyAsync(profile => profile.DisplayName == player.Name, cancellationToken).ConfigureAwait(false);
 
@@ -54,12 +54,12 @@ public sealed class DatabaseQueryHandler :
             {
                 return null;
             }
-            
+
             // If there is no conflict, make this name reserved.
             playerProfile = new PlayerProfile
             {
-                DisplayName = player.Name, 
-                GameJoltId = player.GameJoltId, 
+                DisplayName = player.Name,
+                GameJoltId = player.GameJoltId,
                 PlayerType = PlayerType.Player,
                 LocalWorld = new LocalWorld()
             };

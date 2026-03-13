@@ -20,19 +20,9 @@ public interface IPokemonServerOptions
 {
     ServerOptions ServerOptions { get; }
     
-    NetworkOptions NetworkOptions { get; }
-    
     DatabaseOptions DatabaseOptions { get; }
     
     SecurityOptions SecurityOptions { get; }
-    
-    WorldOptions WorldOptions { get; }
-    
-    ChatOptions ChatOptions { get; }
-    
-    PvPOptions PvpOptions { get; }
-    
-    TradeOptions TradeOptions { get; }
     
     LocalizationOptions LocalizationOptions { get; }
 }

@@ -44,7 +44,7 @@ internal sealed class ConsoleMessageView : FrameView
 
         var observableCollectionDataSource = new ObservableCollectionDataSource<string>(ViewModel.ConsoleMessages);
         _disposable.Add(observableCollectionDataSource);
-
+        
         ConsoleView = new ListView(observableCollectionDataSource)
         {
             Width = Dim.Fill(),
@@ -79,7 +79,7 @@ internal sealed class ConsoleMessageView : FrameView
             }).DisposeWith(_disposable);
 
         ViewModel.ConsoleMessages
-            .ToObservableChangeSet()
+            .ObserveCollectionChanges()
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(_ =>
             {

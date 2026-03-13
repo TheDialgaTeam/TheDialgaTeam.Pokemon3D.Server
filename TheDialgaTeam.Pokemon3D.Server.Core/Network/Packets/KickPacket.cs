@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2026 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ public sealed record KickPacket(string Reason) : IPacket
     public KickPacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
     {
     }
-    
+
     public IRawPacket ToServerRawPacket()
     {
         return new RawPacket(RawPacket.ProtocolVersion, PacketType.Kicked, Origin.Server, new[] { Reason });

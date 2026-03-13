@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Net;
 using Microsoft.Extensions.Options;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Options.Validations;
@@ -37,6 +38,26 @@ internal sealed class ServerOptionsValidation : IValidateOptions<ServerOptions>
         if (options.NoPingKickTime < 10)
         {
             failureMessages.Add($"[Server:{nameof(options.NoPingKickTime)}] No ping kick time must be at least 10 seconds.");
+        }
+        
+        if (!IPEndPoint.TryParse(options.BindingInformation, out var ipEndPoint))
+        {
+            failureMessages.Add($"[Server:{nameof(options.BindingInformation)}] Invalid format given.");
+        }
+        else
+        {
+            if (!Dns.GetHostAddresses(Dns.GetHostName())
+                    .Append(IPAddress.Any)
+                    .Append(IPAddress.Loopback)
+                    .Any(address => ipEndPoint.Address.Equals(address)))
+            {
+                failureMessages.Add($"[Server:{nameof(options.BindingInformation)}] Invalid IP address given.");
+            }
+        }
+        
+        if (options.UpnpDiscoveryTime < 1)
+        {
+            failureMessages.Add($"[Server:{nameof(options.UpnpDiscoveryTime)}] Upnp Discovery Time require at least 1 second.");
         }
         
         return failureMessages.Count > 0 ? ValidateOptionsResult.Fail(failureMessages) : ValidateOptionsResult.Success;
