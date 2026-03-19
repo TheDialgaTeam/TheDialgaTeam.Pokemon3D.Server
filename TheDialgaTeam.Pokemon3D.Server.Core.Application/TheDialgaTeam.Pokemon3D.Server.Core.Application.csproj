@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\TheDialgaTeam.Pokemon3D.Server.prop"/>
+
+    <PropertyGroup>
+        <IsTrimmable>true</IsTrimmable>
+        <IsPublishable>false</IsPublishable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TheDialgaTeam.Pokemon3D.Server.Core.Domain\TheDialgaTeam.Pokemon3D.Server.Core.Domain.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\TheDialgaTeam.Pokemon3D.Server.prop"/>
+
+    <PropertyGroup>
+        <IsTrimmable>true</IsTrimmable>
+        <IsPublishable>false</IsPublishable>
+    </PropertyGroup>
+
+</Project>

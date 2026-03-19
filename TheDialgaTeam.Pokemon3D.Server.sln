@@ -8,6 +8,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Test", "TheDialgaTeam.Pokemon3D.Server.Test\TheDialgaTeam.Pokemon3D.Server.Test.csproj", "{EFB0482A-6012-479C-A225-44BE34547E18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Core.Domain", "TheDialgaTeam.Pokemon3D.Server.Core.Domain\TheDialgaTeam.Pokemon3D.Server.Core.Domain.csproj", "{31FC363F-BC62-4D0F-8F44-1B8893A8157B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Core.Application", "TheDialgaTeam.Pokemon3D.Server.Core.Application\TheDialgaTeam.Pokemon3D.Server.Core.Application.csproj", "{7400785C-5B7D-4AEB-9165-8F1C60E31949}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure", "TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure\TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.csproj", "{EEC29A32-549B-4A42-8C8E-F8722738DA8E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,5 +38,17 @@ Global
 		{EFB0482A-6012-479C-A225-44BE34547E18}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFB0482A-6012-479C-A225-44BE34547E18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFB0482A-6012-479C-A225-44BE34547E18}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31FC363F-BC62-4D0F-8F44-1B8893A8157B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31FC363F-BC62-4D0F-8F44-1B8893A8157B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31FC363F-BC62-4D0F-8F44-1B8893A8157B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31FC363F-BC62-4D0F-8F44-1B8893A8157B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7400785C-5B7D-4AEB-9165-8F1C60E31949}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7400785C-5B7D-4AEB-9165-8F1C60E31949}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7400785C-5B7D-4AEB-9165-8F1C60E31949}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7400785C-5B7D-4AEB-9165-8F1C60E31949}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEC29A32-549B-4A42-8C8E-F8722738DA8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEC29A32-549B-4A42-8C8E-F8722738DA8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEC29A32-549B-4A42-8C8E-F8722738DA8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEC29A32-549B-4A42-8C8E-F8722738DA8E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
