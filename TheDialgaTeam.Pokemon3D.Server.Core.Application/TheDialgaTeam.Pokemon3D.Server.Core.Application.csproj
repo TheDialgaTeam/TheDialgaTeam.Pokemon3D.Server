@@ -11,4 +11,11 @@
       <ProjectReference Include="..\TheDialgaTeam.Pokemon3D.Server.Core.Domain\TheDialgaTeam.Pokemon3D.Server.Core.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Mediator.Abstractions" Version="3.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.5" />
+    </ItemGroup>
+
 </Project>

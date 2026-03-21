@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2026 Yong Jian Ming
+// Copyright (C) 2023 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,21 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.Common;
+using System.Globalization;
 
-public abstract class BaseEntity
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
+
+public readonly record struct Origin(int Id)
 {
-    private readonly List<IDomainEvent> _domainEvents = [];
+    public static Origin Server => new(-1);
     
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
-
-    protected void AddDomainEvent(IDomainEvent domainEvent)
+    public static Origin NewPlayer => new(0);
+    
+    public static implicit operator int(Origin origin)
     {
-        _domainEvents.Add(domainEvent);
+        return origin.Id;
+    }
+    
+    public static implicit operator Origin(int id)
+    {
+        return new Origin(id);
     }
 
-    public void ClearDomainEvents()
+    public string ToRawString()
     {
-        _domainEvents.Clear();
+        return Id.ToString(CultureInfo.InvariantCulture);
     }
 }

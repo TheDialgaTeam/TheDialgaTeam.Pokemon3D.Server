@@ -14,17 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.Common;
+using Mediator;
 
-public record Result(bool success, Exception? Exception = null)
-{
-    public static Result Success()
-    {
-        return new Result(true);
-    }
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Query;
 
-    public static Result Failure(Exception exception)
-    {
-        return new Result(false, exception);
-    }
-};
+public record GetServerOptions : IQuery<ServerOptions>;

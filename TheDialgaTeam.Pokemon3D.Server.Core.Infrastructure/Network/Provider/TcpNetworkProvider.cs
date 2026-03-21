@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.Common;
+using System.Net;
+using System.Net.Sockets;
 
-public abstract class BaseEntity
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Provider;
+
+public class TcpNetworkProvider
 {
-    private readonly List<IDomainEvent> _domainEvents = [];
-    
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    private readonly TcpListener _tcpListener;
 
-    protected void AddDomainEvent(IDomainEvent domainEvent)
+    public TcpNetworkProvider(IPEndPoint ipEndPoint)
     {
-        _domainEvents.Add(domainEvent);
-    }
-
-    public void ClearDomainEvents()
-    {
-        _domainEvents.Clear();
+        _tcpListener = new TcpListener(ipEndPoint);
     }
 }

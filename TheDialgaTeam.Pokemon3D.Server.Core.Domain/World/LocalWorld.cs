@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Common;
+using TheDialgaTeam.Pokemon3D.Server.Core.Domain.World.Event;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.World;
 
@@ -28,26 +29,36 @@ public class LocalWorld : BaseEntity
     public Season TargetSeason { get; private set; } = Season.Default;
     public Weather TargetWeather { get; private set; } = Weather.Default;
     public TimeSpan TargetOffset { get; private set; } = DateTimeOffset.Now.Offset;
+    public SeasonMonth SeasonMonth { get; private set; } = new();
+    public WeatherSeason WeatherSeason { get; private set; } = new();
 
     private int WeekOfYear => (CurrentLocalTime.DayOfYear - 1) / 7 + 1;
     
     private DateTimeOffset _lastUpdate = DateTimeOffset.MinValue;
 
-    public Result UpdateLocalWorldTarget(bool doDayCycle, Season targetSeason, Weather targetWeather, TimeSpan targetOffset)
+    public void UpdateLocalWorldTarget(bool doDayCycle, Season targetSeason, Weather targetWeather, TimeSpan targetOffset)
     {
         DoDayCycle = doDayCycle;
         TargetSeason = targetSeason;
         TargetWeather = targetWeather;
         TargetOffset = targetOffset;
-        
-        return Result.Success();
     }
 
-    public Result UpdateLocalWorld(DateTimeOffset currentServerTime)
+    public void UpdateSeasonMonth(IReadOnlyList<Tuple<Season, int>[]> seasons)
+    {
+        SeasonMonth.Update(seasons);
+    }
+
+    public void UpdateWeatherSeason(IReadOnlyList<Tuple<Weather, int>[]> weather)
+    {
+        WeatherSeason.Update(weather);
+    }
+
+    public void UpdateLocalWorld(DateTimeOffset currentServerTime)
     {
         if (currentServerTime < _lastUpdate)
         {
-            return Result.Failure(new ArgumentException("Current server time is in the past", nameof(currentServerTime)));
+            throw new ArgumentException("Current server time is in the past", nameof(currentServerTime));
         }
 
         DateTime newLocalTime;
@@ -73,8 +84,8 @@ public class LocalWorld : BaseEntity
             var currentTime = currentServerTime.ToOffset(TargetOffset);
             
             newLocalTime = currentTime.LocalDateTime;
-            newSeason = currentTime.DayOfYear != _lastUpdate.DayOfYear ? GenerateNewSeason() : CurrentSeason;
-            newWeather = currentTime.Hour != _lastUpdate.Hour ? GenerateNewWeather() : CurrentWeather;
+            newSeason = currentTime.DayOfYear != _lastUpdate.DayOfYear ? GenerateNewSeason(TargetSeason) : CurrentSeason;
+            newWeather = currentTime.Hour != _lastUpdate.Hour ? GenerateNewWeather(TargetWeather) : CurrentWeather;
             hasChanges = newLocalTime != CurrentLocalTime || newSeason != CurrentSeason || newWeather != CurrentWeather;
             
             CurrentLocalTime = currentTime.LocalDateTime;
@@ -84,12 +95,15 @@ public class LocalWorld : BaseEntity
             _lastUpdate = currentTime;
         }
 
-        return Result.Success();
+        if (hasChanges)
+        {
+            AddDomainEvent(new LocalWorldHasChangedEvent());
+        }
     }
 
-    private Season GenerateNewSeason()
+    private Season GenerateNewSeason(Season targetSeason)
     {
-        return TargetSeason switch
+        return targetSeason switch
         {
             Season.Default => (WeekOfYear % 4) switch
             {
@@ -100,13 +114,14 @@ public class LocalWorld : BaseEntity
                 var _ => CurrentSeason
             },
             Season.Random => (Season) Random.Shared.Next(0, 4),
-            var _ => TargetSeason
+            Season.SeasonMonth => GenerateNewSeason(SeasonMonth.GenerateNewSeason(CurrentLocalTime.Month)),
+            var _ => targetSeason
         };
     }
 
-    private Weather GenerateNewWeather()
+    private Weather GenerateNewWeather(Weather targetWeather)
     {
-        return TargetWeather switch
+        return targetWeather switch
         {
             Weather.Default => CurrentSeason switch
             {
@@ -213,7 +228,8 @@ public class LocalWorld : BaseEntity
                 var _ => CurrentWeather
             },
             Weather.Random => (Weather) Random.Shared.Next(0, 11),
-            var _ => TargetWeather
+            Weather.WeatherSeason => GenerateNewWeather(WeatherSeason.GenerateNewWeather(CurrentSeason)),
+            var _ => targetWeather
         };
     }
 }

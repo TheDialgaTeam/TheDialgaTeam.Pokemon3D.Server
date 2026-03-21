@@ -14,21 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.Common;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
 
-public abstract class BaseEntity
+public interface IPacket
 {
-    private readonly List<IDomainEvent> _domainEvents = [];
-    
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public IRawPacket ToServerResponseRawPacket();
 
-    protected void AddDomainEvent(IDomainEvent domainEvent)
-    {
-        _domainEvents.Add(domainEvent);
-    }
-
-    public void ClearDomainEvents()
-    {
-        _domainEvents.Clear();
-    }
+    public IRawPacket ToClientResponseRawPacket();
 }

@@ -14,21 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.Common;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 
-public abstract class BaseEntity
-{
-    private readonly List<IDomainEvent> _domainEvents = [];
-    
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options;
 
-    protected void AddDomainEvent(IDomainEvent domainEvent)
-    {
-        _domainEvents.Add(domainEvent);
-    }
-
-    public void ClearDomainEvents()
-    {
-        _domainEvents.Clear();
-    }
-}
+[JsonSerializable(typeof(ServerOptions), GenerationMode = JsonSourceGenerationMode.Serialization)]
+[JsonSourceGenerationOptions(JsonSerializerDefaults.General, WriteIndented = true)]
+internal partial class ServerOptionsSerializerContext : JsonSerializerContext;
