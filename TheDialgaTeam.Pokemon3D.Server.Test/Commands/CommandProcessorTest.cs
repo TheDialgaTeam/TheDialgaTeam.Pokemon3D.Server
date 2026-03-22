@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using JetBrains.Annotations;
 using TheDialgaTeam.Pokemon3D.Server.Core.Commands;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Test.Commands;
 
-[TestSubject(typeof(CommandProcessor))]
 public class CommandProcessorTest
 {
     public static readonly TheoryData<string, string[]> CommandArgumentTestResults = new()

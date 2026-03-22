@@ -15,16 +15,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
-using System.Net.Sockets;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Listener;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Provider;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
 
-public class TcpNetworkProvider
+internal class TcpNetworkListenerFactory : INetworkListenerFactory
 {
-    private readonly TcpListener _tcpListener;
-
-    public TcpNetworkProvider(IPEndPoint ipEndPoint)
+    public INetworkListener CreateNetworkListener(IPEndPoint ipEndPoint)
     {
-        _tcpListener = new TcpListener(ipEndPoint);
+        return new TcpNetworkListener(ipEndPoint);
     }
 }

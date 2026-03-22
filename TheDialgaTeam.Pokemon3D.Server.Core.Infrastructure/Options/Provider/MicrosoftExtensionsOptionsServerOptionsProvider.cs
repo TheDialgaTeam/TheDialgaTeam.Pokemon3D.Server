@@ -14,27 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Provider;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Validator;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Provider;
 
-public static partial class ServiceCollectionExtensions
-{
-    public static IServiceCollection AddMicrosoftGenericHostServerOptionsProvider(this IServiceCollection services)
-    {
-        services.AddOptions<ServerOptions>().BindConfiguration("Server").ValidateOnStart();
-        services.AddServerOptionsValidator();
-        services.TryAddSingleton<IServerOptionsProvider, MicrosoftGenericHostServerOptionsProvider>();
-        return services;
-    }
-}
-
-internal class MicrosoftGenericHostServerOptionsProvider(IOptionsMonitor<ServerOptions> optionsMonitor) : IServerOptionsProvider
+internal class MicrosoftExtensionsOptionsServerOptionsProvider(IOptionsMonitor<ServerOptions> optionsMonitor) : IServerOptionsProvider
 {
     public ServerOptions GetOptions()
     {
