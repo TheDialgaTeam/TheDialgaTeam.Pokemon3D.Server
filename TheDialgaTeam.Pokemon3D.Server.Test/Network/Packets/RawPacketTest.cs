@@ -20,17 +20,18 @@ using RawPacket = TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Pac
 
 namespace TheDialgaTeam.Pokemon3D.Server.Test.Network.Packets;
 
-public sealed class RawPacketTest
+public class RawPacketTest
 {
     public static TheoryData<string> FailedRawPacketParsingTestData =
     [
         "",
-        "SOME_GARBAGE",
-        "0.5|SOME_GARBAGE",
-        "0.5|-1|SOME_GARBAGE",
-        "0.5|-1|-1|SOME_GARBAGE",
-        "0.5|-1|-1|1|SOME_GARBAGE",
-        "0.5|-1|-1|2|0|SOME_GARBAGE"
+        "|",
+        "SOME_GARBAGE|",
+        "0.5|SOME_GARBAGE|",
+        "0.5|-1|SOME_GARBAGE|",
+        "0.5|-1|-1|SOME_GARBAGE|",
+        "0.5|-1|-1|1|SOME_GARBAGE|",
+        "0.5|-1|-1|2|0|SOME_GARBAGE|"
     ];
 
     public static TheoryData<string, string[]> PassedRawPacketParsingTestData =

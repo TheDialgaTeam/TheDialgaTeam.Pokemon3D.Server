@@ -18,23 +18,41 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 
-internal class TcpNetworkClient : INetworkClient
+public class TcpNetworkClient : INetworkClient
 {
-    public IPEndPoint IPEndPoint => _tcpClient.Client.RemoteEndPoint as IPEndPoint ?? throw new InvalidOperationException();
+    public IPEndPoint RemoteEndPoint => _tcpClient.Client.RemoteEndPoint as IPEndPoint ?? throw new InvalidOperationException();
 
     private readonly TcpClient _tcpClient;
     private readonly RawPacketStream _rawPacketStream;
+
+    private Subject<IRawPacket> _rawPacketSubject = new();
+    private Subject<INetworkClient> _disconnectedSubject = new();
+    
+    private Task _listeningTask;
+    private DateTimeOffset _lastValidPacket = DateTimeOffset.Now;
 
     public TcpNetworkClient(TcpClient tcpClient)
     {
         _tcpClient = tcpClient;
         _rawPacketStream = new RawPacketStream(_tcpClient.GetStream(), _tcpClient.ReceiveBufferSize, _tcpClient.SendBufferSize);
+    }
+
+    public void StartListening()
+    {
+        _listeningTask = Task.Factory.StartNew(() =>
+        {
+            while (_tcpClient.Connected)
+            {
+                
+            }
+        }, TaskCreationOptions.LongRunning);
     }
 
     public IObservable<IRawPacket> ObservePackets()
@@ -73,6 +91,7 @@ internal class TcpNetworkClient : INetworkClient
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         _tcpClient.Dispose();
     }
 }

@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Net;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
 
 public interface INetworkClient : IDisposable
 {
+    IPEndPoint RemoteEndPoint { get; }
+    
     IObservable<IRawPacket> ObservePackets();
 
     void SendPacket(IRawPacket packet);

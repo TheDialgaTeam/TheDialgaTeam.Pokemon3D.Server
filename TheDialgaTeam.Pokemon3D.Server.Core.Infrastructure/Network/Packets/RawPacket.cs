@@ -21,9 +21,9 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
-internal record RawPacket(string Version, PacketType PacketType, Origin Origin, string[] DataItems) : IRawPacket
+public record RawPacket(string Version, PacketType PacketType, Origin Origin, string[] DataItems) : IRawPacket
 {
-    internal const string ProtocolVersion = "0.5";
+    public const string ProtocolVersion = "0.5";
 
     [ThreadStatic]
     private static StringBuilder? t_stringBuilder;
@@ -82,6 +82,11 @@ internal record RawPacket(string Version, PacketType PacketType, Origin Origin, 
                             return false;
                         }
 
+                        if (!Enum.IsDefined(packetType))
+                        {
+                            packetType = PacketType.Unknown;
+                        }
+                        
                         break;
                     }
 

@@ -15,23 +15,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Validator;
 
-public static class ServiceCollectionExtensions
-{
-    public static IServiceCollection AddServerOptionsValidator(this IServiceCollection services)
-    {
-        services.TryAddSingleton<IValidateOptions<ServerOptions>, ServerOptionsValidator>();
-        return services;
-    }
-}
-
-internal class ServerOptionsValidator : IValidateOptions<ServerOptions>
+public class ServerOptionsValidator : IValidateOptions<ServerOptions>
 {
     public ValidateOptionsResult Validate(string? name, ServerOptions options)
     {
@@ -39,18 +28,7 @@ internal class ServerOptionsValidator : IValidateOptions<ServerOptions>
 
         if (!IPEndPoint.TryParse(options.BindingInformation, out var _))
         {
-            // This is not ip address so let resolve this via hostname instead.
-            try
-            {
-                if (Dns.GetHostAddresses(options.BindingInformation).Length == 0)
-                {
-                    failureMessages.Add($"[Server:{nameof(options.BindingInformation)}] Invalid hostname.");
-                }
-            }
-            catch (Exception ex)
-            {
-                failureMessages.Add($"[Server:{nameof(options.BindingInformation)}] {ex.Message}");
-            }
+            failureMessages.Add($"[Server:{nameof(options.BindingInformation)}] Invalid IP address format.");
         }
         
         if (options.UpnpDiscoveryTime < 1)
@@ -76,6 +54,16 @@ internal class ServerOptionsValidator : IValidateOptions<ServerOptions>
         if (options.NoPingKickTime < 10)
         {
             failureMessages.Add($"[Server:{nameof(options.NoPingKickTime)}] No ping kick time must be at least 10 seconds.");
+        }
+
+        if (options.SeasonMonth.GetLength(0) != 12)
+        {
+            failureMessages.Add($"[Server:{nameof(options.SeasonMonth)}] Season Month length must be 12.");
+        }
+        
+        if (options.WeatherSeason.GetLength(0) != 4)
+        {
+            failureMessages.Add($"[Server:{nameof(options.SeasonMonth)}] Weather Season length must be 4.");
         }
         
         return failureMessages.Count > 0 ? ValidateOptionsResult.Fail(failureMessages) : ValidateOptionsResult.Success;

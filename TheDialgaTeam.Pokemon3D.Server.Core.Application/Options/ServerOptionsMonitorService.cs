@@ -15,22 +15,25 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mediator;
+using Microsoft.Extensions.Hosting;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Notification;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Provider;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Query;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 
-internal class ServerOptionsHandler(IServerOptionsProvider provider) : 
-    IQueryHandler<GetServerOptions, ServerOptions>,
-    IQueryHandler<GetGameModeOptions, GameModeOverrideOptions>
+public class ServerOptionsMonitorService(IServerOptionsProvider provider, IMediator mediator) : IHostedService
 {
-    public ValueTask<ServerOptions> Handle(GetServerOptions query, CancellationToken cancellationToken)
+    private IDisposable? _disposable;
+
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        return ValueTask.FromResult(provider.GetOptions());
+        _disposable = provider.OnChange((options, _) => mediator.Publish(new ServerOptionsChanged(options), cancellationToken).AsTask());
+        return Task.CompletedTask;
     }
 
-    public ValueTask<GameModeOverrideOptions> Handle(GetGameModeOptions query, CancellationToken cancellationToken)
+    public Task StopAsync(CancellationToken cancellationToken)
     {
-        return ValueTask.FromResult(provider.GetGameModeOverrideOptions(query.GameMode));
+        _disposable?.Dispose();
+        return Task.CompletedTask;
     }
 }

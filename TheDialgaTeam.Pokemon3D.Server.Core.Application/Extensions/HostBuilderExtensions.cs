@@ -14,8 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.World.Command;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Extensions;
 
-public record StartGlobalWorld : ICommand;
+public static class HostBuilderExtensions
+{
+    public static IHostBuilder ConfigurePokemonServerApplication(this IHostBuilder hostBuilder)
+    {
+        return hostBuilder.ConfigureServices((_, collection) =>
+        {
+            collection.AddHostedService<ServerOptionsMonitorService>();
+        });
+    }
+}

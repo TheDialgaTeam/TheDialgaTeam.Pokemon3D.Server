@@ -25,7 +25,7 @@ public class ServerOptions
 
     public bool UseUpnp { get; set; }
     public int UpnpDiscoveryTime { get; set; } = 5;
-    
+
     public string ServerName { get; set; } = "Pokemon 3D Server";
     public string ServerDescription { get; set; } = string.Empty;
 
@@ -40,84 +40,87 @@ public class ServerOptions
 
     public int AwayFromKeyboardKickTime { get; set; } = 60 * 5;
     public int NoPingKickTime { get; set; } = 30;
-    
+
     public bool DoDayCycle { get; set; } = true;
     public TimeSpan TimeOffset { get; set; } = DateTimeOffset.Now.Offset;
 
     public Season Season { get; set; } = Season.Default;
     public Weather Weather { get; set; } = Weather.Default;
 
-    public SeasonMonthValue[] SeasonMonth { get; set; } = [
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 },
-        new() { Season = Season.Default, Chance = 1 }
+    public SeasonMonthValue[][] SeasonMonth { get; set; } =
+    [
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }],
+        [new SeasonMonthValue { Season = Season.Default, Chance = 1 }]
     ];
-    public WeatherSeasonValue[] WeatherSeason { get; set; } = [
-        new() { Weather = Weather.Default, Chance = 1 },
-        new() { Weather = Weather.Default, Chance = 1 },
-        new() { Weather = Weather.Default, Chance = 1 },
-        new() { Weather = Weather.Default, Chance = 1 }
+
+    public WeatherSeasonValue[][] WeatherSeason { get; set; } =
+    [
+        [new WeatherSeasonValue { Weather = Weather.Default, Chance = 1 }],
+        [new WeatherSeasonValue { Weather = Weather.Default, Chance = 1 }],
+        [new WeatherSeasonValue { Weather = Weather.Default, Chance = 1 }],
+        [new WeatherSeasonValue { Weather = Weather.Default, Chance = 1 }]
     ];
-    
+
     public bool AllowChat { get; set; } = true;
-    
+
     public bool AllowTrade { get; set; } = true;
     public bool AllowTradeValidation { get; set; } = true;
-    
+
     public bool AllowPvP { get; set; } = true;
     public bool AllowPvPValidation { get; set; } = true;
-    
+
     public Dictionary<string, GameModeOverrideOptions> GameModeOverrides { get; set; } = new();
 }
 
 public class GameModeOverrideOptions
 {
     public string[]? WelcomeMessage { get; set; }
-    
+
     public bool? DoDayCycle { get; set; }
     public TimeSpan? TimeOffset { get; set; }
 
     public Season? Season { get; set; }
     public Weather? Weather { get; set; }
 
-    public SeasonMonthValue[]? SeasonMonth { get; set; }
-    public WeatherSeasonValue[]? WeatherSeason { get; set; }
-    
+    public SeasonMonthValue[][]? SeasonMonth { get; set; }
+    public WeatherSeasonValue[][]? WeatherSeason { get; set; }
+
     public bool? AllowChat { get; set; }
-    
-    public bool? AllowTrade { get; set; } 
+
+    public bool? AllowTrade { get; set; }
     public bool? AllowTradeValidation { get; set; }
-    
+
     public bool? AllowPvP { get; set; }
     public bool? AllowPvPValidation { get; set; }
 
     public void SetDefaults(ServerOptions options)
     {
         WelcomeMessage ??= options.WelcomeMessage;
-        
+
         DoDayCycle ??= options.DoDayCycle;
         TimeOffset ??= options.TimeOffset;
-        
+
         Season ??= options.Season;
         Weather ??= options.Weather;
-        
+
         SeasonMonth ??= options.SeasonMonth;
         WeatherSeason ??= options.WeatherSeason;
-        
+
         AllowChat ??= options.AllowChat;
-        
+
         AllowTrade ??= options.AllowTrade;
         AllowTradeValidation ??= options.AllowTradeValidation;
-        
+
         AllowPvP ??= options.AllowPvP;
         AllowPvPValidation ??= options.AllowPvPValidation;
     }

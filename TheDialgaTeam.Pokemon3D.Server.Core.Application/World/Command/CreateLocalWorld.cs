@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Upnp;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 
-public interface INatDeviceUtility
-{
-    Task<int> CreatePortMappingAsync(int port, CancellationToken cancellationToken = default);
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.World.Command;
 
-    Task DestroyPortMappingAsync(int port, CancellationToken cancellationToken = default);
-}
+public record CreateLocalWorld(GameModeOverrideOptions Options) : ICommand<ILocalWorld>;

@@ -14,8 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Domain.Common;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Domain.World.Event;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
 
-public record LocalWorldHasChangedEvent : IDomainEvent;
+public interface IPokemonServerService
+{
+    IObservable<INetworkClient> ObserveConnections { get; }
+    
+    Task StartServerAsync(CancellationToken cancellationToken = default);
+
+    Task StopServerAsync(CancellationToken cancellationToken = default);
+}

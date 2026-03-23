@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options;
-
-[JsonSerializable(typeof(ServerOptions), GenerationMode = JsonSourceGenerationMode.Serialization)]
-[JsonSourceGenerationOptions(JsonSerializerDefaults.General, WriteIndented = true)]
-public partial class ServerOptionsSerializerContext : JsonSerializerContext;
+public interface INatDeviceFactory
+{
+    Task<INatDeviceService> GetNatDeviceServiceAsync(CancellationToken cancellationToken = default);
+}

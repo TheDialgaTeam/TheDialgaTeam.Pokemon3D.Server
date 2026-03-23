@@ -19,44 +19,38 @@ using System.Net.Sockets;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Listener;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
 
-internal class TcpNetworkListener(IPEndPoint ipEndPoint) : INetworkListener
+public class TcpNetworkListener : INetworkListener
 {
-    private readonly TcpListener _tcpListener = new(ipEndPoint);
-
-    public void StartListening()
-    {
-        _tcpListener.Start();
-    }
-    
-    public IObservable<INetworkClient> ObserveConnections()
+    public IObservable<INetworkClient> ObserveConnections(IPEndPoint ipEndPoint)
     {
         return Observable.Create<INetworkClient>(async (observer, cancellationToken) =>
         {
+            var disposable = new CompositeDisposable();
+            var tcpListener = new TcpListener(ipEndPoint);
+            
+            disposable.Add(tcpListener);
+            
             try
             {
-                while (_tcpListener.Server.Connected && !cancellationToken.IsCancellationRequested)
+                tcpListener.Start();
+                
+                while (tcpListener.Server.Connected && !cancellationToken.IsCancellationRequested)
                 {
-                    observer.OnNext(new TcpNetworkClient(await _tcpListener.AcceptTcpClientAsync(cancellationToken).ConfigureAwait(false)));
+                    observer.OnNext(new TcpNetworkClient(await tcpListener.AcceptTcpClientAsync(cancellationToken).ConfigureAwait(false)));
                 }
-            
+
                 observer.OnCompleted();
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                observer.OnError(ex);
+                observer.OnError(exception);
             }
-            
-            return Disposable.Empty;
-        });
-    }
 
-    public void StopListening()
-    {
-        _tcpListener.Stop();
+            return disposable;
+        });
     }
 }

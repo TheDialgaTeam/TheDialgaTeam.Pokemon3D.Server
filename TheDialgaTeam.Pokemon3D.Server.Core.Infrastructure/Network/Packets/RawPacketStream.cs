@@ -19,7 +19,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
-internal class RawPacketStream(Stream stream, int readBufferSize = 4096, int writeBufferSize = 4096) : IDisposable
+public class RawPacketStream(Stream stream, int readBufferSize = 4096, int writeBufferSize = 4096)
 {
     private readonly StreamReader _reader = new(stream, Encoding.UTF8, false, readBufferSize, true);
     private readonly StreamWriter _writer = new(stream, Encoding.UTF8, writeBufferSize, true);
@@ -33,10 +33,5 @@ internal class RawPacketStream(Stream stream, int readBufferSize = 4096, int wri
     {
         _writer.WriteLine(packet.ToRawPacketString());
         _writer.Flush();
-    }
-
-    public void Dispose()
-    {
-        stream.Dispose();
     }
 }

@@ -15,14 +15,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Listener;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
 
-internal class TcpNetworkListenerFactory : INetworkListenerFactory
+public interface INatDeviceService
 {
-    public INetworkListener CreateNetworkListener(IPEndPoint ipEndPoint)
-    {
-        return new TcpNetworkListener(ipEndPoint);
-    }
+    IPEndPoint DeviceEndpoint { get; }
+    
+    Task<int> CreatePortMappingAsync(int port, CancellationToken cancellationToken = default);
+
+    Task DestroyPortMappingAsync(int port, CancellationToken cancellationToken = default);
 }

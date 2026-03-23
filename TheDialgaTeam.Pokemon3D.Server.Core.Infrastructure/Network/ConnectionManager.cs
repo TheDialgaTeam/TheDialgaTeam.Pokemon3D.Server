@@ -14,8 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
+using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.World.Command;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
 
-public record StopGlobalWorld : ICommand;
+public class ConnectionManager(ILogger<ConnectionManager> logger)
+{
+    private readonly List<INetworkClient> _networkClients = [];
+    
+    public void AddNewConnection(INetworkClient networkClient)
+    {
+        _networkClients.Add(networkClient);
+    }
+
+    public void RemoveConnection(INetworkClient networkClient)
+    {
+        _networkClients.Remove(networkClient);
+    }
+}

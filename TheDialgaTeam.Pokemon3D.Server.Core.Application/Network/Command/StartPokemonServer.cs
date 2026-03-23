@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
+using Mediator;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Listener;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Command;
 
-public interface INetworkListenerFactory
-{
-    INetworkListener CreateNetworkListener(IPEndPoint ipEndPoint);
-}
+public record StartPokemonServer : ICommand;

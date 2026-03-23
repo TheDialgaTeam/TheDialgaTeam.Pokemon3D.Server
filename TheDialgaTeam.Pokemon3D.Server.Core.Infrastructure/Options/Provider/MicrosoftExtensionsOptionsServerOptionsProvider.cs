@@ -20,7 +20,7 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Provider;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Provider;
 
-internal class MicrosoftExtensionsOptionsServerOptionsProvider(IOptionsMonitor<ServerOptions> optionsMonitor) : IServerOptionsProvider
+public class MicrosoftExtensionsOptionsServerOptionsProvider(IOptionsMonitor<ServerOptions> optionsMonitor) : IServerOptionsProvider
 {
     public ServerOptions GetOptions()
     {

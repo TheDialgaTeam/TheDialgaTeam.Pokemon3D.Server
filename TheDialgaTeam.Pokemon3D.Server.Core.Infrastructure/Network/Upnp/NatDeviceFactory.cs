@@ -15,25 +15,24 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mono.Nat;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Upnp;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
 
-internal class NatDeviceUtility : INatDeviceUtility
+public class NatDeviceFactory : INatDeviceFactory
 {
     private static async Task<INatDevice?> DiscoverNatDeviceAsync(CancellationToken cancellationToken = default)
     {
         INatDevice? devices = null;
         var natDeviceFoundTcs = new TaskCompletionSource();
-        
+
         NatUtility.DeviceFound += NatUtilityOnDeviceFound;
         NatUtility.StartDiscovery(NatProtocol.Upnp);
 
         await Task.WhenAny(natDeviceFoundTcs.Task, Task.Delay(-1, cancellationToken)).ConfigureAwait(false);
-        
+
         NatUtility.DeviceFound -= NatUtilityOnDeviceFound;
         NatUtility.StopDiscovery();
-        
+
         return devices;
 
         void NatUtilityOnDeviceFound(object? sender, DeviceEventArgs e)
@@ -42,52 +41,10 @@ internal class NatDeviceUtility : INatDeviceUtility
             natDeviceFoundTcs.SetResult();
         }
     }
-    
-    public async Task<int> CreatePortMappingAsync(int port, CancellationToken cancellationToken = default)
+
+    public async Task<INatDeviceService> GetNatDeviceServiceAsync(CancellationToken cancellationToken = default)
     {
         var natDevice = await DiscoverNatDeviceAsync(cancellationToken).ConfigureAwait(false);
-
-        if (natDevice == null)
-        {
-            throw new MappingException("Could not find NAT device");
-        }
-        
-        try
-        {
-            var natDeviceMapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, port).ConfigureAwait(false);
-
-            if (natDeviceMapping.IsExpired())
-            {
-                await natDevice.DeletePortMapAsync(natDeviceMapping).ConfigureAwait(false);
-            }
-            else
-            {
-                return natDeviceMapping.PrivatePort;
-            }
-        }
-        catch (MappingException)
-        {
-        }
-
-        return (await natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, port, port, 0, "Pokemon 3D Listener Port")).ConfigureAwait(false)).PrivatePort;
-    }
-
-    public async Task DestroyPortMappingAsync(int port, CancellationToken cancellationToken = default)
-    {
-        var natDevice = await DiscoverNatDeviceAsync(cancellationToken).ConfigureAwait(false);
-
-        if (natDevice == null)
-        {
-            throw new MappingException("Could not find NAT device");
-        }
-        
-        try
-        {
-            var natDeviceMapping = await natDevice.GetSpecificMappingAsync(Protocol.Tcp, port).ConfigureAwait(false);
-            await natDevice.DeletePortMapAsync(natDeviceMapping).ConfigureAwait(false);
-        }
-        catch (MappingException)
-        {
-        }
+        return natDevice is null ? throw new Exception("No NAT device found.") : new NatDeviceService(natDevice);
     }
 }

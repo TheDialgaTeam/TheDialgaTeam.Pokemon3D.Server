@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Commands;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Test.Commands;
 
 public class CommandProcessorTest
@@ -34,11 +32,4 @@ public class CommandProcessorTest
         { "\"Test With Space\" And", ["Test With Space", "And"] },
         { "\"Test With Space or \\\"quote\\\"\" And", ["Test With Space or \"quote\"", "And"] }
     };
-
-    [Theory]
-    [MemberData(nameof(CommandArgumentTestResults))]
-    public void GetCommandArgsTest(string message, string[] result)
-    {
-        Assert.Equal(result, CommandProcessor.GetCommandArgs(message));
-    }
 }

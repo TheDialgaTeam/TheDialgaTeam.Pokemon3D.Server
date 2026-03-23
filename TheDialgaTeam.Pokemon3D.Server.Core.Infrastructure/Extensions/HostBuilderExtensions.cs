@@ -14,32 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Listener;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Upnp;
+using Microsoft.Extensions.Options;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Provider;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.World;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Provider;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Validator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.World;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Extensions;
 
 public static class HostBuilderExtensions
 {
-    public static IHostBuilder ConfigurePokemonServer(this IHostBuilder hostBuilder)
+    public static IHostBuilder ConfigurePokemonServerInfrastructure(this IHostBuilder hostBuilder)
     {
-        return hostBuilder.ConfigureServices((_, collection) =>
+        return hostBuilder.ConfigureServices(static collection =>
         {
-            collection.TryAddSingleton<INetworkListenerFactory, TcpNetworkListenerFactory>();
-            collection.TryAddSingleton<INatDeviceUtility, NatDeviceUtility>();
+            collection.TryAddSingleton<INetworkListener, TcpNetworkListener>();
+            collection.TryAddSingleton<IPokemonServerService, PokemonServerService>();
             
             collection.AddOptions<ServerOptions>().BindConfiguration("Server").ValidateOnStart();
-            collection.AddServerOptionsValidator();
+            collection.TryAddSingleton<IValidateOptions<ServerOptions>, ServerOptionsValidator>();
             collection.TryAddSingleton<IServerOptionsProvider, MicrosoftExtensionsOptionsServerOptionsProvider>();
+            
+            collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();
+        }).ConfigureAppConfiguration(static builder =>
+        {
+            builder.AddJsonFile(builder.GetFileProvider(), "server.json", true, true);
         });
     }
 }

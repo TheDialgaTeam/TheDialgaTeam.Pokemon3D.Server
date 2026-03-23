@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net.Sockets;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
+using Mediator;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.World.Command;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Listener;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.World;
 
-public interface INetworkListener
+public class LocalWorldCommandHandler(ILocalWorldFactory factory) : ICommandHandler<CreateLocalWorld, ILocalWorld>
 {
-    void StartListening();
-
-    IObservable<INetworkClient> ObserveConnections();
-    
-    void StopListening();
+    public ValueTask<ILocalWorld> Handle(CreateLocalWorld command, CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(factory.CreateWorld(command.Options));
+    }
 }
