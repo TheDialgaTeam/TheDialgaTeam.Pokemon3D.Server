@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2026 Yong Jian Ming
+// Copyright (C) 2023 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Player;
 
-public interface IPokemonServerService
+public enum BusyType
 {
-    Task StartServerAsync(CancellationToken cancellationToken = default);
-
-    Task StopServerAsync(CancellationToken cancellationToken = default);
+    NotBusy = 0,
+    Battling = 1,
+    Chatting = 2,
+    Inactive = 3
 }

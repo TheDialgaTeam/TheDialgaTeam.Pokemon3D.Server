@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2026 Yong Jian Ming
+// Copyright (C) 2023 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,9 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Extensions;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.World.Command;
+public static class SpanExtensions
+{
+    public static ReadOnlySpan<char> SplitNext(this ReadOnlySpan<char> span, string separator, out ReadOnlySpan<char> next)
+    {
+        var nextIndex = span.IndexOf(separator);
 
-public record CreateLocalWorld(GameModeOverrideOptions Options) : ICommand<ILocalWorld>;
+        if (nextIndex == -1)
+        {
+            next = ReadOnlySpan<char>.Empty;
+            return span;
+        }
+
+        next = span[(nextIndex + separator.Length)..];
+        return span[..nextIndex];
+    }
+}

@@ -24,7 +24,9 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Provider;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.World;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Provider;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Validator;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.World;
@@ -38,16 +40,14 @@ public static class HostBuilderExtensions
         return hostBuilder.ConfigureServices(static collection =>
         {
             collection.TryAddSingleton<INetworkListener, TcpNetworkListener>();
+            collection.TryAddSingleton<INatDeviceFactory, NatDeviceFactory>();
+            collection.TryAddSingleton<NetworkClientContainer>();
+            collection.TryAddSingleton<NetworkClientHandlerFactory>();
             collection.TryAddSingleton<IPokemonServerService, PokemonServerService>();
-            
+
             collection.AddOptions<ServerOptions>().BindConfiguration("Server").ValidateOnStart();
             collection.TryAddSingleton<IValidateOptions<ServerOptions>, ServerOptionsValidator>();
             collection.TryAddSingleton<IServerOptionsProvider, MicrosoftExtensionsOptionsServerOptionsProvider>();
-            
-            collection.TryAddSingleton<ILocalWorldFactory, LocalWorldFactory>();
-        }).ConfigureAppConfiguration(static builder =>
-        {
-            builder.AddJsonFile(builder.GetFileProvider(), "server.json", true, true);
-        });
+        }).ConfigureAppConfiguration(static builder => { builder.AddJsonFile(builder.GetFileProvider(), "server.json", true, true); });
     }
 }

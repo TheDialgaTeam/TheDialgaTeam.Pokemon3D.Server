@@ -17,7 +17,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
@@ -158,7 +157,7 @@ public record RawPacket(string Version, PacketType PacketType, Origin Origin, st
             }
         }
     }
-
+    
     public string ToRawPacketString()
     {
         t_stringBuilder ??= new StringBuilder();

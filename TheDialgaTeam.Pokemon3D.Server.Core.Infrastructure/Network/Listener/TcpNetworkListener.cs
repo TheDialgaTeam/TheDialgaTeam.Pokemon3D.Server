@@ -18,7 +18,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;

@@ -16,82 +16,79 @@
 
 using System.Net;
 using System.Net.Sockets;
-using System.Reactive.Disposables;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
+using System.Text;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 
-public class TcpNetworkClient : INetworkClient
+public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
 {
-    public IPEndPoint RemoteEndPoint => _tcpClient.Client.RemoteEndPoint as IPEndPoint ?? throw new InvalidOperationException();
+    public IPEndPoint RemoteEndPoint => tcpClient.Client.RemoteEndPoint as IPEndPoint ?? throw new InvalidOperationException();
 
-    private readonly TcpClient _tcpClient;
-    private readonly RawPacketStream _rawPacketStream;
+    public IObservable<IRawPacket> ObservePackets => _rawPacketSubject.AsObservable();
+    public IObservable<Unit> ObserveDisconnected => _disconnectedSubject.AsObservable();
 
-    private Subject<IRawPacket> _rawPacketSubject = new();
-    private Subject<INetworkClient> _disconnectedSubject = new();
+    private readonly StreamReader _reader = new(tcpClient.GetStream(), Encoding.UTF8, false, tcpClient.ReceiveBufferSize, true);
+    private readonly StreamWriter _writer = new(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize, true);
     
-    private Task _listeningTask;
-    private DateTimeOffset _lastValidPacket = DateTimeOffset.Now;
+    private readonly SemaphoreSlim _writeSemaphoreSlim = new(1, 1);
 
-    public TcpNetworkClient(TcpClient tcpClient)
-    {
-        _tcpClient = tcpClient;
-        _rawPacketStream = new RawPacketStream(_tcpClient.GetStream(), _tcpClient.ReceiveBufferSize, _tcpClient.SendBufferSize);
-    }
+    private readonly Subject<IRawPacket> _rawPacketSubject = new();
+    private readonly Subject<Unit> _disconnectedSubject = new();
+    
+    private IDisposable? _listeningTask;
 
     public void StartListening()
     {
-        _listeningTask = Task.Factory.StartNew(() =>
+        _listeningTask ??= Observable.FromAsync(async token =>
         {
-            while (_tcpClient.Connected)
-            {
-                
-            }
-        }, TaskCreationOptions.LongRunning);
-    }
-
-    public IObservable<IRawPacket> ObservePackets()
-    {
-        return Observable.Create<IRawPacket>(async (observer, cancellationToken) =>
-        {
-            while (_tcpClient.Connected && !cancellationToken.IsCancellationRequested)
+            while (tcpClient.Connected && !token.IsCancellationRequested)
             {
                 try
                 {
-                    var packet = await _rawPacketStream.ReadPacketAsync(cancellationToken).ConfigureAwait(false);
+                    var rawPacketString = await _reader.ReadLineAsync(token).ConfigureAwait(false);
+                    
+                    if (rawPacketString == null)
+                    {
+                        _rawPacketSubject.OnCompleted();
+                        _disconnectedSubject.OnNext(Unit.Default);
+                        _disconnectedSubject.OnCompleted();
+                        break;
+                    }
 
-                    if (packet != null)
-                    {
-                        observer.OnNext(packet);
-                    }
-                    else
-                    {
-                        observer.OnCompleted();
-                    }
+                    if (!RawPacket.TryParse(rawPacketString, out var rawPacket)) continue;
+                    
+                    _rawPacketSubject.OnNext(rawPacket);
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
+                catch (Exception exception) when (exception is not OperationCanceledException)
                 {
-                    observer.OnError(ex);
+                    _rawPacketSubject.OnError(exception);
                 }
             }
-
-            return Disposable.Empty;
-        });
+        }).Subscribe();
     }
-
-    public void SendPacket(IRawPacket packet)
+    
+    public async Task SendPacketAsync(IRawPacket packet, CancellationToken cancellationToken = default)
     {
-        _rawPacketStream.WritePacket(packet);
+        try
+        {
+            await _writeSemaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await _writer.WriteLineAsync(packet.ToRawPacketString()).ConfigureAwait(false);
+            await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _writeSemaphoreSlim.Release();
+        }
     }
 
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
-        _tcpClient.Dispose();
+        _listeningTask?.Dispose();
+        _writeSemaphoreSlim.Dispose();
+        tcpClient.Dispose();
     }
 }

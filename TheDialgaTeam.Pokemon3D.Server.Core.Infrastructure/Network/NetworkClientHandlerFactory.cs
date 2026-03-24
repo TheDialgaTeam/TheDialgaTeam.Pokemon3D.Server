@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
+using Microsoft.Extensions.DependencyInjection;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 
-public interface IPokemonServerService
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
+
+public class NetworkClientHandlerFactory(IServiceProvider provider)
 {
-    Task StartServerAsync(CancellationToken cancellationToken = default);
-
-    Task StopServerAsync(CancellationToken cancellationToken = default);
+    public NetworkClientHandler Create(INetworkClient client)
+    {
+        return ActivatorUtilities.CreateInstance<NetworkClientHandler>(provider, client);
+    }
 }

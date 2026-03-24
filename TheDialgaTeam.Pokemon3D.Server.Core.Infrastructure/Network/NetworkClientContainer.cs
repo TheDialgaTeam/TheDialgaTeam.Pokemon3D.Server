@@ -14,12 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
+using System.Collections.Concurrent;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
 
-public interface INetworkListener
+/// <summary>
+/// This class acts as a container to store and handle all incoming connection from network listener.
+/// </summary>
+/// <param name="factory"></param>
+public class NetworkClientContainer(NetworkClientHandlerFactory factory)
 {
-    IObservable<INetworkClient> ObserveConnections(IPEndPoint ipEndPoint);
+    private readonly ConcurrentDictionary<INetworkClient, NetworkClientHandler> _clients = new();
+    
+    public void AddNewConnection(INetworkClient networkClient)
+    {
+        _clients.TryAdd(networkClient, factory.Create(networkClient));
+    }
+
+    public void RemoveConnection(INetworkClient networkClient)
+    {
+        if (_clients.TryRemove(networkClient, out var handler))
+        {
+            handler.Dispose();
+        }
+    }
 }

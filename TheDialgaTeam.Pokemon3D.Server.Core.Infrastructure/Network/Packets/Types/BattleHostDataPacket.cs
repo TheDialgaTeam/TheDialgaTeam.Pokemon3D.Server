@@ -16,26 +16,21 @@
 
 using System.Globalization;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets.Types;
 
-public readonly record struct Origin(int Id)
+public sealed record BattleHostDataPacket(Origin Origin, Origin BattlePartner, string Data) : IPacket
 {
-    public static Origin Server => new(-1);
-    
-    public static Origin NewPlayer => new(0);
-    
-    public static implicit operator int(Origin origin)
+    public BattleHostDataPacket(IRawPacket rawPacket) : this(rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture), rawPacket.DataItems[1])
     {
-        return origin.Id;
     }
     
-    public static implicit operator Origin(int id)
+    public IRawPacket ToServerResponseRawPacket()
     {
-        return new Origin(id);
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleHostData, Origin, [Data]);
     }
 
-    public string ToRawString()
+    public IRawPacket ToClientResponseRawPacket()
     {
-        return Id.ToString(CultureInfo.InvariantCulture);
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleHostData, Origin, [BattlePartner.ToRawString(), Data]);
     }
 }

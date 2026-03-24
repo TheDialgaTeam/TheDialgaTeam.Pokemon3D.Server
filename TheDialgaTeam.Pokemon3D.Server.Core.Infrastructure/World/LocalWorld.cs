@@ -35,19 +35,19 @@ public class LocalWorld : ILocalWorld, IAsyncDisposable
     public SeasonMonthValue[][] TargetSeasonMonth { get; private set; } = [];
     public WeatherSeasonValue[][] TargetWeatherSeason { get; private set; } = [];
 
-    public IObservable<ILocalWorld> ObserveLocalWorld => _subject.AsObservable();
+    public IObservable<ILocalWorld> ObserveLocalWorld => _localWorldSubject.AsObservable();
     
     private int WeekOfYear => (CurrentLocalTime.DayOfYear - 1) / 7 + 1;
 
     private readonly Timer _timer;
     private DateTimeOffset _lastUpdate = DateTimeOffset.MinValue;
 
-    private readonly BehaviorSubject<ILocalWorld> _subject;
+    private readonly BehaviorSubject<ILocalWorld> _localWorldSubject;
 
     public LocalWorld(GameModeOverrideOptions options)
     {
         _timer = new Timer(TimerTick, this, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _subject = new BehaviorSubject<ILocalWorld>(this);
+        _localWorldSubject = new BehaviorSubject<ILocalWorld>(this);
         UpdateWorld(options);
     }
 
@@ -110,7 +110,7 @@ public class LocalWorld : ILocalWorld, IAsyncDisposable
 
         if (hasChanges)
         {
-            _subject.OnNext(this);
+            _localWorldSubject.OnNext(this);
         }
     }
     
@@ -290,13 +290,13 @@ public class LocalWorld : ILocalWorld, IAsyncDisposable
     {
         GC.SuppressFinalize(this);
         _timer.Dispose();
-        _subject.Dispose();
+        _localWorldSubject.Dispose();
     }
 
     public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
         await _timer.DisposeAsync().ConfigureAwait(false);
-        _subject.Dispose();
+        _localWorldSubject.Dispose();
     }
 }

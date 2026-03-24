@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2026 Yong Jian Ming
+// Copyright (C) 2023 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
+using System.Globalization;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets.Types;
 
-public interface INetworkClient : IDisposable
+public sealed record DestroyPlayerPacket(int Id) : IPacket
 {
-    IPEndPoint RemoteEndPoint { get; }
+    public DestroyPlayerPacket(IRawPacket rawPacket) : this(int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
+    {
+    }
     
-    IObservable<IRawPacket> ObservePackets();
+    public IRawPacket ToServerResponseRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.DestroyPlayer, Origin.Server, [Id.ToString(CultureInfo.InvariantCulture)]);
+    }
 
-    void SendPacket(IRawPacket packet);
+    public IRawPacket ToClientResponseRawPacket()
+    {
+        throw new NotSupportedException();
+    }
 }

@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2026 Yong Jian Ming
+// Copyright (C) 2023 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,22 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.Extensions.Logging;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Client;
+using System.Globalization;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets.Types;
 
-public class ConnectionManager(ILogger<ConnectionManager> logger)
+public record BattleStartPacket(Origin Origin, Origin BattlePartner) : IPacket
 {
-    private readonly List<INetworkClient> _networkClients = [];
-    
-    public void AddNewConnection(INetworkClient networkClient)
+    public BattleStartPacket(IRawPacket rawPacket) : this(rawPacket.Origin, int.Parse(rawPacket.DataItems[0], CultureInfo.InvariantCulture))
     {
-        _networkClients.Add(networkClient);
+    }
+    
+    public IRawPacket ToServerResponseRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleStart, Origin, []);
     }
 
-    public void RemoveConnection(INetworkClient networkClient)
+    public IRawPacket ToClientResponseRawPacket()
     {
-        _networkClients.Remove(networkClient);
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.BattleStart, Origin, [BattlePartner.ToRawString()]);
     }
 }

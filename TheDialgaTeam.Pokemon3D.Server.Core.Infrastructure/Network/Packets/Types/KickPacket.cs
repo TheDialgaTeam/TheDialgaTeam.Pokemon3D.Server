@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets.Types;
 
-public interface IPokemonServerService
+public sealed record KickPacket(string Reason) : IPacket
 {
-    Task StartServerAsync(CancellationToken cancellationToken = default);
+    public KickPacket(IRawPacket rawPacket) : this(rawPacket.DataItems[0])
+    {
+    }
 
-    Task StopServerAsync(CancellationToken cancellationToken = default);
+    public IRawPacket ToServerResponseRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Kicked, Origin.Server, [Reason]);
+    }
+
+    public IRawPacket ToClientResponseRawPacket()
+    {
+        throw new NotSupportedException();
+    }
 }

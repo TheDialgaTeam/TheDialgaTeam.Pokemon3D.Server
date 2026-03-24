@@ -14,24 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Text;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
-
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
-public class RawPacketStream(Stream stream, int readBufferSize = 4096, int writeBufferSize = 4096)
+public interface IRawPacket
 {
-    private readonly StreamReader _reader = new(stream, Encoding.UTF8, false, readBufferSize, true);
-    private readonly StreamWriter _writer = new(stream, Encoding.UTF8, writeBufferSize, true);
+    public string Version { get; }
     
-    public async Task<IRawPacket?> ReadPacketAsync(CancellationToken cancellationToken = default)
-    {
-        return RawPacket.TryParse(await _reader.ReadLineAsync(cancellationToken).ConfigureAwait(false), out var packet) ? packet : null;
-    }
+    public PacketType PacketType { get; }
 
-    public void WritePacket(IRawPacket packet)
-    {
-        _writer.WriteLine(packet.ToRawPacketString());
-        _writer.Flush();
-    }
+    public Origin Origin { get; }
+    
+    public string[] DataItems { get; }
+    
+    public string ToRawPacketString();
 }

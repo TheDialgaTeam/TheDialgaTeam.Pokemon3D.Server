@@ -14,8 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
+using System.Net;
+using System.Reactive;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.World.Notification;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 
-public record LocalWorldUpdate(ILocalWorld World) : INotification;
+public interface INetworkClient : IDisposable
+{
+    IPEndPoint RemoteEndPoint { get; }
+    
+    IObservable<IRawPacket> ObservePackets { get; }
+    
+    IObservable<Unit> ObserveDisconnected { get; }
+
+    void StartListening();
+
+    Task SendPacketAsync(IRawPacket packet, CancellationToken cancellationToken = default);
+}

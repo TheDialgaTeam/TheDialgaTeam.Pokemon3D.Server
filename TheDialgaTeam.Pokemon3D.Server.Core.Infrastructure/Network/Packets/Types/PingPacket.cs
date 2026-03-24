@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2026 Yong Jian Ming
+// Copyright (C) 2023 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,15 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.World.Command;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets.Types;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.World;
-
-public class LocalWorldCommandHandler(ILocalWorldFactory factory) : ICommandHandler<CreateLocalWorld, ILocalWorld>
+public sealed record PingPacket(Origin Origin) : IPacket
 {
-    public ValueTask<ILocalWorld> Handle(CreateLocalWorld command, CancellationToken cancellationToken)
+    public PingPacket(IRawPacket rawPacket) : this(rawPacket.Origin)
     {
-        return ValueTask.FromResult(factory.CreateWorld(command.Options));
+    }
+    
+    public IRawPacket ToServerResponseRawPacket()
+    {
+        throw new NotSupportedException();
+    }
+
+    public IRawPacket ToClientResponseRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.Ping, Origin, []);
     }
 }

@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2026 Yong Jian Ming
+// Copyright (C) 2023 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,15 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Application.World;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets.Types;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.World;
-
-public class LocalWorldFactory : ILocalWorldFactory
+public sealed record ChatMessagePacket(Origin Origin, string Message) : IPacket
 {
-    public ILocalWorld CreateWorld(GameModeOverrideOptions options)
+    public ChatMessagePacket(IRawPacket rawPacket) : this(rawPacket.Origin, rawPacket.DataItems[0])
     {
-        return new LocalWorld(options);
+    }
+
+    public IRawPacket ToServerResponseRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ChatMessage, Origin, [Message]);
+    }
+
+    public IRawPacket ToClientResponseRawPacket()
+    {
+        return new RawPacket(RawPacket.ProtocolVersion, PacketType.ChatMessage, Origin, [Message]);
     }
 }

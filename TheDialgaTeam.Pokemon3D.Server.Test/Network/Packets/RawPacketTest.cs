@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Origin = TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets.Origin;
-using PacketType = TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets.PacketType;
-using RawPacket = TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets.RawPacket;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Test.Network.Packets;
 
@@ -28,17 +26,19 @@ public class RawPacketTest
         "|",
         "SOME_GARBAGE|",
         "0.5|SOME_GARBAGE|",
+        "0.5|-99|",
         "0.5|-1|SOME_GARBAGE|",
         "0.5|-1|-1|SOME_GARBAGE|",
         "0.5|-1|-1|1|SOME_GARBAGE|",
         "0.5|-1|-1|2|0|SOME_GARBAGE|"
     ];
-
-    public static TheoryData<string, string[]> PassedRawPacketParsingTestData =
+    
+    public static TheoryData<string, string, PacketType, Origin, string[]> PassedRawPacketParsingTestData =
     [
-        new TheoryDataRow<string, string[]>("0.5|-1|-1|0|0|", []),
-        new TheoryDataRow<string, string[]>("0.5|-1|-1|1|0|Test", ["Test"]),
-        new TheoryDataRow<string, string[]>("0.5|-1|-1|2|0|4|TestTest", ["Test", "Test"])
+        new TheoryDataRow<string, string, PacketType, Origin, string[]>("0.5|-1|-1|0|0|", "0.5", PacketType.Unknown, Origin.Server, []),
+        new TheoryDataRow<string, string, PacketType, Origin, string[]>("0.5|-1|-1|1|0|Test", "0.5", PacketType.Unknown, Origin.Server, ["Test"]),
+        new TheoryDataRow<string, string, PacketType, Origin, string[]>("0.5|-1|-1|2|0|4|TestTest", "0.5", PacketType.Unknown, Origin.Server, ["Test", "Test"]),
+        new TheoryDataRow<string, string, PacketType, Origin, string[]>("0.5|99|0|1|0|r", "0.5", PacketType.ServerDataRequest, Origin.NewPlayer, ["r"])
     ];
 
     [Theory]
@@ -51,14 +51,14 @@ public class RawPacketTest
 
     [Theory]
     [MemberData(nameof(PassedRawPacketParsingTestData))]
-    public void PassedRawPacketParsingTest(string rawData, string[] expectedData)
+    public void PassedRawPacketParsingTest(string rawData, string version, PacketType packetType, Origin origin, string[] dataItems)
     {
         Assert.True(RawPacket.TryParse(rawData, out var packet));
-        Assert.Equal(RawPacket.ProtocolVersion, packet.Version);
-        Assert.Equal(PacketType.Unknown, packet.PacketType);
-        Assert.Equal(Origin.Server, packet.Origin);
-        Assert.True(packet.DataItems.Length == expectedData.Length);
-        Assert.True(packet.DataItems.SequenceEqual(expectedData));
+        Assert.Equal(version, packet.Version);
+        Assert.Equal(packetType, packet.PacketType);
+        Assert.Equal(origin, packet.Origin);
+        Assert.True(packet.DataItems.Length == dataItems.Length);
+        Assert.True(packet.DataItems.SequenceEqual(dataItems));
     }
 
     [Fact]

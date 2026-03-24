@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Application.Network.Packets;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
 
-public interface IPacket
+/// <summary>
+///     This class will handle each individual GameMode players providing proper isolation between GameModes.
+/// </summary>
+public class GameWorld
 {
-    public IRawPacket ToServerResponseRawPacket();
-
-    public IRawPacket ToClientResponseRawPacket();
+    public GameWorld()
+    {
+        
+    }
 }
