@@ -15,10 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Mono.Nat;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Factory;
 
-public class NatDeviceFactory : INatDeviceFactory
+internal class MonoNatDeviceServiceFactory : INatDeviceServiceFactory
 {
     private static async Task<INatDevice?> DiscoverNatDeviceAsync(CancellationToken cancellationToken = default)
     {
@@ -42,9 +43,9 @@ public class NatDeviceFactory : INatDeviceFactory
         }
     }
 
-    public async Task<INatDeviceService> GetNatDeviceServiceAsync(CancellationToken cancellationToken = default)
+    public async Task<INatDeviceService> GetAsync(CancellationToken cancellationToken = default)
     {
         var natDevice = await DiscoverNatDeviceAsync(cancellationToken).ConfigureAwait(false);
-        return natDevice is null ? throw new Exception("No NAT device found.") : new NatDeviceService(natDevice);
+        return natDevice is null ? throw new Exception("No NAT device found.") : new MonoNatDeviceService(natDevice);
     }
 }

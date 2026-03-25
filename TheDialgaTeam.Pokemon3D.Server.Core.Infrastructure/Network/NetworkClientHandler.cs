@@ -41,7 +41,7 @@ public sealed partial class NetworkClientHandler : IDisposable
             .Subscribe(packet => packetHandler.HandlePacket(client, packet))
             .DisposeWith(_disposables);
 
-        client.ObserveDisconnected
+        client.IsDisconnected
             .Do(_ => LogDisconnected(logger, client.RemoteEndPoint.Address))
             .Subscribe(_ => clientContainer.RemoveConnection(client))
             .DisposeWith(_disposables);

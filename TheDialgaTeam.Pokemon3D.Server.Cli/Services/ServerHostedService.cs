@@ -14,28 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Mediator;
 using Microsoft.Extensions.Hosting;
-using TheDialgaTeam.Pokemon3D.Server.Core.Network.Commands;
+using Microsoft.Extensions.Logging;
+using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.Services;
 
-internal sealed class ServerHostedService : IHostedService
+public sealed class ServerHostedService(IPokemonServerService service, ILogger<ServerHostedService> logger) : IHostedService
 {
-    private readonly IMediator _mediator;
-
-    public ServerHostedService(IMediator mediator)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        _mediator = mediator;
-    }
-    
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        await _mediator.Send(new StartServer(), cancellationToken).ConfigureAwait(false);
+        return service.StartServerAsync(cancellationToken);
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync(CancellationToken cancellationToken)
     {
-        await _mediator.Send(new StopServer(), cancellationToken).ConfigureAwait(false);
+        return service.StopServerAsync(cancellationToken);
     }
 }

@@ -16,51 +16,39 @@
 
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using Terminal.Gui;
+using Terminal.Gui.App;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.Scheduler;
 
-internal sealed class TerminalScheduler : LocalScheduler
+internal sealed class TerminalScheduler(IApplication application) : LocalScheduler
 {
-    public static readonly TerminalScheduler Default = new();
-
-    private TerminalScheduler()
-    {
-    }
-
     public override IDisposable Schedule<TState>(TState state, TimeSpan dueTime, Func<IScheduler, TState, IDisposable> action)
     {
         return dueTime == TimeSpan.Zero ? PostOnMainLoop() : PostOnMainLoopAsTimeout();
         
         IDisposable PostOnMainLoop()
         {
-            var composite = new CompositeDisposable(2);
-            var cancellation = new CancellationDisposable();
+            var disposable = new CompositeDisposable(1);
 
-            Application.MainLoop.Invoke(() =>
+            application.Invoke(() =>
             {
-                if (!cancellation.Token.IsCancellationRequested)
-                {
-                    composite.Add(action(this, state));
-                }
+                disposable.Add(action(this, state));
             });
 
-            composite.Add(cancellation);
-            return composite;
+            return disposable;
         }
         
         IDisposable PostOnMainLoopAsTimeout()
         {
-            var composite = new CompositeDisposable(2);
-            
-            var timeout = Application.MainLoop.AddTimeout(dueTime, _ =>
+            var disposable = new CompositeDisposable(1);
+
+            application.AddTimeout(dueTime, () =>
             {
-                composite.Add(action(this, state));
+                disposable.Add(action(this, state));
                 return false;
             });
             
-            composite.Add(Disposable.Create(timeout, static args => Application.MainLoop.RemoveTimeout(args)));
-            return composite;
+            return disposable;
         }
     }
 }

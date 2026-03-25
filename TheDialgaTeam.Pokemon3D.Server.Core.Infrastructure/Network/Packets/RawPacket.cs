@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2026 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,6 +24,11 @@ public record RawPacket(string Version, PacketType PacketType, Origin Origin, st
 {
     public const string ProtocolVersion = "0.5";
 
+    private const int ProtocolVersionLength = 3;
+    private const int IntegerStringMaxLength = 10;
+
+    private static readonly char[] Separator = ['|'];
+
     [ThreadStatic]
     private static StringBuilder? t_stringBuilder;
 
@@ -34,7 +39,7 @@ public record RawPacket(string Version, PacketType PacketType, Origin Origin, st
             rawPacket = null;
             return false;
         }
-        
+
         var currentPacketIndex = 0;
         var maxPacketIndex = 3;
 
@@ -85,7 +90,7 @@ public record RawPacket(string Version, PacketType PacketType, Origin Origin, st
                         {
                             packetType = PacketType.Unknown;
                         }
-                        
+
                         break;
                     }
 
@@ -157,7 +162,36 @@ public record RawPacket(string Version, PacketType PacketType, Origin Origin, st
             }
         }
     }
-    
+
+    public static async Task<IRawPacket?> ParseAsync(StreamReader reader, CancellationToken cancellationToken = default)
+    {
+        var packetType = PacketType.Unknown;
+        var origin = Origin.Server;
+
+        var dataItemIndexLength = 0;
+        var dataItemIndexes = Array.Empty<int>();
+        var currentDataItemIndex = 0;
+
+        var dataItemIndex = 0;
+        var dataItems = Array.Empty<string>();
+
+        // Pretty much the current format is <Version>|<PacketType>|<Origin>|<DataItemCount>|0|<DataItemIndexes>|<DataItems>
+        var versionMemoryOwner = MemoryPool<char>.Shared.Rent(ProtocolVersionLength + 1);
+
+        if (await reader.ReadAsync(versionMemoryOwner.Memory[..(ProtocolVersionLength + 1)], cancellationToken).ConfigureAwait(false) == -1)
+        {
+            return null;
+        }
+
+        if (!versionMemoryOwner.Memory.Slice(ProtocolVersionLength, 1).Span.SequenceEqual(Separator))
+        {
+            return null;
+        }
+
+        var version = versionMemoryOwner.Memory[..ProtocolVersionLength].ToString();
+        return null;
+    }
+
     public string ToRawPacketString()
     {
         t_stringBuilder ??= new StringBuilder();

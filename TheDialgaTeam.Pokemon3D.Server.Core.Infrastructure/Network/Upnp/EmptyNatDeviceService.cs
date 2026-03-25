@@ -15,10 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
 
-public class EmptyNatDeviceService : INatDeviceService
+internal class EmptyNatDeviceService : INatDeviceService
 {
     public IPEndPoint DeviceEndpoint => new(IPAddress.Loopback, 0);
     

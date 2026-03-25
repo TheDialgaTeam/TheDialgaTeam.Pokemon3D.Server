@@ -1,5 +1,5 @@
 ﻿// Pokemon 3D Server Client
-// Copyright (C) 2023 Yong Jian Ming
+// Copyright (C) 2026 Yong Jian Ming
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,25 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Terminal.Gui.ViewBase;
-using Terminal.Gui.Views;
+using System.Net;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Interfaces;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Factory;
 
-internal sealed class PlayerListView : FrameView
+public class TcpNetworkListenerFactory : INetworkListenerFactory
 {
-    public ListView PlayerView { get; }
-    
-    public PlayerListView(IServiceProvider serviceProvider)
+    public INetworkListener Create(IPEndPoint ipEndPoint)
     {
-        Title = "Player Online";
-        
-        PlayerView = new ListView
-        {
-            Width = Dim.Fill(),
-            Height = Dim.Fill()
-        };
-        
-        Add(PlayerView);
+        return new TcpNetworkListener(ipEndPoint);
     }
 }

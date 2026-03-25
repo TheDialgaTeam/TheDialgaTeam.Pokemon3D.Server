@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 
-public class EmptyNatDeviceFactory : INatDeviceFactory
+public interface INatDeviceServiceFactory
 {
-    public Task<INatDeviceService> GetNatDeviceServiceAsync(CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult<INatDeviceService>(new EmptyNatDeviceService());
-    }
+    Task<INatDeviceService> GetAsync(CancellationToken cancellationToken = default);
 }

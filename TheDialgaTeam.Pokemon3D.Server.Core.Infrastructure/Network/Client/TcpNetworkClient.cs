@@ -29,7 +29,7 @@ public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
     public IPEndPoint RemoteEndPoint => tcpClient.Client.RemoteEndPoint as IPEndPoint ?? throw new InvalidOperationException();
 
     public IObservable<IRawPacket> ObservePackets => _rawPacketSubject.AsObservable();
-    public IObservable<Unit> ObserveDisconnected => _disconnectedSubject.AsObservable();
+    public IObservable<Unit> IsDisconnected => _disconnectedSubject.AsObservable();
 
     private readonly StreamReader _reader = new(tcpClient.GetStream(), Encoding.UTF8, false, tcpClient.ReceiveBufferSize, true);
     private readonly StreamWriter _writer = new(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize, true);
@@ -49,6 +49,14 @@ public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
             {
                 try
                 {
+                    if (_reader.Peek() == -1)
+                    {
+                        _rawPacketSubject.OnCompleted();
+                        _disconnectedSubject.OnNext(Unit.Default);
+                        _disconnectedSubject.OnCompleted();
+                        break;
+                    }
+                    
                     var rawPacketString = await _reader.ReadLineAsync(token).ConfigureAwait(false);
                     
                     if (rawPacketString == null)

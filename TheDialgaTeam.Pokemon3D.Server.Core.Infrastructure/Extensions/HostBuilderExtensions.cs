@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -23,8 +24,10 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Provider;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Factory;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Factory;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Provider;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Validator;
 
@@ -32,12 +35,50 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Extensions;
 
 public static class HostBuilderExtensions
 {
-    public static IHostBuilder ConfigurePokemonServerInfrastructure(this IHostBuilder hostBuilder)
+    public class PokemonServerBuilder(IServiceCollection collection)
     {
-        return hostBuilder.ConfigureServices(static collection =>
+        private Type _networkListenerFactoryType = typeof(TcpNetworkListenerFactory);
+        private Type _natDeviceServiceFactoryType = typeof(MonoNatDeviceServiceFactory);
+
+        public PokemonServerBuilder UseTcpNetworkListener()
         {
-            collection.TryAddSingleton<INetworkListener, TcpNetworkListener>();
-            collection.TryAddSingleton<INatDeviceFactory, NatDeviceFactory>();
+            _networkListenerFactoryType = typeof(TcpNetworkListenerFactory);
+            return this;
+        }
+
+        public PokemonServerBuilder UseMonoNatDeviceService()
+        {
+            _natDeviceServiceFactoryType = typeof(MonoNatDeviceServiceFactory);
+            return this;
+        }
+
+        public PokemonServerBuilder UseEmptyNatDeviceService()
+        {
+            _natDeviceServiceFactoryType = typeof(EmptyNatDeviceServiceFactory);
+            return this;
+        }
+
+        public PokemonServerBuilder UseDefaults()
+        {
+            UseTcpNetworkListener();
+            return this;
+        }
+
+        public void Build()
+        {
+            collection.TryAddSingleton(typeof(INetworkListenerFactory), _networkListenerFactoryType);
+            collection.TryAddSingleton(typeof(INatDeviceServiceFactory), _natDeviceServiceFactoryType);
+        }
+    }
+    
+    public static IHostBuilder ConfigurePokemonServerInfrastructure(this IHostBuilder hostBuilder, Action<PokemonServerBuilder> builderAction)
+    {
+        return hostBuilder.ConfigureServices(collection =>
+        {
+            var builder = new PokemonServerBuilder(collection);
+            builderAction.Invoke(builder);
+            builder.Build();
+            
             collection.TryAddSingleton<NetworkClientContainer>();
             collection.TryAddSingleton<NetworkClientHandlerFactory>();
             collection.TryAddSingleton<IPokemonServerService, PokemonServerService>();

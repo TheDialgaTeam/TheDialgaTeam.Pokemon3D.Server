@@ -16,7 +16,7 @@
 
 using System.Net;
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 
 public interface INatDeviceService
 {

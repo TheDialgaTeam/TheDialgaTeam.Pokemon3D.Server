@@ -15,27 +15,23 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Hosting;
-using Terminal.Gui;
+using Terminal.Gui.App;
 using TheDialgaTeam.Pokemon3D.Server.Cli.Views;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.Services;
 
-internal sealed class ConsoleGuiService : BackgroundService
+internal sealed class ConsoleGuiService(IServiceProvider serviceProvider, IApplication application, IHostApplicationLifetime lifetime) : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public ConsoleGuiService(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         return Task.Factory.StartNew(() =>
         {
-            Application.Init();
-            Application.QuitKey = Key.F1;
-            Application.Run(new MainConsoleView(_serviceProvider));
+#pragma warning disable IL2026
+            application.Init();
+#pragma warning restore IL2026
+            application.Run(new MainConsoleView(serviceProvider));
+            application.Dispose();
+            lifetime.StopApplication();
         }, stoppingToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 }

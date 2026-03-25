@@ -16,10 +16,11 @@
 
 using System.Net;
 using Mono.Nat;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
 
-public class NatDeviceService(INatDevice natDevice) : INatDeviceService
+internal class MonoNatDeviceService(INatDevice natDevice) : INatDeviceService
 {
     public IPEndPoint DeviceEndpoint => natDevice.DeviceEndpoint;
     

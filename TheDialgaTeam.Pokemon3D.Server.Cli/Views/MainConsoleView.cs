@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using Terminal.Gui;
+using Microsoft.Extensions.DependencyInjection;
+using Terminal.Gui.App;
+using Terminal.Gui.Input;
+using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 using ApplicationUtility = TheDialgaTeam.Pokemon3D.Server.Cli.Utilities.ApplicationUtility;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Cli.Views;
@@ -38,9 +42,11 @@ internal sealed class MainConsoleView : Window
             Height = Dim.Fill(1)
         };
 
+        var application = serviceProvider.GetRequiredService<IApplication>();
+        
         var statusItems = new[]
         {
-            new StatusItem(Application.QuitKey, $"~{Enum.GetName(Application.QuitKey)}~ Quit", Application.Shutdown)
+            new Shortcut(Application.GetDefaultKey(Command.Quit), "Quit", application.RequestStop)
         };
 
         var statusBar = new StatusBar(statusItems)

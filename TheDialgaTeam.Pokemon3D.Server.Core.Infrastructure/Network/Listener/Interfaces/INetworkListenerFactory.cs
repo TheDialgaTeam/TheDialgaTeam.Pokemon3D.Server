@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
+using System.Net;
 
-public interface INatDeviceFactory
+namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Interfaces;
+
+public interface INetworkListenerFactory
 {
-    Task<INatDeviceService> GetNatDeviceServiceAsync(CancellationToken cancellationToken = default);
+    INetworkListener Create(IPEndPoint ipEndPoint);
 }

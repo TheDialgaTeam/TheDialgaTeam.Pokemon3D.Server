@@ -16,28 +16,37 @@
 
 using System.Net;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
 
 public partial class PokemonServerService(
     ILogger<PokemonServerService> logger,
     IOptionsMonitor<ServerOptions> optionsMonitor,
-    INatDeviceFactory natDeviceFactory,
-    INetworkListener networkListener,
+    INatDeviceServiceFactory natDeviceServiceFactory,
+    INetworkListenerFactory networkListenerFactory,
     NetworkClientContainer networkClientContainer
 ) : IPokemonServerService
 {
-    private IPEndPoint _targetEndPoint = new(IPAddress.Any, 15124);
-    private INatDeviceService? _natDeviceService;
-    private IDisposable? _disposables;
-
+    public IObservable<bool> IsActive => _isActiveSubject.AsObservable();
+    public IObservable<bool> IsListening => _isListeningSubject.AsObservable();
+    
     private bool _isActive;
+    private readonly BehaviorSubject<bool> _isActiveSubject = new(false);
+    
+    private IPEndPoint _targetEndPoint = new(IPAddress.Any, 15124);
+    
+    private INatDeviceService? _natDeviceService;
+    private INetworkListener? _networkListener;
+    
+    private readonly BehaviorSubject<bool> _isListeningSubject = new(false);
+    private IDisposable? _isListeningObserver;
 
     [LoggerMessage(LogLevel.Information, "[Server] Found NAT device: {deviceEndPoint}")]
     private static partial void LogFoundNatDeviceDevice(ILogger<PokemonServerService> logger, IPEndPoint deviceEndPoint);
@@ -51,9 +60,7 @@ public partial class PokemonServerService(
     public async Task StartServerAsync(CancellationToken cancellationToken = default)
     {
         if (Interlocked.Exchange(ref _isActive, true) is not false) return;
-
-        logger.LogInformation("[Server] Starting Pokemon 3D Server");
-
+        
         var options = optionsMonitor.CurrentValue;
 
         _targetEndPoint = IPEndPoint.Parse(options.BindingInformation);
@@ -65,7 +72,7 @@ public partial class PokemonServerService(
 
             try
             {
-                _natDeviceService = await natDeviceFactory.GetNatDeviceServiceAsync(unionCTS.Token).ConfigureAwait(false);
+                _natDeviceService = await natDeviceServiceFactory.GetAsync(unionCTS.Token).ConfigureAwait(false);
                 LogFoundNatDeviceDevice(logger, _natDeviceService.DeviceEndpoint);
 
                 try
@@ -84,23 +91,24 @@ public partial class PokemonServerService(
             }
         }
 
-        _disposables = networkListener
-            .ObserveConnections(_targetEndPoint)
-            .Do(client => LogServerIncomingConnection(logger, client.RemoteEndPoint.Address))
-            .Subscribe(networkClientContainer.AddNewConnection);
+        _networkListener = networkListenerFactory.Create(_targetEndPoint);
+        _isListeningObserver = _networkListener.IsListening.Subscribe(_isListeningSubject);
+        _networkListener.ObserveConnections.Do(client => logger.LogInformation("[Server] New Connection: {test}", client.RemoteEndPoint)).Subscribe();
+        _networkListener.StartListening();
     }
 
     public async Task StopServerAsync(CancellationToken cancellationToken = default)
     {
         if (Interlocked.Exchange(ref _isActive, false) is not true) return;
-
-        _disposables?.Dispose();
+        
+        _isListeningObserver?.Dispose();
+        _networkListener?.StopListening();
 
         if (_natDeviceService is not null)
         {
             await _natDeviceService.DestroyPortMappingAsync(_targetEndPoint.Port, cancellationToken).ConfigureAwait(false);
         }
-
-        logger.LogInformation("[Server] Stopped Pokemon 3D Server");
+        
+        _isActiveSubject.OnNext(false);
     }
 }

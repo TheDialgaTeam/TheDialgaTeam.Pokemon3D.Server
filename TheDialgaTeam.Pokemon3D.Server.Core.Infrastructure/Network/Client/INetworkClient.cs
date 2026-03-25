@@ -26,7 +26,7 @@ public interface INetworkClient : IDisposable
     
     IObservable<IRawPacket> ObservePackets { get; }
     
-    IObservable<Unit> ObserveDisconnected { get; }
+    IObservable<Unit> IsDisconnected { get; }
 
     void StartListening();
 
