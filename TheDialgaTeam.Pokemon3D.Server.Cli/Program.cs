@@ -38,7 +38,7 @@ internal static class Program
 
         return Host.CreateDefaultBuilder(args)
             .ConfigurePokemonServerApplication()
-            .ConfigurePokemonServerInfrastructure(builder => { builder.UseDefaults(); })
+            .ConfigurePokemonServerInfrastructure()
             .ConfigureServices(static (context, collection) =>
             {
                 collection.AddMediator();

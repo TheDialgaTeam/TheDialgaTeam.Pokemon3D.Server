@@ -26,12 +26,13 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
 
 public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
 {
-    public IPEndPoint RemoteEndPoint => tcpClient.Client.RemoteEndPoint as IPEndPoint ?? throw new InvalidOperationException();
+    public IPEndPoint RemoteEndPoint { get; } = tcpClient.Client.RemoteEndPoint as IPEndPoint ?? throw new InvalidOperationException();
 
     public IObservable<IRawPacket> ObservePackets => _rawPacketSubject.AsObservable();
     public IObservable<Unit> IsDisconnected => _disconnectedSubject.AsObservable();
 
-    private readonly StreamReader _reader = new(tcpClient.GetStream(), Encoding.UTF8, false, tcpClient.ReceiveBufferSize, true);
+    private readonly TcpClient _tcpClient = tcpClient;
+    private readonly PacketStreamReader _reader = new(tcpClient.GetStream(), tcpClient.ReceiveBufferSize);
     private readonly StreamWriter _writer = new(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize, true);
     
     private readonly SemaphoreSlim _writeSemaphoreSlim = new(1, 1);
@@ -45,21 +46,13 @@ public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
     {
         _listeningTask ??= Observable.FromAsync(async token =>
         {
-            while (tcpClient.Connected && !token.IsCancellationRequested)
+            while (_tcpClient.Connected && !token.IsCancellationRequested)
             {
                 try
                 {
-                    if (_reader.Peek() == -1)
-                    {
-                        _rawPacketSubject.OnCompleted();
-                        _disconnectedSubject.OnNext(Unit.Default);
-                        _disconnectedSubject.OnCompleted();
-                        break;
-                    }
-                    
-                    var rawPacketString = await _reader.ReadLineAsync(token).ConfigureAwait(false);
-                    
-                    if (rawPacketString == null)
+                    var rawPacket = await _reader.ReadPacketAsync(token).ConfigureAwait(false);
+
+                    if (rawPacket == null)
                     {
                         _rawPacketSubject.OnCompleted();
                         _disconnectedSubject.OnNext(Unit.Default);
@@ -67,13 +60,19 @@ public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
                         break;
                     }
 
-                    if (!RawPacket.TryParse(rawPacketString, out var rawPacket)) continue;
-                    
                     _rawPacketSubject.OnNext(rawPacket);
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
                     _rawPacketSubject.OnError(exception);
+                    _disconnectedSubject.OnNext(Unit.Default);
+                    _disconnectedSubject.OnCompleted();
+                }
+                catch (OperationCanceledException)
+                {
+                    _rawPacketSubject.OnCompleted();
+                    _disconnectedSubject.OnNext(Unit.Default);
+                    _disconnectedSubject.OnCompleted();
                 }
             }
         }).Subscribe();
@@ -97,6 +96,6 @@ public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
     {
         _listeningTask?.Dispose();
         _writeSemaphoreSlim.Dispose();
-        tcpClient.Dispose();
+        _tcpClient.Dispose();
     }
 }

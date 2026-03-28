@@ -15,32 +15,17 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
-using System.Net.Sockets;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Extensions;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Interfaces;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets.Types;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Factory;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Test.Network.Listener;
 
 public class TcpNetworkListenerTest
 {
-    private static IHost CreateHost()
-    {
-        return Host.CreateDefaultBuilder()
-            .ConfigurePokemonServerInfrastructure(builder => builder.UseTcpNetworkListener())
-            .Build();
-    }
-
     [Fact]
     public void SimpleStartStopTest()
     {
-        var host = CreateHost();
-        var factory = host.Services.GetRequiredService<INetworkListenerFactory>();
+        var factory = new TcpNetworkListenerFactory();
         var listener = factory.Create(new IPEndPoint(IPAddress.Loopback, 15124));
 
         IList<bool> isListening = [];

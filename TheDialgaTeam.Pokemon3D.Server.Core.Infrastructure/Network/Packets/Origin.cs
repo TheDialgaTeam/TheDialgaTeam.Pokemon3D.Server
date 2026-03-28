@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Packets;
 
-public readonly record struct Origin(int Id)
+public readonly record struct Origin(int Id) : IFormattable, IParsable<Origin>
 {
     public static Origin Server => new(-1);
     
@@ -37,5 +38,22 @@ public readonly record struct Origin(int Id)
     public string ToRawString()
     {
         return Id.ToString(CultureInfo.InvariantCulture);
+    }
+
+    public string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        return Id.ToString(format, formatProvider);
+    }
+
+    public static Origin Parse(string s, IFormatProvider? provider)
+    {
+        return new Origin(int.Parse(s, provider));
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out Origin result)
+    {
+        var parse = int.TryParse(s, provider, out var id);
+        result = parse ? new Origin(id) : default;
+        return parse;
     }
 }

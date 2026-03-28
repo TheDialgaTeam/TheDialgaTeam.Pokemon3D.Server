@@ -29,7 +29,10 @@ public class NetworkClientContainer(NetworkClientHandlerFactory factory)
     
     public void AddNewConnection(INetworkClient networkClient)
     {
-        _clients.TryAdd(networkClient, factory.Create(networkClient));
+        if (!_clients.TryAdd(networkClient, factory.Create(networkClient)))
+        {
+            networkClient.Dispose();
+        }
     }
 
     public void RemoveConnection(INetworkClient networkClient)

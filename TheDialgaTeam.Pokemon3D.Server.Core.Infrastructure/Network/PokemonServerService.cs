@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Microsoft.Extensions.Logging;
@@ -36,31 +38,34 @@ public partial class PokemonServerService(
 {
     public IObservable<bool> IsActive => _isActiveSubject.AsObservable();
     public IObservable<bool> IsListening => _isListeningSubject.AsObservable();
-    
+
     private bool _isActive;
     private readonly BehaviorSubject<bool> _isActiveSubject = new(false);
-    
+
     private IPEndPoint _targetEndPoint = new(IPAddress.Any, 15124);
-    
+
     private INatDeviceService? _natDeviceService;
     private INetworkListener? _networkListener;
-    
+
     private readonly BehaviorSubject<bool> _isListeningSubject = new(false);
-    private IDisposable? _isListeningObserver;
+
+    private CompositeDisposable _disposable = new();
 
     [LoggerMessage(LogLevel.Information, "[Server] Found NAT device: {deviceEndPoint}")]
     private static partial void LogFoundNatDeviceDevice(ILogger<PokemonServerService> logger, IPEndPoint deviceEndPoint);
 
-    [LoggerMessage(LogLevel.Information, "[Server] Server started listening at: {ipEndPoint}")]
-    private static partial void LogServerStartedListeningAtIpEndpoint(ILogger<PokemonServerService> logger, IPEndPoint ipEndPoint);
+    [LoggerMessage(LogLevel.Information, "[Server] Server is listening on {ipEndPoint}.")]
+    private static partial void LogServerIsListeningOn(ILogger<PokemonServerService> logger, IPEndPoint ipEndPoint);
 
-    [LoggerMessage(LogLevel.Trace, "[Server] Incoming connection: {remoteIpAddress}")]
-    private static partial void LogServerIncomingConnection(ILogger<PokemonServerService> logger, IPAddress remoteIpAddress);
+    [LoggerMessage(LogLevel.Trace, "[Server] New incoming connection: {RemoteEndPoint}")]
+    private static partial void LogServerNewIncomingConnection(ILogger<PokemonServerService> logger, IPEndPoint RemoteEndPoint);
 
     public async Task StartServerAsync(CancellationToken cancellationToken = default)
     {
         if (Interlocked.Exchange(ref _isActive, true) is not false) return;
-        
+
+        logger.LogInformation("[Server] Starting server...");
+
         var options = optionsMonitor.CurrentValue;
 
         _targetEndPoint = IPEndPoint.Parse(options.BindingInformation);
@@ -72,6 +77,7 @@ public partial class PokemonServerService(
 
             try
             {
+                logger.LogInformation("[Server] Searching for NAT devices...");
                 _natDeviceService = await natDeviceServiceFactory.GetAsync(unionCTS.Token).ConfigureAwait(false);
                 LogFoundNatDeviceDevice(logger, _natDeviceService.DeviceEndpoint);
 
@@ -91,24 +97,37 @@ public partial class PokemonServerService(
             }
         }
 
+        _disposable = new CompositeDisposable();
+
         _networkListener = networkListenerFactory.Create(_targetEndPoint);
-        _isListeningObserver = _networkListener.IsListening.Subscribe(_isListeningSubject);
-        _networkListener.ObserveConnections.Do(client => logger.LogInformation("[Server] New Connection: {test}", client.RemoteEndPoint)).Subscribe();
+        _networkListener.ObserveConnections
+            .Do(client => LogServerNewIncomingConnection(logger, client.RemoteEndPoint))
+            .Subscribe(networkClientContainer.AddNewConnection)
+            .DisposeWith(_disposable);
+        _networkListener.IsListening.Subscribe(_isListeningSubject).DisposeWith(_disposable);
         _networkListener.StartListening();
+
+        logger.LogInformation("[Server] Server started.");
+
+        _isActiveSubject.OnNext(true);
     }
 
     public async Task StopServerAsync(CancellationToken cancellationToken = default)
     {
         if (Interlocked.Exchange(ref _isActive, false) is not true) return;
-        
-        _isListeningObserver?.Dispose();
+
+        logger.LogInformation("[Server] Stopping server...");
+
         _networkListener?.StopListening();
+        _disposable.Dispose();
 
         if (_natDeviceService is not null)
         {
             await _natDeviceService.DestroyPortMappingAsync(_targetEndPoint.Port, cancellationToken).ConfigureAwait(false);
         }
-        
+
+        logger.LogInformation("[Server] Server stopped.");
+
         _isActiveSubject.OnNext(false);
     }
 }

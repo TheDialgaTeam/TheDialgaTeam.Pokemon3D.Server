@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -35,52 +34,16 @@ namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Extensions;
 
 public static class HostBuilderExtensions
 {
-    public class PokemonServerBuilder(IServiceCollection collection)
-    {
-        private Type _networkListenerFactoryType = typeof(TcpNetworkListenerFactory);
-        private Type _natDeviceServiceFactoryType = typeof(MonoNatDeviceServiceFactory);
-
-        public PokemonServerBuilder UseTcpNetworkListener()
-        {
-            _networkListenerFactoryType = typeof(TcpNetworkListenerFactory);
-            return this;
-        }
-
-        public PokemonServerBuilder UseMonoNatDeviceService()
-        {
-            _natDeviceServiceFactoryType = typeof(MonoNatDeviceServiceFactory);
-            return this;
-        }
-
-        public PokemonServerBuilder UseEmptyNatDeviceService()
-        {
-            _natDeviceServiceFactoryType = typeof(EmptyNatDeviceServiceFactory);
-            return this;
-        }
-
-        public PokemonServerBuilder UseDefaults()
-        {
-            UseTcpNetworkListener();
-            return this;
-        }
-
-        public void Build()
-        {
-            collection.TryAddSingleton(typeof(INetworkListenerFactory), _networkListenerFactoryType);
-            collection.TryAddSingleton(typeof(INatDeviceServiceFactory), _natDeviceServiceFactoryType);
-        }
-    }
-    
-    public static IHostBuilder ConfigurePokemonServerInfrastructure(this IHostBuilder hostBuilder, Action<PokemonServerBuilder> builderAction)
+    public static IHostBuilder ConfigurePokemonServerInfrastructure(this IHostBuilder hostBuilder)
     {
         return hostBuilder.ConfigureServices(collection =>
         {
-            var builder = new PokemonServerBuilder(collection);
-            builderAction.Invoke(builder);
-            builder.Build();
+            collection.TryAddSingleton<INetworkListenerFactory, TcpNetworkListenerFactory>();
+            collection.TryAddSingleton<INatDeviceServiceFactory, MonoNatDeviceServiceFactory>();
             
             collection.TryAddSingleton<NetworkClientContainer>();
             collection.TryAddSingleton<NetworkClientHandlerFactory>();
+            collection.TryAddSingleton<NetworkClientPacketHandler>();
             collection.TryAddSingleton<IPokemonServerService, PokemonServerService>();
 
             collection.AddOptions<ServerOptions>().BindConfiguration("Server").ValidateOnStart();
