@@ -14,62 +14,47 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
 
-internal class TcpNetworkListener(IPEndPoint ipEndPoint) : INetworkListener
+internal static class TcpNetworkListener
 {
-    public IPEndPoint LocalEndPoint => ipEndPoint;
-    
-    public IObservable<INetworkClient> ObserveConnections => _incomingClientSubject.AsObservable();
-    public IObservable<bool> IsListening => _isListeningSubject.AsObservable();
-    
-    private readonly TcpListener _tcpListener = new(ipEndPoint);
-    
-    private bool _isListening;
-    
-    private readonly Subject<INetworkClient> _incomingClientSubject = new();
-    private readonly BehaviorSubject<bool> _isListeningSubject = new(false);
-    
-    private IDisposable? _incomingClientDisposable;
-    
-    public void StartListening()
+    public static IObservable<INetworkClient> Create(IPEndPoint ipEndPoint, Action<TcpListener>? configure = null)
     {
-        if (Interlocked.CompareExchange(ref _isListening, true, false) is not false) return;
-        
-        _tcpListener.Start();
-        _isListeningSubject.OnNext(true);
-
-        _incomingClientDisposable = Observable.FromAsync(async token =>
+        return Observable.Create<INetworkClient>(async (observer, token) =>
         {
-            while (_tcpListener.Server.IsBound && !token.IsCancellationRequested)
+            try
             {
-                try
+                var listener = new TcpListener(ipEndPoint);
+                configure?.Invoke(listener);
+                listener.Start();
+                
+                while (listener.Server.IsBound && !token.IsCancellationRequested)
                 {
-                    _incomingClientSubject.OnNext(new TcpNetworkClient(await _tcpListener.AcceptTcpClientAsync(token).ConfigureAwait(false)));
+                    try
+                    {
+                        observer.OnNext(new TcpNetworkClient(await listener.AcceptTcpClientAsync(token).ConfigureAwait(false)));
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
                 }
-                catch (OperationCanceledException)
-                {
-                }
+                
+                observer.OnCompleted();
+                listener.Stop();
             }
-        }).Subscribe();
-    }
-    
-    public void StopListening()
-    {
-        if (Interlocked.CompareExchange(ref _isListening, false, true) is not true) return;
-
-        Debug.Assert(_incomingClientDisposable != null, nameof(_incomingClientDisposable) + " != null");
-        _incomingClientDisposable.Dispose();
-        
-        _tcpListener.Stop();
-        _isListeningSubject.OnNext(false);
+            catch (SocketException exception)
+            {
+                observer.OnError(exception);
+            }
+            
+            return Disposable.Empty;
+        });
     }
 }

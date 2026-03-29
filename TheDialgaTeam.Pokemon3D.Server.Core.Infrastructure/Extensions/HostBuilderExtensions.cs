@@ -23,8 +23,6 @@ using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options.Provider;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Factory;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Factory;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Options.Provider;
@@ -38,7 +36,6 @@ public static class HostBuilderExtensions
     {
         return hostBuilder.ConfigureServices(collection =>
         {
-            collection.TryAddSingleton<INetworkListenerFactory, TcpNetworkListenerFactory>();
             collection.TryAddSingleton<INatDeviceServiceFactory, MonoNatDeviceServiceFactory>();
             
             collection.TryAddSingleton<NetworkClientContainer>();

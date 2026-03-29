@@ -31,7 +31,6 @@ public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
     public IObservable<IRawPacket> ObservePackets => _rawPacketSubject.AsObservable();
     public IObservable<Unit> IsDisconnected => _disconnectedSubject.AsObservable();
 
-    private readonly TcpClient _tcpClient = tcpClient;
     private readonly PacketStreamReader _reader = new(tcpClient.GetStream(), tcpClient.ReceiveBufferSize);
     private readonly StreamWriter _writer = new(tcpClient.GetStream(), Encoding.UTF8, tcpClient.SendBufferSize, true);
     
@@ -46,7 +45,7 @@ public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
     {
         _listeningTask ??= Observable.FromAsync(async token =>
         {
-            while (_tcpClient.Connected && !token.IsCancellationRequested)
+            while (tcpClient.Connected && !token.IsCancellationRequested)
             {
                 try
                 {
@@ -96,6 +95,6 @@ public sealed class TcpNetworkClient(TcpClient tcpClient) : INetworkClient
     {
         _listeningTask?.Dispose();
         _writeSemaphoreSlim.Dispose();
-        _tcpClient.Dispose();
+        tcpClient.Dispose();
     }
 }

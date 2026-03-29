@@ -20,8 +20,6 @@ public interface IPokemonServerService
 {
     IObservable<bool> IsActive { get; }
     
-    IObservable<bool> IsListening { get; }
-    
     Task StartServerAsync(CancellationToken cancellationToken = default);
 
     Task StopServerAsync(CancellationToken cancellationToken = default);

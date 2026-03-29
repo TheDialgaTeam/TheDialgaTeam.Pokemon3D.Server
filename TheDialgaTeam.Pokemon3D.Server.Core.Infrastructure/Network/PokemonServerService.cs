@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Network;
 using TheDialgaTeam.Pokemon3D.Server.Core.Application.Options;
-using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener.Interfaces;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Client;
+using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Listener;
 using TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network.Upnp.Interfaces;
 
 namespace TheDialgaTeam.Pokemon3D.Server.Core.Infrastructure.Network;
@@ -32,12 +32,10 @@ public partial class PokemonServerService(
     ILogger<PokemonServerService> logger,
     IOptionsMonitor<ServerOptions> optionsMonitor,
     INatDeviceServiceFactory natDeviceServiceFactory,
-    INetworkListenerFactory networkListenerFactory,
     NetworkClientContainer networkClientContainer
 ) : IPokemonServerService
 {
     public IObservable<bool> IsActive => _isActiveSubject.AsObservable();
-    public IObservable<bool> IsListening => _isListeningSubject.AsObservable();
 
     private bool _isActive;
     private readonly BehaviorSubject<bool> _isActiveSubject = new(false);
@@ -45,16 +43,14 @@ public partial class PokemonServerService(
     private IPEndPoint _targetEndPoint = new(IPAddress.Any, 15124);
 
     private INatDeviceService? _natDeviceService;
-    private INetworkListener? _networkListener;
+    
+    [AllowNull]
+    private IDisposable _networkListener;
 
-    private readonly BehaviorSubject<bool> _isListeningSubject = new(false);
-
-    private CompositeDisposable _disposable = new();
-
-    [LoggerMessage(LogLevel.Information, "[Server] Found NAT device: {deviceEndPoint}")]
+    [LoggerMessage(LogLevel.Information, "[Server] Found NAT device: {DeviceEndPoint}")]
     private static partial void LogFoundNatDeviceDevice(ILogger<PokemonServerService> logger, IPEndPoint deviceEndPoint);
 
-    [LoggerMessage(LogLevel.Information, "[Server] Server is listening on {ipEndPoint}.")]
+    [LoggerMessage(LogLevel.Information, "[Server] Server is listening on {IpEndPoint}.")]
     private static partial void LogServerIsListeningOn(ILogger<PokemonServerService> logger, IPEndPoint ipEndPoint);
 
     [LoggerMessage(LogLevel.Trace, "[Server] New incoming connection: {RemoteEndPoint}")]
@@ -96,17 +92,16 @@ public partial class PokemonServerService(
                 logger.LogWarning(ex, "[Server] No NAT device found.");
             }
         }
-
-        _disposable = new CompositeDisposable();
-
-        _networkListener = networkListenerFactory.Create(_targetEndPoint);
-        _networkListener.ObserveConnections
+        
+        _networkListener = TcpNetworkListener.Create(_targetEndPoint)
             .Do(client => LogServerNewIncomingConnection(logger, client.RemoteEndPoint))
-            .Subscribe(networkClientContainer.AddNewConnection)
-            .DisposeWith(_disposable);
-        _networkListener.IsListening.Subscribe(_isListeningSubject).DisposeWith(_disposable);
-        _networkListener.StartListening();
-
+            .Catch<INetworkClient, Exception>(exception =>
+            {
+                logger.LogError(exception, "[Server] {Message}", exception.Message);
+                return Observable.Empty<INetworkClient>();
+            })
+            .Subscribe(networkClientContainer.AddNewConnection);
+        
         logger.LogInformation("[Server] Server started.");
 
         _isActiveSubject.OnNext(true);
@@ -118,8 +113,7 @@ public partial class PokemonServerService(
 
         logger.LogInformation("[Server] Stopping server...");
 
-        _networkListener?.StopListening();
-        _disposable.Dispose();
+        _networkListener.Dispose();
 
         if (_natDeviceService is not null)
         {
